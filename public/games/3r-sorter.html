@@ -1,0 +1,1425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>3R Sorter — Wastify</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-main: #FFFBF5;
+    --card-bg: #FFFFFF;
+    --border-color: #E2E8F0;
+    --text-primary: #1E293B;
+    --text-secondary: #64748B;
+    --text-muted: #94A3B8;
+
+    --theme-orange: #EA580C;
+    --theme-orange-light: #FFEDD5;
+    --theme-orange-dark: #C2410C;
+
+    --reduce-color: #EA580C;
+    --reduce-bg: #FFF7ED;
+    --reduce-border: #FDBA74;
+
+    --reuse-color: #0284C7;
+    --reuse-bg: #F0F9FF;
+    --reuse-border: #7DD3FC;
+
+    --recycle-color: #16A34A;
+    --recycle-bg: #F0FDF4;
+    --recycle-border: #86EFAC;
+
+    --correct-green: #22C55E;
+    --wrong-red: #EF4444;
+
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  * {
+    box-sizing: inherit;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    -webkit-user-select: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  html, body {
+    height: 100%;
+    margin: 0;
+    background: var(--bg-main);
+    color: var(--text-primary);
+    font-family: 'Inter', -apple-system, sans-serif;
+    overflow-x: hidden;
+    overscroll-behavior: none;
+  }
+
+  body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100%;
+    background-image: 
+      radial-gradient(circle at 10% 10%, rgba(234, 88, 12, 0.05) 0%, transparent 40%),
+      radial-gradient(circle at 90% 90%, rgba(2, 132, 199, 0.05) 0%, transparent 40%),
+      linear-gradient(rgba(234, 88, 12, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(234, 88, 12, 0.03) 1px, transparent 1px);
+    background-size: 100% 100%, 100% 100%, 24px 24px, 24px 24px;
+  }
+
+  /* Header Topbar */
+  .topbar {
+    width: 100%;
+    max-width: 840px;
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+    z-index: 20;
+    border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(8px);
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .brand-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #EA580C, #F97316);
+    color: #FFFFFF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    box-shadow: 0 4px 10px rgba(234, 88, 12, 0.3);
+  }
+
+  .brand-text h1 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 17px;
+    font-weight: 800;
+    color: #0F172A;
+    letter-spacing: -0.3px;
+  }
+
+  .brand-text p {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--theme-orange);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .top-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .score-badge {
+    background: var(--theme-orange-light);
+    border: 1px solid var(--reduce-border);
+    padding: 6px 12px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--theme-orange-dark);
+  }
+
+  .btn-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
+    background: #FFFFFF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-icon:hover {
+    background: #F8FAFC;
+    border-color: #CBD5E1;
+  }
+
+  .btn-exit {
+    background: #0F172A;
+    color: #FFFFFF;
+    border: none;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 12.5px;
+    padding: 8px 16px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-exit:hover {
+    background: #1E293B;
+  }
+
+  /* Main Game Area */
+  .main-wrapper {
+    width: 100%;
+    max-width: 840px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 14px 18px 20px;
+    position: relative;
+    min-height: 0;
+  }
+
+  /* Progress Track */
+  .progress-bar-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+    gap: 12px;
+  }
+
+  .dots-row {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    flex-wrap: wrap;
+    flex: 1;
+  }
+
+  .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #CBD5E1;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .dot.active {
+    background: var(--theme-orange);
+    transform: scale(1.4);
+    box-shadow: 0 0 6px rgba(234, 88, 12, 0.6);
+  }
+
+  .dot.done {
+    background: var(--recycle-color);
+  }
+
+  .item-counter-tag {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    white-space: nowrap;
+  }
+
+  /* Content Grid */
+  .game-grid {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 18px;
+    flex: 1;
+    min-height: 0;
+    align-items: start;
+  }
+
+  /* Left Side: Active Item Card & Pyramid */
+  .left-col {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .item-card-zone {
+    background: var(--card-bg);
+    border: 2px dashed #CBD5E1;
+    border-radius: 20px;
+    padding: 22px 18px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    position: relative;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.04);
+    transition: all 0.3s;
+  }
+
+  .item-card-zone.active-item {
+    border-color: var(--theme-orange);
+    border-style: solid;
+    box-shadow: 0 12px 30px rgba(234, 88, 12, 0.12);
+  }
+
+  .item-kicker {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--theme-orange);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 8px;
+  }
+
+  /* Draggable Item */
+  .draggable-item {
+    width: 100%;
+    cursor: grab;
+    touch-action: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    z-index: 10;
+    will-change: transform;
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .draggable-item.dragging {
+    cursor: grabbing;
+    transition: none;
+    z-index: 100;
+  }
+
+  .draggable-item.shake {
+    animation: bounceBack 0.45s ease;
+  }
+
+  @keyframes bounceBack {
+    0% { transform: scale(1.1) rotate(-5deg); }
+    25% { transform: scale(1.05) rotate(5deg) translateY(-8px); }
+    50% { transform: scale(1.02) rotate(-3deg); }
+    75% { transform: scale(1.01) rotate(2deg); }
+    100% { transform: scale(1) rotate(0deg); }
+  }
+
+  .draggable-item.pop-out {
+    animation: popOut 0.35s ease forwards;
+  }
+
+  @keyframes popOut {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.3) translateY(-10px); opacity: 0.9; }
+    100% { transform: scale(0.2); opacity: 0; }
+  }
+
+  .draggable-item.pop-in {
+    animation: popIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  @keyframes popIn {
+    0% { transform: scale(0.4); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  .item-emoji-box {
+    width: 90px;
+    height: 90px;
+    border-radius: 20px;
+    background: #FFF7ED;
+    border: 2px solid #FFEDD5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 50px;
+    margin-bottom: 12px;
+    box-shadow: 0 8px 16px rgba(234, 88, 12, 0.08);
+  }
+
+  .item-name {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 19px;
+    font-weight: 800;
+    color: #0F172A;
+    margin-bottom: 4px;
+    line-height: 1.25;
+  }
+
+  .item-detail {
+    font-size: 12.5px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    line-height: 1.35;
+    margin-bottom: 12px;
+  }
+
+  .drag-hint-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #F1F5F9;
+    color: var(--text-secondary);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 6px 12px;
+    border-radius: 20px;
+    pointer-events: none;
+    animation: floatHint 2s ease-in-out infinite;
+  }
+
+  @keyframes floatHint {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-3px); }
+  }
+
+  /* Feedback Message Banner */
+  .feedback-toast {
+    min-height: 38px;
+    font-size: 12.5px;
+    font-weight: 600;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 14px;
+    text-align: center;
+    line-height: 1.35;
+    opacity: 0;
+    transform: translateY(4px);
+    transition: all 0.25s ease;
+  }
+
+  .feedback-toast.show-correct {
+    opacity: 1;
+    transform: translateY(0);
+    background: #DCFCE7;
+    color: #15803D;
+    border: 1px solid #86EFAC;
+  }
+
+  .feedback-toast.show-wrong {
+    opacity: 1;
+    transform: translateY(0);
+    background: #FEE2E2;
+    color: #B91C1C;
+    border: 1px solid #FCA5A5;
+  }
+
+  /* 3R Pyramid Visual Widget */
+  .pyramid-card {
+    background: #FFFFFF;
+    border: 1px solid var(--border-color);
+    border-radius: 18px;
+    padding: 14px 16px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.03);
+  }
+
+  .pyramid-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+
+  .pyramid-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 12px;
+    font-weight: 800;
+    color: #475569;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .pyramid-info {
+    font-size: 10.5px;
+    color: var(--text-muted);
+    font-weight: 600;
+  }
+
+  .pyramid-levels {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .pyr-tier {
+    border-radius: 10px;
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    transition: all 0.25s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .pyr-tier .pyr-title {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .pyr-tier .pyr-count {
+    font-size: 11px;
+    font-weight: 800;
+    padding: 2px 7px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.8);
+  }
+
+  /* Tier 1: REDUCE (Top / Widest / Most Preferred) */
+  .pyr-tier.tier-reduce {
+    background: linear-gradient(135deg, #FFEDD5 0%, #FED7AA 100%);
+    border: 1.5px solid #FB923C;
+    color: #9A3412;
+  }
+
+  .pyr-tier.tier-reduce.highlight {
+    transform: scale(1.03);
+    box-shadow: 0 0 14px rgba(234, 88, 12, 0.4);
+  }
+
+  /* Tier 2: REUSE (Middle) */
+  .pyr-tier.tier-reuse {
+    background: linear-gradient(135deg, #E0F2FE 0%, #BAE6FD 100%);
+    border: 1.5px solid #38BDF8;
+    color: #0369A1;
+    margin: 0 10px;
+  }
+
+  .pyr-tier.tier-reuse.highlight {
+    transform: scale(1.03);
+    box-shadow: 0 0 14px rgba(2, 132, 199, 0.4);
+  }
+
+  /* Tier 3: RECYCLE (Bottom / Narrowest / Last Resort) */
+  .pyr-tier.tier-recycle {
+    background: linear-gradient(135deg, #DCFCE7 0%, #BBF7D0 100%);
+    border: 1.5px solid #4ADE80;
+    color: #15803D;
+    margin: 0 20px;
+  }
+
+  .pyr-tier.tier-recycle.highlight {
+    transform: scale(1.03);
+    box-shadow: 0 0 14px rgba(22, 163, 74, 0.4);
+  }
+
+  /* Right Side: 3 Drop Zones */
+  .right-col {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .zone-card {
+    background: #FFFFFF;
+    border: 2px solid var(--border-color);
+    border-radius: 18px;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .zone-card:hover {
+    transform: translateX(4px);
+  }
+
+  .zone-icon-box {
+    width: 58px;
+    height: 58px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    flex-shrink: 0;
+    transition: transform 0.2s;
+  }
+
+  .zone-info {
+    flex: 1;
+  }
+
+  .zone-priority {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    margin-bottom: 2px;
+  }
+
+  .zone-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: -0.2px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .zone-desc {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-top: 2px;
+  }
+
+  .zone-tap-btn {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 6px 12px;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    opacity: 0.8;
+    white-space: nowrap;
+    transition: all 0.2s;
+  }
+
+  /* Specific Zone Styling */
+  /* REDUCE */
+  .zone-reduce {
+    border-color: var(--reduce-border);
+    background: var(--reduce-bg);
+  }
+  .zone-reduce .zone-icon-box {
+    background: #EA580C;
+    color: #FFFFFF;
+    box-shadow: 0 4px 12px rgba(234, 88, 12, 0.25);
+  }
+  .zone-reduce .zone-priority {
+    color: var(--reduce-color);
+  }
+  .zone-reduce .zone-title {
+    color: #9A3412;
+  }
+  .zone-reduce .zone-tap-btn {
+    background: #EA580C;
+    color: #FFFFFF;
+  }
+
+  /* REUSE */
+  .zone-reuse {
+    border-color: var(--reuse-border);
+    background: var(--reuse-bg);
+  }
+  .zone-reuse .zone-icon-box {
+    background: #0284C7;
+    color: #FFFFFF;
+    box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
+  }
+  .zone-reuse .zone-priority {
+    color: var(--reuse-color);
+  }
+  .zone-reuse .zone-title {
+    color: #075985;
+  }
+  .zone-reuse .zone-tap-btn {
+    background: #0284C7;
+    color: #FFFFFF;
+  }
+
+  /* RECYCLE */
+  .zone-recycle {
+    border-color: var(--recycle-border);
+    background: var(--recycle-bg);
+  }
+  .zone-recycle .zone-icon-box {
+    background: #16A34A;
+    color: #FFFFFF;
+    box-shadow: 0 4px 12px rgba(22, 163, 74, 0.25);
+  }
+  .zone-recycle .zone-priority {
+    color: var(--recycle-color);
+  }
+  .zone-recycle .zone-title {
+    color: #166534;
+  }
+  .zone-recycle .zone-tap-btn {
+    background: #16A34A;
+    color: #FFFFFF;
+  }
+
+  /* Zone Drag Over / Target States */
+  .zone-card.drag-over {
+    transform: scale(1.03);
+  }
+  .zone-reduce.drag-over {
+    box-shadow: 0 0 20px rgba(234, 88, 12, 0.4);
+    border-color: #EA580C;
+  }
+  .zone-reuse.drag-over {
+    box-shadow: 0 0 20px rgba(2, 132, 199, 0.4);
+    border-color: #0284C7;
+  }
+  .zone-recycle.drag-over {
+    box-shadow: 0 0 20px rgba(22, 163, 74, 0.4);
+    border-color: #16A34A;
+  }
+
+  /* Correct Flash */
+  .zone-card.flash-correct {
+    animation: flashCorrect 0.6s ease;
+  }
+
+  @keyframes flashCorrect {
+    0%, 100% { border-color: var(--correct-green); }
+    50% { background: #BBF7D0; border-color: #22C55E; box-shadow: 0 0 24px rgba(34, 197, 94, 0.6); }
+  }
+
+  /* Wrong Flash */
+  .zone-card.flash-wrong {
+    animation: flashWrong 0.5s ease;
+  }
+
+  @keyframes flashWrong {
+    0%, 100% { }
+    50% { background: #FECACA; border-color: #EF4444; box-shadow: 0 0 20px rgba(239, 68, 68, 0.5); }
+  }
+
+  /* Done / Victory Screen */
+  .victory-screen {
+    position: absolute;
+    inset: 14px 18px 20px;
+    background: #FFFFFF;
+    border: 2px solid var(--theme-orange);
+    border-radius: 24px;
+    box-shadow: 0 20px 40px rgba(234, 88, 12, 0.15);
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 30px 24px;
+    z-index: 50;
+    animation: scaleIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .victory-screen.show {
+    display: flex;
+  }
+
+  @keyframes scaleIn {
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  .trophy-badge {
+    font-size: 76px;
+    margin-bottom: 12px;
+    animation: wiggleTrophy 1.5s ease-in-out infinite;
+  }
+
+  @keyframes wiggleTrophy {
+    0%, 100% { transform: rotate(-5deg); }
+    50% { transform: rotate(5deg); }
+  }
+
+  .victory-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 26px;
+    font-weight: 800;
+    color: #0F172A;
+    margin-bottom: 6px;
+  }
+
+  .victory-sub {
+    font-size: 14.5px;
+    color: var(--text-secondary);
+    max-width: 460px;
+    line-height: 1.5;
+    margin-bottom: 20px;
+  }
+
+  .score-chip {
+    background: var(--theme-orange-light);
+    border: 1.5px solid var(--theme-orange);
+    color: var(--theme-orange-dark);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 18px;
+    font-weight: 800;
+    padding: 6px 20px;
+    border-radius: 30px;
+    margin-bottom: 22px;
+    display: inline-block;
+  }
+
+  .learnings-box {
+    background: #F8FAFC;
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 14px 18px;
+    max-width: 500px;
+    width: 100%;
+    margin-bottom: 24px;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .learn-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 13px;
+    line-height: 1.35;
+    color: #334155;
+  }
+
+  .learn-item strong {
+    font-family: 'Space Grotesk', sans-serif;
+  }
+
+  .victory-actions {
+    display: flex;
+    gap: 12px;
+  }
+
+  .btn-replay {
+    background: #F1F5F9;
+    color: #0F172A;
+    border: 1.5px solid #CBD5E1;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    padding: 12px 24px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-replay:hover {
+    background: #E2E8F0;
+  }
+
+  .btn-exit-done {
+    background: linear-gradient(135deg, #EA580C, #F97316);
+    color: #FFFFFF;
+    border: none;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 14px;
+    font-weight: 800;
+    padding: 12px 28px;
+    border-radius: 12px;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(234, 88, 12, 0.35);
+    transition: all 0.2s;
+  }
+
+  .btn-exit-done:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(234, 88, 12, 0.45);
+  }
+
+  /* Responsive Design */
+  @media (max-width: 720px) {
+    .main-wrapper {
+      padding: 10px 14px 16px;
+    }
+    .game-grid {
+      grid-template-columns: 1fr;
+      gap: 14px;
+    }
+    .item-card-zone {
+      padding: 16px 14px;
+    }
+    .item-emoji-box {
+      width: 76px;
+      height: 76px;
+      font-size: 42px;
+      margin-bottom: 8px;
+    }
+    .item-name {
+      font-size: 17px;
+    }
+    .zone-card {
+      padding: 12px 14px;
+      gap: 12px;
+    }
+    .zone-icon-box {
+      width: 48px;
+      height: 48px;
+      font-size: 24px;
+    }
+    .zone-title {
+      font-size: 16px;
+    }
+    .pyramid-card {
+      display: none; /* Hide side pyramid on very small screens to keep height within iframe */
+    }
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <div class="brand-icon">🔁</div>
+    <div class="brand-text">
+      <h1>3R SORTER</h1>
+      <p>Reduce • Reuse • Recycle</p>
+    </div>
+  </div>
+
+  <div class="top-actions">
+    <div class="score-badge">
+      <span>Score</span> <span id="scoreVal">0</span> / <span id="scoreTotal">12</span>
+    </div>
+    <button class="btn-icon" id="soundBtn" title="Toggle Sound" aria-label="Toggle Sound">🔊</button>
+    <button class="btn-exit" id="exitBtn">Exit</button>
+  </div>
+</header>
+
+<main class="main-wrapper">
+  <!-- Progress Dots Row -->
+  <div class="progress-bar-wrap">
+    <div class="dots-row" id="dotsRow"></div>
+    <div class="item-counter-tag" id="counterTag">Item 1 of 12</div>
+  </div>
+
+  <!-- Game Play Grid -->
+  <div class="game-grid" id="gameGrid">
+    
+    <!-- Left Column: Current Draggable Item + 3R Pyramid -->
+    <div class="left-col">
+      <div class="item-card-zone active-item" id="itemZone">
+        <div class="item-kicker">Sort This Item:</div>
+
+        <div class="draggable-item pop-in" id="activeDraggable" draggable="false">
+          <div class="item-emoji-box" id="itemEmoji">🛍️</div>
+          <div class="item-name" id="itemName">Plastic bag</div>
+          <div class="item-detail" id="itemDetail">Single-use shopping bag</div>
+          <div class="drag-hint-pill">
+            <span>✋</span> Drag to a zone or tap below ↓
+          </div>
+        </div>
+
+        <div class="feedback-toast" id="feedbackToast"></div>
+      </div>
+
+      <!-- 3R Pyramid Visual -->
+      <div class="pyramid-card" id="pyramidCard">
+        <div class="pyramid-header">
+          <div class="pyramid-title">
+            <span>🔺</span> 3R Hierarchy Pyramid
+          </div>
+          <div class="pyramid-info">Order of Impact</div>
+        </div>
+
+        <div class="pyramid-levels">
+          <div class="pyr-tier tier-reduce" id="pyrReduce">
+            <span class="pyr-title">🔻 1. REDUCE (Best)</span>
+            <span class="pyr-count" id="countReduce">0/4</span>
+          </div>
+          <div class="pyr-tier tier-reuse" id="pyrReuse">
+            <span class="pyr-title">🔁 2. REUSE (2nd Life)</span>
+            <span class="pyr-count" id="countReuse">0/4</span>
+          </div>
+          <div class="pyr-tier tier-recycle" id="pyrRecycle">
+            <span class="pyr-title">♻️ 3. RECYCLE (Reprocess)</span>
+            <span class="pyr-count" id="countRecycle">0/4</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: The 3 Zones -->
+    <div class="right-col">
+      <!-- Zone 1: REDUCE -->
+      <div class="zone-card zone-reduce" data-zone="REDUCE" id="zoneReduce">
+        <div class="zone-icon-box">🔻</div>
+        <div class="zone-info">
+          <div class="zone-priority">1st Priority · Prevention</div>
+          <div class="zone-title">REDUCE</div>
+          <div class="zone-desc">Kachra banne hi mat do! Use alternatives & buy less.</div>
+        </div>
+        <button class="zone-tap-btn" tabindex="-1">Drop Here</button>
+      </div>
+
+      <!-- Zone 2: REUSE -->
+      <div class="zone-card zone-reuse" data-zone="REUSE" id="zoneReuse">
+        <div class="zone-icon-box">🔁</div>
+        <div class="zone-info">
+          <div class="zone-priority">2nd Priority · Extend Life</div>
+          <div class="zone-title">REUSE</div>
+          <div class="zone-desc">Dobara use karo — new purpose, craft ya container.</div>
+        </div>
+        <button class="zone-tap-btn" tabindex="-1">Drop Here</button>
+      </div>
+
+      <!-- Zone 3: RECYCLE -->
+      <div class="zone-card zone-recycle" data-zone="RECYCLE" id="zoneRecycle">
+        <div class="zone-icon-box">♻️</div>
+        <div class="zone-info">
+          <div class="zone-priority">3rd Priority · Raw Material</div>
+          <div class="zone-title">RECYCLE</div>
+          <div class="zone-desc">Factory mein naye material mein convert karo.</div>
+        </div>
+        <button class="zone-tap-btn" tabindex="-1">Drop Here</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Victory Screen -->
+  <div class="victory-screen" id="victoryScreen">
+    <div class="trophy-badge">🏆</div>
+    <h2 class="victory-title">3R Master Champion!</h2>
+    <p class="victory-sub">
+      Aapne sabhi 12 items ko unki sahi 3R category mein accurately sort kar diya!
+    </p>
+
+    <div class="score-chip" id="finalScoreChip">
+      Final Score: 12 / 12
+    </div>
+
+    <div class="learnings-box">
+      <div class="learn-item">
+        <span>🔻</span>
+        <div><strong>REDUCE (Pehla kadam):</strong> Single-use plastic aur unnecessary packing ko mana karo. Jhola aur reusable bottle chuno!</div>
+      </div>
+      <div class="learn-item">
+        <span>🔁</span>
+        <div><strong>REUSE (Doosra kadam):</strong> Phenkne se pehle socho — jar ko pencil stand aur purani t-shirt ko dusting cloth banao.</div>
+      </div>
+      <div class="learn-item">
+        <span>♻️</span>
+        <div><strong>RECYCLE (Akhri kadam):</strong> Kaanj, newspaper, carton aur cans ko saaf karke recycler ko do taaki naya saman bane!</div>
+      </div>
+    </div>
+
+    <div class="victory-actions">
+      <button class="btn-replay" id="replayBtn">↺ Play Again</button>
+      <button class="btn-exit-done" id="doneExitBtn">Done / Exit</button>
+    </div>
+  </div>
+</main>
+
+<script>
+  // 12 Items exactly as requested in the prompt
+  const ITEMS = [
+    {
+      id: 1,
+      name: 'Plastic bag',
+      emoji: '🛍️',
+      detail: 'Single-use plastic shopping bag',
+      category: 'REDUCE',
+      reason: 'REDUCE! Plastic bag ko mana karo — use cloth jhola instead!'
+    },
+    {
+      id: 2,
+      name: 'Empty jar',
+      emoji: '🫙',
+      detail: 'Glass jam or pickle jar',
+      category: 'REUSE',
+      reason: 'REUSE! Empty jar ek badhiya pencil stand ya spice container banta hai!'
+    },
+    {
+      id: 3,
+      name: 'Old newspaper',
+      emoji: '📰',
+      detail: 'Read newspaper stack',
+      category: 'RECYCLE',
+      reason: 'RECYCLE! Newspaper se pulp banke naya kaagaz ya cardboard banta hai!'
+    },
+    {
+      id: 4,
+      name: 'Reusable bottle',
+      emoji: '🍶',
+      detail: 'Steel / hard plastic water bottle',
+      category: 'REDUCE',
+      reason: 'REDUCE! Reusable bottle har din single-use bottles ka waste rokti hai (ke baad REUSE)!'
+    },
+    {
+      id: 5,
+      name: 'Old t-shirt',
+      emoji: '👕',
+      detail: 'Worn out cotton t-shirt',
+      category: 'REUSE',
+      reason: 'REUSE! Purani t-shirt se dusting cloth ya cleaning rag banta hai!'
+    },
+    {
+      id: 6,
+      name: 'Glass bottle',
+      emoji: '🍾',
+      detail: 'Cracked or empty drink bottle',
+      category: 'RECYCLE',
+      reason: 'RECYCLE! Glass baar-baar pighla kar nayi bottles mein badla jaata hai!'
+    },
+    {
+      id: 7,
+      name: 'Buying less packaging',
+      emoji: '📦',
+      detail: 'Choosing loose fruits & bulk items',
+      category: 'REDUCE',
+      reason: 'REDUCE! Kam packaging lene se seedha kachra banta hi nahi!'
+    },
+    {
+      id: 8,
+      name: 'Using both sides of paper',
+      emoji: '📄',
+      detail: 'Writing and printing on front & back',
+      category: 'REUSE',
+      reason: 'REUSE! Kaagaz ke dono taraf likhna = 50% paper ka reuse aur pedon ki bachat!'
+    },
+    {
+      id: 9,
+      name: 'Metal can',
+      emoji: '🥫',
+      detail: 'Tin or aluminium food can',
+      category: 'RECYCLE',
+      reason: 'RECYCLE! Metal cans 95% less energy ke sath recycle ho jaati hain!'
+    },
+    {
+      id: 10,
+      name: 'Jhola for shopping',
+      emoji: '👜',
+      detail: 'Washable cloth tote bag',
+      category: 'REDUCE',
+      reason: 'REDUCE! Jhola saath rakhne se hundreds of plastic bags reduce hote hain!'
+    },
+    {
+      id: 11,
+      name: 'Old notebook',
+      emoji: '📓',
+      detail: 'Leftover blank pages notebook',
+      category: 'REUSE',
+      reason: 'REUSE! Purani notebook pe naya cover lagao ya rough work ke liye use karo!'
+    },
+    {
+      id: 12,
+      name: 'Cardboard box',
+      emoji: '📦',
+      detail: 'Brown delivery shipping box',
+      category: 'RECYCLE',
+      reason: 'RECYCLE! Corrugated cardboard box recycle hoke naye packaging cartons banta hai!'
+    }
+  ];
+
+  // Game State
+  let currentIndex = 0;
+  let score = 0;
+  let soundEnabled = true;
+  let audioCtx = null;
+  let categoryCounts = { REDUCE: 0, REUSE: 0, RECYCLE: 0 };
+
+  // Web Audio Synth
+  function initAudio() {
+    if (!audioCtx) {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (audioCtx.state === 'suspended') {
+      audioCtx.resume();
+    }
+  }
+
+  function playTone(freq, duration, type = 'sine', gainVal = 0.14) {
+    if (!soundEnabled) return;
+    try {
+      initAudio();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+      gain.gain.setValueAtTime(gainVal, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + duration);
+    } catch (e) {}
+  }
+
+  function playPickSound() {
+    playTone(440, 0.08, 'sine', 0.12);
+  }
+
+  function playCorrectSound() {
+    playTone(523.25, 0.1, 'sine', 0.18); // C5
+    setTimeout(() => playTone(659.25, 0.1, 'sine', 0.18), 80); // E5
+    setTimeout(() => playTone(783.99, 0.22, 'triangle', 0.2), 160); // G5
+  }
+
+  function playWrongBounceSound() {
+    playTone(280, 0.12, 'sawtooth', 0.15);
+    setTimeout(() => playTone(190, 0.22, 'sawtooth', 0.18), 100);
+  }
+
+  function playVictorySound() {
+    const melody = [523.25, 659.25, 783.99, 1046.5];
+    melody.forEach((freq, idx) => {
+      setTimeout(() => playTone(freq, 0.35, 'triangle', 0.22), idx * 130);
+    });
+  }
+
+  // DOM Elements
+  const scoreVal = document.getElementById('scoreVal');
+  const scoreTotal = document.getElementById('scoreTotal');
+  const dotsRow = document.getElementById('dotsRow');
+  const counterTag = document.getElementById('counterTag');
+  const activeDraggable = document.getElementById('activeDraggable');
+  const itemEmoji = document.getElementById('itemEmoji');
+  const itemName = document.getElementById('itemName');
+  const itemDetail = document.getElementById('itemDetail');
+  const feedbackToast = document.getElementById('feedbackToast');
+  const exitBtn = document.getElementById('exitBtn');
+  const soundBtn = document.getElementById('soundBtn');
+  const victoryScreen = document.getElementById('victoryScreen');
+  const replayBtn = document.getElementById('replayBtn');
+  const doneExitBtn = document.getElementById('doneExitBtn');
+
+  // Zones
+  const zones = document.querySelectorAll('.zone-card');
+  const countReduce = document.getElementById('countReduce');
+  const countReuse = document.getElementById('countReuse');
+  const countRecycle = document.getElementById('countRecycle');
+  const pyrReduce = document.getElementById('pyrReduce');
+  const pyrReuse = document.getElementById('pyrReuse');
+  const pyrRecycle = document.getElementById('pyrRecycle');
+
+  // Exit Handler
+  function handleExit() {
+    if (window.parent !== window) {
+      window.parent.postMessage({ type: 'close-game' }, '*');
+    } else {
+      window.location.hash = '#/app';
+    }
+  }
+
+  exitBtn.addEventListener('click', handleExit);
+  doneExitBtn.addEventListener('click', handleExit);
+
+  // Sound Toggle
+  soundBtn.addEventListener('click', () => {
+    soundEnabled = !soundEnabled;
+    soundBtn.textContent = soundEnabled ? '🔊' : '🔇';
+    if (soundEnabled) initAudio();
+  });
+
+  // Dots Builder
+  function buildDots() {
+    dotsRow.innerHTML = '';
+    ITEMS.forEach((_, i) => {
+      const d = document.createElement('div');
+      d.className = 'dot';
+      d.id = `dot-${i}`;
+      dotsRow.appendChild(d);
+    });
+    scoreTotal.textContent = ITEMS.length;
+  }
+
+  function updateDots() {
+    ITEMS.forEach((_, i) => {
+      const d = document.getElementById(`dot-${i}`);
+      if (!d) return;
+      if (i < currentIndex) {
+        d.className = 'dot done';
+      } else if (i === currentIndex) {
+        d.className = 'dot active';
+      } else {
+        d.className = 'dot';
+      }
+    });
+    counterTag.textContent = `Item ${currentIndex + 1} of ${ITEMS.length}`;
+    scoreVal.textContent = score;
+  }
+
+  // Load Item
+  function loadCurrentItem() {
+    if (currentIndex >= ITEMS.length) {
+      showVictory();
+      return;
+    }
+
+    const item = ITEMS[currentIndex];
+    itemEmoji.textContent = item.emoji;
+    itemName.textContent = item.name;
+    itemDetail.textContent = item.detail;
+
+    activeDraggable.style.transform = '';
+    activeDraggable.className = 'draggable-item pop-in';
+    updateDots();
+
+    // Highlight Pyramid Tier corresponding to target (gentle hint hint)
+    [pyrReduce, pyrReuse, pyrRecycle].forEach(p => p.classList.remove('highlight'));
+  }
+
+  // Toast feedback helper
+  let toastTimer = null;
+  function showToast(text, isCorrect) {
+    clearTimeout(toastTimer);
+    feedbackToast.textContent = text;
+    feedbackToast.className = `feedback-toast ${isCorrect ? 'show-correct' : 'show-wrong'}`;
+    toastTimer = setTimeout(() => {
+      feedbackToast.className = 'feedback-toast';
+    }, 2800);
+  }
+
+  // Handle Sort Evaluation (used by both drag-drop and tap fallback)
+  let isEvaluating = false;
+  function evaluateDrop(chosenCategory) {
+    if (isEvaluating || currentIndex >= ITEMS.length) return;
+    const currentItem = ITEMS[currentIndex];
+    const targetZone = document.getElementById(`zone${chosenCategory.charAt(0).toUpperCase() + chosenCategory.slice(1).toLowerCase()}`);
+
+    if (chosenCategory === currentItem.category) {
+      // Correct!
+      isEvaluating = true;
+      score++;
+      categoryCounts[chosenCategory]++;
+      updatePyramidCounts();
+      playCorrectSound();
+
+      if (targetZone) {
+        targetZone.classList.add('flash-correct');
+        setTimeout(() => targetZone.classList.remove('flash-correct'), 600);
+      }
+
+      showToast(`✅ ${currentItem.reason}`, true);
+      activeDraggable.classList.add('pop-out');
+
+      setTimeout(() => {
+        currentIndex++;
+        isEvaluating = false;
+        loadCurrentItem();
+      }, 420);
+    } else {
+      // Wrong!
+      playWrongBounceSound();
+
+      if (targetZone) {
+        targetZone.classList.add('flash-wrong');
+        setTimeout(() => targetZone.classList.remove('flash-wrong'), 500);
+      }
+
+      showToast(`❌ Galat zone! Socho: '${currentItem.name}' ka best 3R option kya hai?`, false);
+
+      // Bounce back
+      activeDraggable.classList.remove('pop-in');
+      activeDraggable.classList.add('shake');
+      activeDraggable.style.transform = '';
+      setTimeout(() => activeDraggable.classList.remove('shake'), 450);
+    }
+  }
+
+  function updatePyramidCounts() {
+    countReduce.textContent = `${categoryCounts.REDUCE}/4`;
+    countReuse.textContent = `${categoryCounts.REUSE}/4`;
+    countRecycle.textContent = `${categoryCounts.RECYCLE}/4`;
+  }
+
+  // Tap-to-sort fallback on zones
+  zones.forEach(zone => {
+    zone.addEventListener('click', () => {
+      initAudio();
+      const cat = zone.dataset.zone;
+      evaluateDrop(cat);
+    });
+  });
+
+  // Pointer-based Drag & Drop (Touch + Mouse Universal)
+  let isDragging = false;
+  let startX = 0, startY = 0;
+  let currentHoverZone = null;
+
+  activeDraggable.addEventListener('pointerdown', (e) => {
+    if (isEvaluating || currentIndex >= ITEMS.length) return;
+    initAudio();
+    isDragging = true;
+    startX = e.clientX;
+    startY = e.clientY;
+    activeDraggable.classList.add('dragging');
+    activeDraggable.classList.remove('pop-in', 'shake');
+    activeDraggable.setPointerCapture(e.pointerId);
+    playPickSound();
+  });
+
+  activeDraggable.addEventListener('pointermove', (e) => {
+    if (!isDragging) return;
+    const dx = e.clientX - startX;
+    const dy = e.clientY - startY;
+
+    activeDraggable.style.transform = `translate3d(${dx}px, ${dy}px, 0) scale(1.08) rotate(${dx * 0.04}deg)`;
+
+    // Check collision with zones
+    currentHoverZone = null;
+    zones.forEach(zone => {
+      const rect = zone.getBoundingClientRect();
+      const inside = e.clientX >= rect.left && e.clientX <= rect.right &&
+                     e.clientY >= rect.top && e.clientY <= rect.bottom;
+      zone.classList.toggle('drag-over', inside);
+      if (inside) {
+        currentHoverZone = zone.dataset.zone;
+      }
+    });
+  });
+
+  function endDrag(e) {
+    if (!isDragging) return;
+    isDragging = false;
+    activeDraggable.classList.remove('dragging');
+    zones.forEach(z => z.classList.remove('drag-over'));
+
+    try {
+      activeDraggable.releasePointerCapture(e.pointerId);
+    } catch (err) {}
+
+    if (currentHoverZone) {
+      evaluateDrop(currentHoverZone);
+      currentHoverZone = null;
+    } else {
+      // Dropped nowhere -> snap back
+      activeDraggable.style.transform = '';
+    }
+  }
+
+  activeDraggable.addEventListener('pointerup', endDrag);
+  activeDraggable.addEventListener('pointercancel', endDrag);
+
+  // Victory Screen
+  function showVictory() {
+    playVictorySound();
+    victoryScreen.classList.add('show');
+    document.getElementById('finalScoreChip').textContent = `Final Score: ${score} / ${ITEMS.length}`;
+  }
+
+  // Replay
+  replayBtn.addEventListener('click', () => {
+    currentIndex = 0;
+    score = 0;
+    categoryCounts = { REDUCE: 0, REUSE: 0, RECYCLE: 0 };
+    updatePyramidCounts();
+    victoryScreen.classList.remove('show');
+    buildDots();
+    loadCurrentItem();
+  });
+
+  // Initialize
+  buildDots();
+  loadCurrentItem();
+</script>
+
+</body>
+</html>

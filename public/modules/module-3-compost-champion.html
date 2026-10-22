@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🌱 Compost Champion - Wastify Learning Module</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --theme-color: #16a34a;
+      --theme-light: #dcfce7;
+      --theme-dark: #15803d;
+      --navy: #1e3a5f;
+      --text-main: #374151;
+      --text-dark: #0f172a;
+      --bg-page: #e8f4f8;
+      --card-bg: #ffffff;
+      --border-color: #e2e8f0;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: var(--bg-page);
+      color: var(--text-main);
+      line-height: 1.7;
+      padding: 24px 12px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .container {
+      max-width: 750px;
+      margin: 0 auto;
+      background: var(--card-bg);
+      padding: 32px;
+      border-radius: 8px;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    /* Top Navigation Bar */
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border-color);
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    #google_translate_element {
+      display: inline-block;
+      min-height: 32px;
+    }
+
+    .goog-te-gadget {
+      font-family: 'Inter', sans-serif !important;
+      font-size: 12px !important;
+      color: #64748b !important;
+    }
+
+    .goog-te-gadget .goog-te-combo {
+      padding: 6px 10px !important;
+      border-radius: 6px !important;
+      border: 1px solid #cbd5e1 !important;
+      font-family: 'Inter', sans-serif !important;
+      font-size: 12px !important;
+      background: #ffffff !important;
+      color: #1e293b !important;
+      outline: none !important;
+    }
+
+    .back-btn {
+      background: #334155;
+      color: #ffffff;
+      border: none;
+      border-radius: 9999px;
+      padding: 8px 18px;
+      font-weight: 600;
+      font-size: 13px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.2s, transform 0.15s;
+      text-decoration: none;
+    }
+
+    .back-btn:hover {
+      background: #1e293b;
+      transform: translateY(-1px);
+    }
+
+    /* Module Header */
+    .module-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--theme-light);
+      color: var(--theme-color);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      border: 1px solid rgba(22, 163, 74, 0.25);
+    }
+
+    .module-title {
+      font-size: 30px;
+      font-weight: 900;
+      color: var(--navy);
+      margin: 12px 0 6px 0;
+      line-height: 1.25;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .module-desc {
+      font-size: 15px;
+      color: #64748b;
+      margin-bottom: 20px;
+      line-height: 1.6;
+    }
+
+    hr.divider {
+      border: none;
+      height: 1px;
+      background-color: var(--border-color);
+      margin: 20px 0 28px 0;
+    }
+
+    /* Section Headings */
+    .section-heading {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--theme-color);
+      margin: 32px 0 16px 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .section-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--theme-color);
+      color: #ffffff;
+      font-size: 14px;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+
+    p {
+      margin-bottom: 14px;
+      font-size: 15px;
+      color: var(--text-main);
+      line-height: 1.7;
+    }
+
+    /* Examples Visual Grid */
+    .examples-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 10px;
+      margin: 18px 0 24px 0;
+    }
+
+    .example-pill {
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      border-radius: 8px;
+      padding: 12px 10px;
+      text-align: center;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+
+    .example-pill:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 10px rgba(22, 163, 74, 0.1);
+      border-color: #86efac;
+    }
+
+    .example-pill-icon {
+      font-size: 28px;
+      margin-bottom: 4px;
+      display: block;
+    }
+
+    .example-pill-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #14532d;
+    }
+
+    /* Formula Box */
+    .formula-box {
+      background: linear-gradient(135deg, #f0fdf4, #ecfdf5);
+      border: 2px solid #86efac;
+      border-radius: 10px;
+      padding: 22px 18px;
+      margin: 20px 0;
+      text-align: center;
+    }
+
+    .formula-title {
+      font-size: 14px;
+      font-weight: 800;
+      color: #15803d;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 12px;
+    }
+
+    .formula-math {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      margin: 12px 0;
+      font-weight: 800;
+      color: var(--navy);
+    }
+
+    .formula-tag {
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 13.5px;
+      font-weight: 700;
+    }
+
+    .tag-greens {
+      background: #dcfce7;
+      color: #166534;
+      border: 1px solid #bbf7d0;
+    }
+
+    .tag-browns {
+      background: #fef3c7;
+      color: #92400e;
+      border: 1px solid #fde68a;
+    }
+
+    .tag-element {
+      background: #e0f2fe;
+      color: #0369a1;
+      border: 1px solid #bae6fd;
+    }
+
+    .tag-result {
+      background: #15803d;
+      color: #ffffff;
+      box-shadow: 0 2px 6px rgba(21, 128, 61, 0.25);
+    }
+
+    .formula-note {
+      font-size: 13px;
+      font-weight: 600;
+      color: #166534;
+      background: #ffffff;
+      display: inline-block;
+      padding: 4px 14px;
+      border-radius: 9999px;
+      margin-top: 10px;
+      border: 1px solid #bbf7d0;
+    }
+
+    /* YouTube Video Wrapper */
+    .video-section {
+      margin: 24px 0 28px 0;
+    }
+
+    .video-wrapper {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+      border: 1px solid #cbd5e1;
+      background: #000000;
+    }
+
+    .video-wrapper iframe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border: 0;
+    }
+
+    .video-caption {
+      text-align: center;
+      font-size: 13px;
+      color: #64748b;
+      margin-top: 8px;
+      font-weight: 500;
+    }
+
+    /* Bullets */
+    .bullet-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin: 16px 0;
+    }
+
+    .bullet-list li {
+      font-size: 14.5px;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      line-height: 1.6;
+      color: var(--text-main);
+    }
+
+    .bullet-icon {
+      font-size: 16px;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    /* Tables */
+    .table-container {
+      width: 100%;
+      overflow-x: auto;
+      margin: 20px 0;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 14px;
+    }
+
+    th {
+      background-color: var(--theme-color);
+      color: #ffffff;
+      font-weight: 700;
+      padding: 12px 16px;
+      letter-spacing: 0.02em;
+    }
+
+    td {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border-color);
+      color: #374151;
+      vertical-align: middle;
+      line-height: 1.6;
+    }
+
+    tbody tr:nth-child(even) {
+      background-color: #f8fafc;
+    }
+
+    tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    /* Climate Impact Box */
+    .impact-box {
+      background: #eff6ff;
+      border: 2px solid #93c5fd;
+      border-radius: 10px;
+      padding: 18px 20px;
+      margin: 20px 0;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .impact-icon {
+      font-size: 38px;
+      flex-shrink: 0;
+    }
+
+    .impact-text h4 {
+      font-size: 16px;
+      font-weight: 800;
+      color: #1e40af;
+      margin-bottom: 4px;
+    }
+
+    .impact-text p {
+      font-size: 14px;
+      color: #1e3a8a;
+      margin-bottom: 0;
+      line-height: 1.55;
+    }
+
+    .myth-tag {
+      color: #dc2626;
+      font-weight: 700;
+    }
+
+    .fact-tag {
+      color: #16a34a;
+      font-weight: 700;
+    }
+
+    /* Teacher Note */
+    .teacher-note {
+      background-color: #ecfdf5;
+      border-left: 5px solid #10b981;
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin: 28px 0;
+      color: #065f46;
+    }
+
+    .teacher-note-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 15px;
+      font-weight: 800;
+      color: #047857;
+      margin-bottom: 6px;
+    }
+
+    .teacher-note p {
+      margin-bottom: 0;
+      font-size: 14px;
+      color: #065f46;
+      line-height: 1.6;
+    }
+
+    /* Quiz Card */
+    .quiz-card {
+      background-color: #fffbeb;
+      border: 1px solid #fde68a;
+      border-radius: 10px;
+      padding: 28px;
+      margin-top: 36px;
+    }
+
+    .quiz-header {
+      margin-bottom: 20px;
+    }
+
+    .quiz-title {
+      font-size: 22px;
+      font-weight: 900;
+      color: #ea580c;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .quiz-subtitle {
+      font-size: 14px;
+      color: #b45309;
+      margin-top: 4px;
+    }
+
+    .quiz-q-block {
+      background: #ffffff;
+      border: 1px solid #fef3c7;
+      border-radius: 8px;
+      padding: 18px;
+      margin-bottom: 18px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    }
+
+    .quiz-q-text {
+      font-size: 15px;
+      font-weight: 700;
+      color: #1e293b;
+      margin-bottom: 12px;
+    }
+
+    .quiz-options {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .quiz-option-label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      color: #334155;
+      background: #ffffff;
+      transition: all 0.15s ease;
+    }
+
+    .quiz-option-label:hover {
+      background: #f8fafc;
+      border-color: #cbd5e1;
+    }
+
+    .quiz-option-label input[type="radio"] {
+      accent-color: var(--theme-color);
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+    }
+
+    .quiz-option-label.correct {
+      border-color: #10b981;
+      background-color: #ecfdf5;
+      color: #065f46;
+      font-weight: 600;
+    }
+
+    .quiz-option-label.incorrect {
+      border-color: #ef4444;
+      background-color: #fef2f2;
+      color: #991b1b;
+    }
+
+    .explanation {
+      margin-top: 10px;
+      padding: 10px 12px;
+      border-radius: 6px;
+      background: #f1f5f9;
+      font-size: 13px;
+      color: #334155;
+      display: none;
+    }
+
+    .submit-btn {
+      background-color: var(--theme-color);
+      color: #ffffff;
+      border: none;
+      padding: 12px 30px;
+      font-size: 15px;
+      font-weight: 700;
+      border-radius: 8px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 2px 8px rgba(22, 163, 74, 0.25);
+      transition: background 0.2s, transform 0.15s;
+    }
+
+    .submit-btn:hover {
+      background-color: var(--theme-dark);
+      transform: translateY(-1px);
+    }
+
+    .quiz-result-box {
+      display: none;
+      margin-top: 24px;
+      padding: 20px;
+      border-radius: 8px;
+      text-align: center;
+    }
+
+    .quiz-result-box.passed {
+      background: #ecfdf5;
+      border: 2px solid #10b981;
+      color: #065f46;
+    }
+
+    .quiz-result-box.failed {
+      background: #fef2f2;
+      border: 2px solid #ef4444;
+      color: #991b1b;
+    }
+
+    .score-title {
+      font-size: 22px;
+      font-weight: 900;
+      margin-bottom: 6px;
+    }
+
+    .score-sub {
+      font-size: 14px;
+    }
+
+    /* Mobile Responsive */
+    @media (max-width: 640px) {
+      .container {
+        padding: 20px 16px;
+      }
+      .module-title {
+        font-size: 24px;
+      }
+      .impact-box {
+        flex-direction: column;
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+
+    <!-- Top Navigation Bar -->
+    <div class="top-bar">
+      <div id="google_translate_element"></div>
+      <button class="back-btn" onclick="if(window.parent!==window){window.parent.postMessage({type:'close-game'},'*')}else{history.back()}">
+        ← Back
+      </button>
+    </div>
+
+    <!-- Module Header -->
+    <header>
+      <span class="module-badge">Module 3 · Compost Champion</span>
+      <h1 class="module-title">🌱 Compost Champion</h1>
+      <p class="module-desc">
+        Geele kachre se banayein son-jaisi kaali khaad! Jaano composting ka simple formula aur apne paudhon ko do nayi taazgi.
+      </p>
+    </header>
+
+    <hr class="divider">
+
+    <!-- Section 1 -->
+    <h2 class="section-heading">
+      <span class="section-num">1</span>
+      Wet Waste Kya Hai? 🍌
+    </h2>
+    <p>
+      <strong>Wet Waste (Geela Jaivik Kachra)</strong> woh organic kachra hai jo rasoi aur bagiche se nikalta hai aur aasani se sad-gal kar mitti mein ghul-mil jaata hai (biodegradable).
+    </p>
+    <p>
+      Ghar par milne wale mukhya wet waste ke udaharan:
+    </p>
+    <div class="examples-grid">
+      <div class="example-pill">
+        <span class="example-pill-icon">🍌</span>
+        <div class="example-pill-title">Falon Ke Chhilke</div>
+      </div>
+      <div class="example-pill">
+        <span class="example-pill-icon">🥬</span>
+        <div class="example-pill-title">Sabzi Ke Tukde</div>
+      </div>
+      <div class="example-pill">
+        <span class="example-pill-icon">🍵</span>
+        <div class="example-pill-title">Chai Patti</div>
+      </div>
+      <div class="example-pill">
+        <span class="example-pill-icon">🥚</span>
+        <div class="example-pill-title">Ande Ka Chhilka</div>
+      </div>
+      <div class="example-pill">
+        <span class="example-pill-icon">🍂</span>
+        <div class="example-pill-title">Sukhe Patte</div>
+      </div>
+    </div>
+
+    <!-- Section 2 -->
+    <h2 class="section-heading">
+      <span class="section-num">2</span>
+      Khaad Kaise Banti Hai? 🧪
+    </h2>
+    <p>
+      Composting ek prakritik prakriya hai jisme sukshm jeev (micro-organisms aur bacteria) geele kachre ko poshtik kaali khaad mein badal dete hain. Iska ek saral formula hai:
+    </p>
+
+    <div class="formula-box">
+      <div class="formula-title">✨ Composting Ka Super Formula ✨</div>
+      <div class="formula-math">
+        <span class="formula-tag tag-greens">GREENS (Gila Nitrogen) 🍌</span>
+        <span>+</span>
+        <span class="formula-tag tag-browns">BROWNS (Sukha Carbon) 🍂</span>
+        <span>+</span>
+        <span class="formula-tag tag-element">Hawa (Oxygen) 💨</span>
+        <span>+</span>
+        <span class="formula-tag tag-element">Nami 💧</span>
+        <span>=</span>
+        <span class="formula-tag tag-result">KHAAD (Kaala Sona) 🌱</span>
+      </div>
+      <div class="formula-note">
+        ⚖️ <strong>Golden Rule:</strong> Thoda zyada Browns (60%) aur thoda kam Greens (40%). Agar Browns zyada honge toh badbu KABHI nahi aayegi!
+      </div>
+    </div>
+
+    <!-- Training Video Section -->
+    <div class="video-section">
+      <div class="video-wrapper">
+        <iframe 
+          src="https://www.youtube.com/embed/amy8Za_HNNY" 
+          title="Home Composting Training Video"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+          allowfullscreen>
+        </iframe>
+      </div>
+      <div class="video-caption">
+        📺 Training Video: Dekhiye ghar par aasan tarike se bina badbu ke khaad banane ka live process.
+      </div>
+    </div>
+
+    <!-- Section 3 -->
+    <h2 class="section-heading">
+      <span class="section-num">3</span>
+      Kya Daalein? (Compost Friendly) ✅
+    </h2>
+    <p>
+      Apne compost bin mein yeh saari cheezein khushi-khushi daal sakte hain:
+    </p>
+    <ul class="bullet-list">
+      <li>
+        <span class="bullet-icon">✅</span>
+        <span><strong>Sabzi aur falon ke chhilke 🍌:</strong> Taze chhilke bacteria ke liye shandar khana hain.</span>
+      </li>
+      <li>
+        <span class="bullet-icon">✅</span>
+        <span><strong>Chai patti (dhoyi hui) 🍵:</strong> Cheeni aur doodh ko dho kar chhan lijiye, yeh best nitrogen deti hai.</span>
+      </li>
+      <li>
+        <span class="bullet-icon">✅</span>
+        <span><strong>Ande ke chhilke (pise hue) 🥚:</strong> Pees kar daalne se mitti ko calcium milta hai.</span>
+      </li>
+      <li>
+        <span class="bullet-icon">✅</span>
+        <span><strong>Sukhe patte 🍂:</strong> Bagiche ke sukhe patte moisture sokhte hain aur hawa banaye rakhte hain.</span>
+      </li>
+      <li>
+        <span class="bullet-icon">✅</span>
+        <span><strong>Thoda cardboard 📦:</strong> Bina ink wala brown gatta ya raddi kaagaz ke tukde.</span>
+      </li>
+    </ul>
+
+    <!-- Section 4 -->
+    <h2 class="section-heading">
+      <span class="section-num">4</span>
+      Kya NA Daalein? (Strictly Avoid) 🚫
+    </h2>
+    <p>
+      Compost pot ya bin mein yeh cheezein galti se bhi mat daaliye:
+    </p>
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 40%;">Cheez ❌</th>
+            <th style="width: 60%;">Kyun Nahi Daalna Chahiye? ⚠️</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Tel / Ghee / Makhan wala khana</strong></td>
+            <td>Gandi badbu aati hai, hawa ruk jaati hai aur keede/makkhiyan aate hain.</td>
+          </tr>
+          <tr>
+            <td><strong>Meat / Machhli / Haddi</strong></td>
+            <td>Sadne par bhayankar smell aati hai aur chuhe aur aavara janwar aate hain.</td>
+          </tr>
+          <tr>
+            <td><strong>Doodh / Cheese / Dairy products</strong></td>
+            <td>Khatarnaak fungus aur harmful bacteria paida hote hain jo khaad ko kharab karte hain.</td>
+          </tr>
+          <tr>
+            <td><strong>Spicy cooked food (Tala hua/Masaledar)</strong></td>
+            <td>Masale aur namak composting ke acche micro-organisms ko maar kar process slow kar dete hain.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Section 5 -->
+    <h2 class="section-heading">
+      <span class="section-num">5</span>
+      Kis Paudhe Ko Kya Pasand Hai? 🪴
+    </h2>
+    <p>
+      Alag-alag kitchen waste paudhon ko alag-alag zaroori poshak tatva (nutrients) dete hain:
+    </p>
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 30%;">Waste (Kachra)</th>
+            <th style="width: 35%;">Kiske Liye Best Hai</th>
+            <th style="width: 35%;">Kya Fayda Milta Hai</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Kele ka chhilka🍌</strong></td>
+            <td>Phool aur fal wale paudhe (Gulab, Tamatar)</td>
+            <td>Potassium milta hai jisse khoob saare phool khilte hain</td>
+          </tr>
+          <tr>
+            <td><strong>Ande ka chhilka🥚</strong></td>
+            <td>Tamatar, baingan aur mirch ke paudhe</td>
+            <td>Calcium milta hai jisse fal niche se sadte nahi</td>
+          </tr>
+          <tr>
+            <td><strong>Chai patti🍵</strong></td>
+            <td>Gulab aur acidity pasand karne wale gamle</td>
+            <td>Nitrogen milta hai aur pattiyaan chamakdar hari hoti hain</td>
+          </tr>
+          <tr>
+            <td><strong>Sabzi ki mix khaad🥬</strong></td>
+            <td>Sabhi tarah ke bagiche aur gamlon ke paudhe</td>
+            <td>Sampoorn poshan (General NPK) aur mitti ki nami bani rehti hai</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Section 6 -->
+    <h2 class="section-heading">
+      <span class="section-num">6</span>
+      Bacha Khana Waste Na Karo 🍲
+    </h2>
+    <p>
+      Khana kachra nahi hai! Bacha hua saaf khana dustbin ya compost mein daalne se pehle hamesha kisi zarooratmand ya local <strong>Food Bank</strong> tak pahunchane ka prayas karein.
+    </p>
+
+    <div class="impact-box">
+      <span class="impact-icon">🌍</span>
+      <div class="impact-text">
+        <h4>Climate Impact Fact</h4>
+        <p>
+          <strong>1 kg food waste bachana = lagbhag 2.5 kg CO₂ gas ka pradushan kam karna!</strong> Khana bachana aur compost banana dono humare environment ki sabse badi sewa hai.
+        </p>
+      </div>
+    </div>
+
+    <!-- Myths vs Facts Table -->
+    <h2 class="section-heading" style="color: var(--navy); margin-top: 36px;">
+      💡 Myths vs Facts
+    </h2>
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 45%;">Myth (Galat Fahami) ❌</th>
+            <th style="width: 55%;">Fact (Sacchai) ✅</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="myth-tag">Myth:</span> "Ghar par khaad banane se poore mohalle mein gandi badbu aati hai."</td>
+            <td><span class="fact-tag">Fact:</span> Sahi mix (zyada browns + kam greens + hawa) rakhne par bilkul koi badbu nahi aati, balki mitti jaisi meethi khushbu aati hai.</td>
+          </tr>
+          <tr>
+            <td><span class="myth-tag">Myth:</span> "Khaad banne mein ek poora saal lag jaata hai."</td>
+            <td><span class="fact-tag">Fact:</span> Chhote tukde karke mix karne se khaad sirf <strong>kuch hafton (6-8 hafte)</strong> mein bankar taiyar ho jaati hai!</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Teacher Note -->
+    <div class="teacher-note">
+      <div class="teacher-note-header">
+        🧑‍🏫 Teacher & Parent Note
+      </div>
+      <p>
+        Ek chhote gamle ya plastic container mein thode sukhe patte aur kele/sabzi ke chhilke daal kar ghar pe mini-composting try karein. Bachon ko har hafte usme mitti banne ki prakriya ko observe karne dein!
+      </p>
+    </div>
+
+    <!-- Quiz Section -->
+    <div class="quiz-card">
+      <div class="quiz-header">
+        <h3 class="quiz-title">📝 Compost Champion Quiz</h3>
+        <p class="quiz-subtitle">5 sawaalon ke sahi uttar de kar apna Compost Champion badge unlock karein!</p>
+      </div>
+
+      <form id="quizForm" onsubmit="event.preventDefault(); submitQuiz();">
+        <!-- Q1 -->
+        <div class="quiz-q-block">
+          <div class="quiz-q-text">1. Inme se compost bin mein kya KABHI nahi daalna chahiye?</div>
+          <div class="quiz-options">
+            <label class="quiz-option-label" id="q1-opt0">
+              <input type="radio" name="q1" value="0">
+              <span>A) Chai patti</span>
+            </label>
+            <label class="quiz-option-label" id="q1-opt1">
+              <input type="radio" name="q1" value="1">
+              <span>B) Meat aur machhli ke tukde</span>
+            </label>
+            <label class="quiz-option-label" id="q1-opt2">
+              <input type="radio" name="q1" value="2">
+              <span>C) Ande ka chhilka</span>
+            </label>
+          </div>
+          <div class="explanation" id="q1-exp">
+            💡 <strong>Explanation:</strong> Meat aur machhli sadne par tez badbu, chuhe aur harmful keede aate hain, ise compost mein nahi daalte.
+          </div>
+        </div>
+
+        <!-- Q2 -->
+        <div class="quiz-q-block">
+          <div class="quiz-q-text">2. Kele ka chhilka khaas karke kis tarah ke paudhon ke liye sabse faydemand hai?</div>
+          <div class="quiz-options">
+            <label class="quiz-option-label" id="q2-opt0">
+              <input type="radio" name="q2" value="0">
+              <span>A) Sirf sukhe tamatar ke paudhe</span>
+            </label>
+            <label class="quiz-option-label" id="q2-opt1">
+              <input type="radio" name="q2" value="1">
+              <span>B) Phool aur fal wale paudhe (Potassium ke liye)</span>
+            </label>
+            <label class="quiz-option-label" id="q2-opt2">
+              <input type="radio" name="q2" value="2">
+              <span>C) Sabhi paudhon ke liye zero fayda</span>
+            </label>
+          </div>
+          <div class="explanation" id="q2-exp">
+            💡 <strong>Explanation:</strong> Kele ke chhilke mein Potassium bharpoor hota hai jo phool aur fal khilane mein madad karta hai.
+          </div>
+        </div>
+
+        <!-- Q3 -->
+        <div class="quiz-q-block">
+          <div class="quiz-q-text">3. Composting formula mein 'Browns' (sukha kachra) mein kya aata hai?</div>
+          <div class="quiz-options">
+            <label class="quiz-option-label" id="q3-opt0">
+              <input type="radio" name="q3" value="0">
+              <span>A) Sabzi ka gila chhilka</span>
+            </label>
+            <label class="quiz-option-label" id="q3-opt1">
+              <input type="radio" name="q3" value="1">
+              <span>B) Sukhe patte aur brown cardboard</span>
+            </label>
+            <label class="quiz-option-label" id="q3-opt2">
+              <input type="radio" name="q3" value="2">
+              <span>C) Gila khana aur sabzi</span>
+            </label>
+          </div>
+          <div class="explanation" id="q3-exp">
+            💡 <strong>Explanation:</strong> Sukhe patte aur bina print wala cardboard Carbon (Browns) provide karte hain.
+          </div>
+        </div>
+
+        <!-- Q4 -->
+        <div class="quiz-q-block">
+          <div class="quiz-q-text">4. Bina badbu ke acchi khaad banane ke liye kaisa ratio hona chahiye?</div>
+          <div class="quiz-options">
+            <label class="quiz-option-label" id="q4-opt0">
+              <input type="radio" name="q4" value="0">
+              <span>A) Zyada greens aur kam browns</span>
+            </label>
+            <label class="quiz-option-label" id="q4-opt1">
+              <input type="radio" name="q4" value="1">
+              <span>B) Dono barabar hone chahiye</span>
+            </label>
+            <label class="quiz-option-label" id="q4-opt2">
+              <input type="radio" name="q4" value="2">
+              <span>C) Thoda zyada browns aur thoda kam greens</span>
+            </label>
+          </div>
+          <div class="explanation" id="q4-exp">
+            💡 <strong>Explanation:</strong> Browns thoda zyada (lagbhag 60%) rakhne se nami control rehti hai aur bilkul badbu nahi aati.
+          </div>
+        </div>
+
+        <!-- Q5 -->
+        <div class="quiz-q-block">
+          <div class="quiz-q-text">5. Bacha hua saaf khana fekne se pehle sabse pehle kya karna chahiye?</div>
+          <div class="quiz-options">
+            <label class="quiz-option-label" id="q5-opt0">
+              <input type="radio" name="q5" value="0">
+              <span>A) Seedha compost bin mein daal do</span>
+            </label>
+            <label class="quiz-option-label" id="q5-opt1">
+              <input type="radio" name="q5" value="1">
+              <span>B) Normal dustbin mein phek do</span>
+            </label>
+            <label class="quiz-option-label" id="q5-opt2">
+              <input type="radio" name="q5" value="2">
+              <span>C) Pehle kisi zarooratmand ya Food Bank ko do</span>
+            </label>
+          </div>
+          <div class="explanation" id="q5-exp">
+            💡 <strong>Explanation:</strong> Saaf khana kachra nahi hai; ise pehle zarooratmand ya Food Bank tak pahunchana sabse behtar tareeka hai.
+          </div>
+        </div>
+
+        <button type="submit" class="submit-btn" id="submitBtn">
+          Submit Answers 🚀
+        </button>
+      </form>
+
+      <!-- Quiz Result Box -->
+      <div class="quiz-result-box" id="resultBox">
+        <div class="score-title" id="scoreTitle">Score: 0/5</div>
+        <div class="score-sub" id="scoreSub">You need 4/5 (80%) to pass!</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Google Translate Script -->
+  <script type="text/javascript">
+    function googleTranslateElementInit() {
+      new google.translate.TranslateElement({
+        pageLanguage: 'en',
+        includedLanguages: 'en,hi,bn,te,mr,ta,gu,kn,ml,pa',
+        layout: google.translate.TranslateElement.InlineLayout.SIMPLE
+      }, 'google_translate_element');
+    }
+  </script>
+  <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+  <!-- Quiz Logic Script -->
+  <script>
+    const correctAnswers = [1, 1, 1, 2, 2]; // Module 3 correct answers: B, B, B, C, C
+    const moduleId = 'module-3';
+    let quizSubmitted = false;
+
+    function submitQuiz() {
+      if (quizSubmitted) return;
+
+      let score = 0;
+      let allAnswered = true;
+
+      for (let i = 1; i <= 5; i++) {
+        const selected = document.querySelector(`input[name="q${i}"]:checked`);
+        if (!selected) {
+          allAnswered = false;
+        }
+      }
+
+      if (!allAnswered) {
+        alert("Kripya sabhi 5 sawaalon ke uttar chunein!");
+        return;
+      }
+
+      quizSubmitted = true;
+      document.getElementById('submitBtn').disabled = true;
+      document.getElementById('submitBtn').style.opacity = '0.6';
+      document.getElementById('submitBtn').style.cursor = 'not-allowed';
+
+      for (let i = 1; i <= 5; i++) {
+        const selected = document.querySelector(`input[name="q${i}"]:checked`);
+        const userAns = parseInt(selected.value);
+        const correctAns = correctAnswers[i - 1];
+
+        const selectedLabel = document.getElementById(`q${i}-opt${userAns}`);
+        const correctLabel = document.getElementById(`q${i}-opt${correctAns}`);
+
+        if (userAns === correctAns) {
+          score++;
+          selectedLabel.classList.add('correct');
+        } else {
+          selectedLabel.classList.add('incorrect');
+          correctLabel.classList.add('correct');
+        }
+
+        // Show explanation
+        const expEl = document.getElementById(`q${i}-exp`);
+        if (expEl) expEl.style.display = 'block';
+      }
+
+      const passed = score >= 4;
+      const resultBox = document.getElementById('resultBox');
+      const scoreTitle = document.getElementById('scoreTitle');
+      const scoreSub = document.getElementById('scoreSub');
+
+      resultBox.style.display = 'block';
+      if (passed) {
+        resultBox.className = 'quiz-result-box passed';
+        scoreTitle.innerHTML = `🎉 Zabardast! Aapka Score: ${score}/5`;
+        scoreSub.innerHTML = `Aapne Compost Champion module safalta-purvak complete kar liya hai! 🌱`;
+      } else {
+        resultBox.className = 'quiz-result-box failed';
+        scoreTitle.innerHTML = `Aapka Score: ${score}/5`;
+        scoreSub.innerHTML = `Pass hone ke liye kam se kam 4/5 chahiye. Revision karein aur dubara koshish karein!`;
+      }
+
+      // postMessage to parent window
+      window.parent.postMessage({
+        type: 'quiz-complete',
+        moduleId: moduleId,
+        score: score,
+        total: 5,
+        passed: passed
+      }, '*');
+
+      resultBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  </script>
+</body>
+</html>

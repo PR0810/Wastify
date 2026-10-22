@@ -1,0 +1,1048 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+  <title>Drag to Bin — Waste Detective</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&family=Space+Grotesk:wght@600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #F8FAFC;
+      --ink: #0F172A;
+      --ink-soft: #475569;
+      --ink-muted: #94A3B8;
+      --line: #E2E8F0;
+      
+      --dry-blue: #2563EB;
+      --dry-tint: #EFF6FF;
+      --dry-border: #60A5FA;
+      
+      --wet-green: #16A34A;
+      --wet-tint: #F0FDF4;
+      --wet-border: #4ADE80;
+      
+      --haz-red: #DC2626;
+      --haz-tint: #FEF2F2;
+      --haz-border: #F87171;
+      
+      --good: #10B981;
+      --bad: #EF4444;
+      --accent: #0D9488;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      touch-action: none; /* Prevents unwanted browser scrolling while dragging */
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      height: 100vh;
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    h1, h2, h3, .heading-font {
+      font-family: 'Space Grotesk', sans-serif;
+    }
+
+    /* Top Bar */
+    .topbar {
+      background: #0B1320;
+      color: #FFFFFF;
+      padding: 12px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+      z-index: 30;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+    }
+
+    .brand-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #2563EB, #10B981);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+
+    .brand-text h1 {
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      color: #F8FAFC;
+    }
+
+    .brand-text p {
+      font-size: 11px;
+      color: #94A3B8;
+      font-weight: 500;
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .sound-btn {
+      background: #1E293B;
+      border: 1px solid #334155;
+      color: #CBD5E1;
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    .exit-btn {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.35);
+      color: #FCA5A5;
+      font-family: 'Inter', sans-serif;
+      font-size: 12.5px;
+      font-weight: 700;
+      padding: 7px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .exit-btn:active {
+      transform: scale(0.95);
+    }
+
+    /* Status Bar */
+    .status-bar {
+      background: #FFFFFF;
+      border-bottom: 1px solid var(--line);
+      padding: 10px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    .score-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--ink-soft);
+    }
+
+    .score-badge b {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 16px;
+      color: var(--ink);
+    }
+
+    .progress-pill {
+      font-size: 12.5px;
+      font-weight: 700;
+      color: var(--accent);
+      background: #CCFBF1;
+      padding: 4px 12px;
+      border-radius: 20px;
+    }
+
+    /* Play Area */
+    .play-stage {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px 20px;
+      max-width: 480px;
+      width: 100%;
+      margin: 0 auto;
+      position: relative;
+    }
+
+    /* Prompt Instructions */
+    .instruction-bar {
+      text-align: center;
+      margin-top: 4px;
+    }
+
+    .instruction-bar h2 {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 2px;
+    }
+
+    .instruction-bar p {
+      font-size: 13px;
+      color: var(--ink-soft);
+      font-weight: 500;
+    }
+
+    /* Center Item Drop Arena */
+    .item-drop-arena {
+      flex: 1;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      min-height: 190px;
+    }
+
+    .item-dock-placeholder {
+      width: 160px;
+      height: 160px;
+      border-radius: 28px;
+      border: 3px dashed #CBD5E1;
+      background: rgba(255, 255, 255, 0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: absolute;
+      pointer-events: none;
+    }
+
+    .dock-ring {
+      width: 90%;
+      height: 90%;
+      border-radius: 22px;
+      border: 2px dashed #E2E8F0;
+      animation: spinSlow 20s linear infinite;
+    }
+
+    @keyframes spinSlow {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    /* Draggable Item Card */
+    .drag-item {
+      width: 154px;
+      height: 154px;
+      background: #FFFFFF;
+      border-radius: 26px;
+      border: 3px solid #E2E8F0;
+      box-shadow: 0 12px 28px -6px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.05);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      cursor: grab;
+      touch-action: none;
+      position: relative;
+      z-index: 20;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+    }
+
+    .drag-item:active, .drag-item.is-dragging {
+      cursor: grabbing;
+      transform: scale(1.12);
+      box-shadow: 0 20px 40px -8px rgba(0, 0, 0, 0.22);
+      border-color: #38BDF8;
+      z-index: 50;
+    }
+
+    .drag-item.shake {
+      animation: shakeItem 0.45s cubic-bezier(.36,.07,.19,.97) both;
+      border-color: var(--bad);
+      background: #FEF2F2;
+    }
+
+    @keyframes shakeItem {
+      10%, 90% { transform: translate3d(-4px, 0, 0) scale(1.02); }
+      20%, 80% { transform: translate3d(6px, 0, 0) scale(1.02); }
+      30%, 50%, 70% { transform: translate3d(-6px, 0, 0) scale(1.02); }
+      40%, 60% { transform: translate3d(6px, 0, 0) scale(1.02); }
+      100% { transform: translate3d(0, 0, 0) scale(1); }
+    }
+
+    .item-emoji {
+      font-size: 72px;
+      line-height: 1;
+      filter: drop-shadow(0 6px 12px rgba(0,0,0,0.1));
+      pointer-events: none;
+    }
+
+    .item-name {
+      font-size: 15px;
+      font-weight: 800;
+      color: var(--ink);
+      text-transform: capitalize;
+      pointer-events: none;
+    }
+
+    .drag-hint-pill {
+      font-size: 10.5px;
+      font-weight: 700;
+      color: var(--accent);
+      background: #F0FDFA;
+      padding: 2px 8px;
+      border-radius: 12px;
+      border: 1px solid #CCFBF1;
+      pointer-events: none;
+    }
+
+    /* Floating Feedback */
+    .floating-feedback {
+      position: absolute;
+      top: 15%;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 26px;
+      font-weight: 800;
+      pointer-events: none;
+      opacity: 0;
+      transform: translateY(0);
+      z-index: 40;
+      transition: opacity 0.2s, transform 0.4s ease-out;
+    }
+
+    .floating-feedback.show-correct {
+      opacity: 1;
+      color: var(--good);
+      transform: translateY(-24px);
+    }
+
+    .floating-feedback.show-wrong {
+      opacity: 1;
+      color: var(--bad);
+      transform: translateY(-16px);
+    }
+
+    /* Bins Container at Bottom */
+    .bins-dock {
+      width: 100%;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 10px;
+      z-index: 10;
+    }
+
+    .bin-target {
+      background: #FFFFFF;
+      border-radius: 22px;
+      padding: 14px 6px 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border: 3px solid transparent;
+      cursor: pointer;
+      position: relative;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+      transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .bin-target:active {
+      transform: scale(0.96);
+    }
+
+    .bin-target.hovered {
+      transform: scale(1.08) translateY(-4px);
+    }
+
+    /* Bin Variants */
+    .bin-target.bin-dry {
+      background: var(--dry-tint);
+      border-color: var(--dry-border);
+      color: var(--dry-blue);
+    }
+    .bin-target.bin-dry.hovered {
+      box-shadow: 0 10px 24px rgba(37, 99, 235, 0.3);
+      border-color: var(--dry-blue);
+    }
+
+    .bin-target.bin-wet {
+      background: var(--wet-tint);
+      border-color: var(--wet-border);
+      color: var(--wet-green);
+    }
+    .bin-target.bin-wet.hovered {
+      box-shadow: 0 10px 24px rgba(22, 163, 74, 0.3);
+      border-color: var(--wet-green);
+    }
+
+    .bin-target.bin-hazard {
+      background: var(--haz-tint);
+      border-color: var(--haz-border);
+      color: var(--haz-red);
+    }
+    .bin-target.bin-hazard.hovered {
+      box-shadow: 0 10px 24px rgba(220, 38, 38, 0.3);
+      border-color: var(--haz-red);
+    }
+
+    /* Bin Content */
+    .bin-icon {
+      font-size: 38px;
+      line-height: 1;
+      margin-bottom: 6px;
+      pointer-events: none;
+      transition: transform 0.2s ease;
+    }
+
+    .bin-target.hovered .bin-icon {
+      transform: scale(1.2);
+    }
+
+    .bin-title {
+      font-size: 14px;
+      font-weight: 800;
+      pointer-events: none;
+    }
+
+    .bin-subtitle {
+      font-size: 11px;
+      font-weight: 600;
+      opacity: 0.85;
+      pointer-events: none;
+    }
+
+    /* Flash Animations */
+    .bin-target.flash-green {
+      animation: greenFlash 0.5s ease;
+    }
+
+    @keyframes greenFlash {
+      0%, 100% { background: inherit; }
+      50% { background: #86EFAC; transform: scale(1.12); }
+    }
+
+    .bin-target.flash-red {
+      animation: redFlash 0.4s ease;
+    }
+
+    @keyframes redFlash {
+      0%, 100% { background: inherit; }
+      50% { background: #FCA5A5; transform: scale(0.96); }
+    }
+
+    /* Results Screen */
+    .result-screen {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(8px);
+      z-index: 100;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .result-screen.active {
+      display: flex;
+    }
+
+    .result-card {
+      background: #FFFFFF;
+      border-radius: 28px;
+      padding: 34px 24px;
+      max-width: 400px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    @keyframes popIn {
+      0% { transform: scale(0.8); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .trophy-emoji {
+      font-size: 64px;
+      margin-bottom: 12px;
+      display: inline-block;
+      animation: bounce 1.8s infinite ease-in-out;
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+
+    .result-title {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--ink);
+      margin-bottom: 8px;
+    }
+
+    .result-desc {
+      font-size: 14px;
+      color: var(--ink-soft);
+      line-height: 1.5;
+      margin-bottom: 22px;
+    }
+
+    .score-stats-grid {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      margin-bottom: 24px;
+    }
+
+    .stat-box {
+      background: #F8FAFC;
+      border: 1px solid #E2E8F0;
+      border-radius: 14px;
+      padding: 12px 16px;
+      flex: 1;
+    }
+
+    .stat-box .num {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 26px;
+      font-weight: 800;
+      color: var(--accent);
+    }
+
+    .stat-box .lbl {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--ink-muted);
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+
+    .btn-action {
+      width: 100%;
+      padding: 14px;
+      font-size: 15px;
+      font-weight: 700;
+      border-radius: 14px;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-family: 'Inter', sans-serif;
+      margin-bottom: 10px;
+      transition: all 0.15s ease;
+    }
+
+    .btn-action:active {
+      transform: scale(0.97);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #0D9488, #0F766E);
+      color: #FFFFFF;
+      box-shadow: 0 4px 14px rgba(13, 148, 136, 0.35);
+    }
+
+    .btn-secondary {
+      background: #F1F5F9;
+      color: var(--ink);
+    }
+
+    /* Small Screen adaptations */
+    @media (max-height: 660px) {
+      .drag-item {
+        width: 130px;
+        height: 130px;
+      }
+      .item-emoji {
+        font-size: 58px;
+      }
+      .bin-target {
+        padding: 10px 4px;
+      }
+      .bin-icon {
+        font-size: 32px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Bar -->
+  <header class="topbar">
+    <div class="brand-wrap">
+      <div class="brand-icon">🎯</div>
+      <div class="brand-text">
+        <h1 class="heading-font">DRAG TO BIN</h1>
+        <p>Waste Detective · 15 Items</p>
+      </div>
+    </div>
+    <div class="top-actions">
+      <button class="sound-btn" id="soundBtn" title="Sound Toggle">🔊</button>
+      <button class="exit-btn" id="exitBtn">✕ Exit</button>
+    </div>
+  </header>
+
+  <!-- Status Bar -->
+  <div class="status-bar">
+    <div class="score-badge">
+      Score: <b id="scoreVal">0</b> / <span id="totalItemsDisplay">15</span>
+    </div>
+    <div class="progress-pill" id="itemCounter">
+      Item 1 of 15
+    </div>
+  </div>
+
+  <!-- Play Stage -->
+  <main class="play-stage">
+
+    <div class="instruction-bar">
+      <h2 class="heading-font">Sort the Waste!</h2>
+      <p>Drag the item or tap its matching bin below</p>
+    </div>
+
+    <!-- Floating Feedback Notification -->
+    <div class="floating-feedback" id="feedbackFloat">+1 Correct! 🎉</div>
+
+    <!-- Center Drag Arena -->
+    <div class="item-drop-arena" id="arena">
+      <div class="item-dock-placeholder">
+        <div class="dock-ring"></div>
+      </div>
+
+      <!-- Draggable Item Card -->
+      <div class="drag-item" id="dragItem" tabindex="0">
+        <span class="item-emoji" id="itemEmoji">📰</span>
+        <span class="item-name heading-font" id="itemName">Newspaper</span>
+        <span class="drag-hint-pill">Drag Me ↓</span>
+      </div>
+    </div>
+
+    <!-- Bottom 3 Bins -->
+    <div class="bins-dock" id="binsDock">
+      
+      <!-- Blue Bin: Dry -->
+      <div class="bin-target bin-dry" data-bin="Dry" id="binDry">
+        <div class="bin-icon">🗑️</div>
+        <div class="bin-title heading-font">DRY</div>
+        <div class="bin-subtitle">Blue Bin</div>
+      </div>
+
+      <!-- Green Bin: Wet -->
+      <div class="bin-target bin-wet" data-bin="Wet" id="binWet">
+        <div class="bin-icon">🌱</div>
+        <div class="bin-title heading-font">WET</div>
+        <div class="bin-subtitle">Green Bin</div>
+      </div>
+
+      <!-- Red Bin: Hazardous -->
+      <div class="bin-target bin-hazard" data-bin="Hazardous" id="binHazard">
+        <div class="bin-icon">⚠️</div>
+        <div class="bin-title heading-font">HAZARD</div>
+        <div class="bin-subtitle">Red Bin</div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Results Screen Modal -->
+  <div class="result-screen" id="resultModal">
+    <div class="result-card">
+      <div class="trophy-emoji" id="resTrophy">🏆</div>
+      <h2 class="result-title heading-font" id="resTitle">Fantastic Sorting!</h2>
+      <p class="result-desc" id="resDesc">
+        You successfully sorted all 15 waste items into their correct bins!
+      </p>
+
+      <div class="score-stats-grid">
+        <div class="stat-box">
+          <div class="num" id="finalScoreVal">15</div>
+          <div class="lbl">First-Try Score</div>
+        </div>
+        <div class="stat-box">
+          <div class="num" id="finalAccuracyVal">100%</div>
+          <div class="lbl">Accuracy</div>
+        </div>
+      </div>
+
+      <button class="btn-action btn-primary" id="playAgainBtn">
+        🔄 Play Again
+      </button>
+      <button class="btn-action btn-secondary" id="exitModalBtn">
+        ← Exit to App
+      </button>
+    </div>
+  </div>
+
+  <script>
+    /* ==========================================================
+       DATASET: 15 Household Waste Items
+       ========================================================== */
+    const ALL_ITEMS = [
+      { name: "Newspaper", emoji: "📰", category: "Dry" },
+      { name: "Plastic Bottle", emoji: "🧴", category: "Dry" },
+      { name: "Cardboard", emoji: "📦", category: "Dry" },
+      { name: "Glass Bottle", emoji: "🍾", category: "Dry" },
+      { name: "Metal Can", emoji: "🥫", category: "Dry" },
+      { name: "Cloth Bag", emoji: "🛍️", category: "Dry" },
+      
+      { name: "Banana Peel", emoji: "🍌", category: "Wet" },
+      { name: "Veggie Peel", emoji: "🥬", category: "Wet" },
+      { name: "Egg Shells", emoji: "🥚", category: "Wet" },
+      { name: "Tea Leaves", emoji: "🍵", category: "Wet" },
+      { name: "Dry Leaves", emoji: "🍂", category: "Wet" },
+      { name: "Rice Leftover", emoji: "🍚", category: "Wet" },
+
+      { name: "Old Battery", emoji: "🪫", category: "Hazardous" },
+      { name: "Syringe", emoji: "💉", category: "Hazardous" },
+      { name: "Expired Meds", emoji: "💊", category: "Hazardous" }
+    ];
+
+    /* ==========================================================
+       AUDIO SYNTHESIZER (Web Audio API)
+       ========================================================== */
+    let audioCtx = null;
+    let soundEnabled = true;
+
+    function getAudioContext() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      return audioCtx;
+    }
+
+    function playTone(freq, duration, type = 'sine', gainVal = 0.12) {
+      if (!soundEnabled) return;
+      try {
+        const ctx = getAudioContext();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, ctx.currentTime);
+        gain.gain.setValueAtTime(gainVal, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + duration);
+      } catch (e) {}
+    }
+
+    function soundPickup() {
+      playTone(320, 0.08, 'sine', 0.08);
+    }
+
+    function soundCorrect() {
+      playTone(523.25, 0.09, 'sine', 0.12); // C5
+      setTimeout(() => playTone(659.25, 0.09, 'sine', 0.12), 70); // E5
+      setTimeout(() => playTone(783.99, 0.22, 'sine', 0.15), 140); // G5
+    }
+
+    function soundWrong() {
+      playTone(220, 0.12, 'square', 0.12);
+      setTimeout(() => playTone(165, 0.2, 'square', 0.14), 100);
+    }
+
+    function soundVictory() {
+      const notes = [440, 554.37, 659.25, 880];
+      notes.forEach((freq, i) => {
+        setTimeout(() => playTone(freq, 0.18, 'triangle', 0.15), i * 110);
+      });
+    }
+
+    const soundBtn = document.getElementById('soundBtn');
+    soundBtn.addEventListener('click', () => {
+      soundEnabled = !soundEnabled;
+      soundBtn.textContent = soundEnabled ? '🔊' : '🔇';
+      if (soundEnabled) playTone(440, 0.08);
+    });
+
+    /* ==========================================================
+       EXIT BUTTON HANDLER
+       ========================================================== */
+    function exitGame() {
+      if (window.parent !== window) {
+        window.parent.postMessage({ type: 'close-game' }, '*');
+      } else {
+        window.location.hash = '#/app';
+      }
+    }
+    document.getElementById('exitBtn').addEventListener('click', exitGame);
+    document.getElementById('exitModalBtn').addEventListener('click', exitGame);
+
+    /* ==========================================================
+       GAME STATE
+       ========================================================== */
+    let itemsQueue = [];
+    let currentIndex = 0;
+    let score = 0;
+    let hadMistakeOnCurrentItem = false;
+    let isLocked = false;
+
+    const dragItem = document.getElementById('dragItem');
+    const itemEmoji = document.getElementById('itemEmoji');
+    const itemName = document.getElementById('itemName');
+    const scoreVal = document.getElementById('scoreVal');
+    const itemCounter = document.getElementById('itemCounter');
+    const feedbackFloat = document.getElementById('feedbackFloat');
+    const resultModal = document.getElementById('resultModal');
+
+    const bins = {
+      Dry: document.getElementById('binDry'),
+      Wet: document.getElementById('binWet'),
+      Hazardous: document.getElementById('binHazard')
+    };
+
+    function initGame() {
+      // Shuffle the 15 items
+      itemsQueue = [...ALL_ITEMS].sort(() => Math.random() - 0.5);
+      currentIndex = 0;
+      score = 0;
+      scoreVal.textContent = '0';
+      resultModal.classList.remove('active');
+      loadCurrentItem();
+    }
+
+    function loadCurrentItem() {
+      if (currentIndex >= itemsQueue.length) {
+        finishGame();
+        return;
+      }
+
+      isLocked = false;
+      hadMistakeOnCurrentItem = false;
+      resetItemPosition();
+
+      const item = itemsQueue[currentIndex];
+      itemEmoji.textContent = item.emoji;
+      itemName.textContent = item.name;
+      itemCounter.textContent = `Item ${currentIndex + 1} of ${itemsQueue.length}`;
+      dragItem.style.opacity = '1';
+      dragItem.style.pointerEvents = 'auto';
+    }
+
+    function resetItemPosition() {
+      dragItem.style.transition = 'transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.2s';
+      dragItem.style.transform = 'translate3d(0, 0, 0)';
+      dragItem.classList.remove('is-dragging');
+      clearBinHighlights();
+    }
+
+    function clearBinHighlights() {
+      Object.values(bins).forEach(bin => bin.classList.remove('hovered'));
+    }
+
+    /* ==========================================================
+       POINTER DRAGGING & TOUCH SUPPORT
+       ========================================================== */
+    let isDragging = false;
+    let startX = 0, startY = 0;
+    let currentX = 0, currentY = 0;
+
+    dragItem.addEventListener('pointerdown', (e) => {
+      if (isLocked) return;
+      getAudioContext();
+      isDragging = true;
+      startX = e.clientX;
+      startY = e.clientY;
+      currentX = 0;
+      currentY = 0;
+
+      dragItem.setPointerCapture(e.pointerId);
+      dragItem.style.transition = 'none';
+      dragItem.classList.add('is-dragging');
+      soundPickup();
+    });
+
+    dragItem.addEventListener('pointermove', (e) => {
+      if (!isDragging) return;
+      currentX = e.clientX - startX;
+      currentY = e.clientY - startY;
+      dragItem.style.transform = `translate3d(${currentX}px, ${currentY}px, 0) scale(1.12)`;
+
+      // Check hover over bins
+      checkBinHover(e.clientX, e.clientY);
+    });
+
+    dragItem.addEventListener('pointerup', (e) => {
+      if (!isDragging) return;
+      isDragging = false;
+      try { dragItem.releasePointerCapture(e.pointerId); } catch(err) {}
+
+      const targetBin = findDroppedBin(e.clientX, e.clientY);
+      if (targetBin) {
+        evaluateDrop(targetBin);
+      } else {
+        // Returned without dropping into any bin
+        resetItemPosition();
+      }
+    });
+
+    dragItem.addEventListener('pointercancel', () => {
+      isDragging = false;
+      resetItemPosition();
+    });
+
+    // Also support direct click/tap on bin as an accessibility / alternative option
+    Object.keys(bins).forEach(cat => {
+      bins[cat].addEventListener('click', () => {
+        if (isLocked) return;
+        evaluateDrop(cat);
+      });
+    });
+
+    function checkBinHover(x, y) {
+      clearBinHighlights();
+      const cat = findDroppedBin(x, y);
+      if (cat && bins[cat]) {
+        bins[cat].classList.add('hovered');
+      }
+    }
+
+    function findDroppedBin(x, y) {
+      for (const [cat, el] of Object.entries(bins)) {
+        const rect = el.getBoundingClientRect();
+        // Generous touch hit boundary
+        if (x >= rect.left - 10 && x <= rect.right + 10 && y >= rect.top - 20 && y <= rect.bottom + 10) {
+          return cat;
+        }
+      }
+      return null;
+    }
+
+    /* ==========================================================
+       DROP EVALUATION
+       ========================================================== */
+    function evaluateDrop(selectedCategory) {
+      const currentItem = itemsQueue[currentIndex];
+      const targetBinEl = bins[selectedCategory];
+
+      if (selectedCategory === currentItem.category) {
+        // === CORRECT ===
+        isLocked = true;
+        soundCorrect();
+
+        // Score only if first try on this item
+        if (!hadMistakeOnCurrentItem) {
+          score++;
+          scoreVal.textContent = score;
+        }
+
+        // Green Flash on Bin
+        targetBinEl.classList.add('flash-green');
+        setTimeout(() => targetBinEl.classList.remove('flash-green'), 500);
+
+        // Show floating feedback
+        showFeedback(true);
+
+        // Animate item shrinking into bin
+        const binRect = targetBinEl.getBoundingClientRect();
+        const itemRect = dragItem.getBoundingClientRect();
+        const deltaX = (binRect.left + binRect.width / 2) - (itemRect.left + itemRect.width / 2);
+        const deltaY = (binRect.top + binRect.height / 2) - (itemRect.top + itemRect.height / 2);
+
+        dragItem.style.transition = 'transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.35s';
+        dragItem.style.transform = `translate3d(${currentX + deltaX}px, ${currentY + deltaY}px, 0) scale(0.2)`;
+        dragItem.style.opacity = '0';
+
+        setTimeout(() => {
+          currentIndex++;
+          loadCurrentItem();
+        }, 400);
+
+      } else {
+        // === WRONG ===
+        hadMistakeOnCurrentItem = true;
+        soundWrong();
+
+        // Red flash on target bin
+        targetBinEl.classList.add('flash-red');
+        setTimeout(() => targetBinEl.classList.remove('flash-red'), 400);
+
+        // Shake item and pop back to center
+        dragItem.classList.add('shake');
+        showFeedback(false);
+
+        setTimeout(() => {
+          dragItem.classList.remove('shake');
+          resetItemPosition();
+        }, 450);
+      }
+    }
+
+    function showFeedback(isCorrect) {
+      feedbackFloat.className = 'floating-feedback';
+      if (isCorrect) {
+        feedbackFloat.textContent = '+1 Correct! 🎉';
+        feedbackFloat.classList.add('show-correct');
+      } else {
+        feedbackFloat.textContent = 'Oops! Try again ❌';
+        feedbackFloat.classList.add('show-wrong');
+      }
+
+      setTimeout(() => {
+        feedbackFloat.className = 'floating-feedback';
+      }, 700);
+    }
+
+    /* ==========================================================
+       GAME OVER & RESULTS
+       ========================================================== */
+    function finishGame() {
+      soundVictory();
+      resultModal.classList.add('active');
+
+      const resTrophy = document.getElementById('resTrophy');
+      const resTitle = document.getElementById('resTitle');
+      const resDesc = document.getElementById('resDesc');
+      const finalScoreVal = document.getElementById('finalScoreVal');
+      const finalAccuracyVal = document.getElementById('finalAccuracyVal');
+
+      finalScoreVal.textContent = `${score} / 15`;
+      const accuracy = Math.round((score / 15) * 100);
+      finalAccuracyVal.textContent = `${accuracy}%`;
+
+      if (score >= 14) {
+        resTrophy.textContent = '🏆';
+        resTitle.textContent = 'Master Waste Sorter!';
+        resDesc.textContent = `Phenomenal job! You sorted 15 items with ${accuracy}% first-attempt accuracy!`;
+      } else if (score >= 10) {
+        resTrophy.textContent = '⭐';
+        resTitle.textContent = 'Waste Detective Hero!';
+        resDesc.textContent = `Great effort! You achieved a score of ${score}/15. Practice once more to get a perfect score!`;
+      } else {
+        resTrophy.textContent = '🌱';
+        resTitle.textContent = 'Good Practice!';
+        resDesc.textContent = `You finished sorting all 15 items! Keep practicing to memorize the Blue, Green, and Red bins.`;
+      }
+    }
+
+    document.getElementById('playAgainBtn').addEventListener('click', initGame);
+
+    // Start game on load
+    initGame();
+  </script>
+</body>
+</html>

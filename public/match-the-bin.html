@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Match the Bin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Inter:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#15181C;
+    --ink-soft:#5C6168;
+    --paper:#FAFAF8;
+    --line:#E4E3DD;
+    --dry:#1F5FA8; --dry-tint:#E3EEF9;
+    --wet:#2E7D32; --wet-tint:#E5F1E3;
+    --food:#C25A1E; --food-tint:#FAE6D8;
+    --reject:#8B2E3B; --reject-tint:#F5E1E3;
+    --good:#2E7D32;
+    --bad:#AD3B2E;
+    box-sizing:border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  *{box-sizing:inherit;}
+  html,body{ height:100%; margin:0; }
+  body{
+    font-family:'Inter', sans-serif;
+    background: var(--paper);
+    min-height:100%;
+    color:var(--ink);
+    display:flex; flex-direction:column; align-items:center;
+  }
+  h1,h2,.display{ font-family:'Space Grotesk', sans-serif; }
+
+  .topbar{
+    width:100%; background:var(--ink); color:#fff;
+    padding:14px 20px;
+    display:flex; align-items:center; justify-content:space-between;
+    flex-shrink:0;
+  }
+  .topbar .brand{ font-weight:700; font-size:15px; letter-spacing:0.2px; }
+  .topbar .brand small{ display:block; font-weight:500; font-size:11px; color:#A7ABB1; margin-top:1px; }
+  .topbar button{
+    background:none; border:1px solid #3A3F46; color:#C7CAD0;
+    font-family:'Inter',sans-serif; font-weight:600; font-size:12.5px;
+    padding:7px 14px; border-radius:7px; cursor:pointer;
+  }
+  .topbar button:active{ background:#20242A; }
+
+  .stripe{ width:100%; height:5px; display:flex; flex-shrink:0; }
+  .stripe span{ flex:1; }
+  .stripe .a{ background:var(--dry); } .stripe .b{ background:var(--wet); }
+  .stripe .c{ background:var(--food); } .stripe .d{ background:var(--reject); }
+
+  .stage{ width:100%; max-width:420px; flex:1; display:flex; flex-direction:column; align-items:center; padding:18px 18px 30px; }
+
+  .screen{ display:none; width:100%; flex:1; flex-direction:column; align-items:center; }
+  .screen.active{ display:flex; }
+
+  .rounds{ display:flex; gap:6px; margin-bottom:10px; }
+  .rdot{ width:8px; height:8px; border-radius:50%; background:var(--line); }
+  .rdot.done{ background:var(--good); }
+  .rdot.active{ background:var(--ink); }
+
+  .score-pill{ font-size:13px; font-weight:700; color:var(--ink-soft); margin-bottom:14px; }
+  .score-pill b{ color:var(--ink); font-family:'Space Grotesk',sans-serif; }
+
+  .status-icon{ width:64px; height:64px; margin-bottom:6px; }
+  .status-icon svg{ width:100%; height:100%; }
+  .status-icon circle{ fill:none; stroke-width:3; stroke:var(--good); }
+  .status-icon path{ fill:none; stroke-width:4; stroke-linecap:round; stroke-linejoin:round; stroke:var(--good); }
+
+  h1.title{ font-size:20px; font-weight:700; margin:0 0 4px; text-align:center; }
+  .prompt{ font-size:14px; color:var(--ink-soft); font-weight:600; text-align:center; margin:0 0 22px; }
+
+  .items-row{ display:flex; gap:10px; width:100%; justify-content:center; margin-bottom:34px; }
+  .item-card{
+    flex:1; max-width:120px;
+    background:#fff; border:2px solid var(--line); border-radius:16px;
+    padding:14px 6px 12px; text-align:center; cursor:pointer;
+    display:flex; flex-direction:column; align-items:center; gap:6px;
+    transition: transform .1s ease;
+  }
+  .item-card .io{ font-size:42px; line-height:1; }
+  .item-card .in{ font-size:12px; font-weight:700; line-height:1.25; }
+  .item-card:active{ transform: scale(0.96); }
+  .item-card.selected{ border-color:var(--ink); box-shadow: inset 0 0 0 2px var(--ink); }
+  .item-card.done{ opacity:0; pointer-events:none; }
+
+  .bins-row{ display:flex; gap:12px; width:100%; justify-content:center; }
+  .bin-card{
+    flex:1; display:flex; flex-direction:column; align-items:center; gap:8px;
+    cursor:pointer; background:none; border:none; padding:0;
+  }
+  .bin-card:active .bin-shape{ transform: scale(0.95); }
+  .bin-shape{
+    width:100%; max-width:100px; aspect-ratio: 1/1;
+    border-radius:18px;
+    display:flex; align-items:center; justify-content:center;
+    border:2.5px solid transparent;
+    transition: transform .1s ease, border-color .15s ease;
+  }
+  .bin-shape svg{ width:46%; height:46%; }
+  .bin-card .bn{ font-size:12px; font-weight:700; text-align:center; line-height:1.2; }
+  .bin-a .bin-shape{ background:var(--dry-tint); color:var(--dry); }
+  .bin-b .bin-shape{ background:var(--wet-tint); color:var(--wet); }
+  .bin-c .bin-shape{ background:var(--food-tint); color:var(--food); }
+  .bin-d .bin-shape{ background:var(--reject-tint); color:var(--reject); }
+  .bin-card.shake .bin-shape{ animation: shake .4s; border-color:var(--bad); }
+  .bin-card.correct .bin-shape{ border-color:var(--good); }
+  @keyframes shake{ 0%,100%{transform:translateX(0);} 25%{transform:translateX(-6px);} 75%{transform:translateX(6px);} }
+
+  @keyframes pop{ 0%{ transform:scale(1); } 50%{ transform:scale(1.12); } 100%{ transform:scale(1); } }
+  .bin-shape.pop{ animation: pop .35s ease; }
+
+  .next-wrap{ margin-top:30px; display:none; }
+  .next-wrap.show{ display:block; }
+  .btn{ font-family:'Inter',sans-serif; border:none; cursor:pointer; border-radius:10px; font-weight:700; }
+  .btn:active{ transform: scale(0.97); }
+  .btn-primary{ background:var(--ink); color:#fff; padding:14px 30px; font-size:15px; }
+
+  #doneScreen{ justify-content:center; text-align:center; }
+  .big{ font-size:56px; margin-bottom:6px; }
+  #doneScreen h2{ font-size:24px; margin:0 0 6px; }
+  #doneScreen p{ font-size:14px; color:var(--ink-soft); margin:0 0 22px; max-width:260px; }
+
+  @media (prefers-reduced-motion: reduce){ .bin-shape.pop{ animation:none; } }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute">
+  <symbol id="icon-bin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M4.5 7h15l-1.3 13.2a2 2 0 0 1-2 1.8H7.8a2 2 0 0 1-2-1.8L4.5 7z"/>
+    <path d="M9 7V4.6A1.6 1.6 0 0 1 10.6 3h2.8A1.6 1.6 0 0 1 15 4.6V7"/>
+    <path d="M2.5 7h19"/>
+  </symbol>
+  <symbol id="icon-leaf" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M4 20c7-1 14-5 16-16C9 5 5 11 4 20z"/>
+    <path d="M4 20c2-5 5-8 10-11"/>
+  </symbol>
+  <symbol id="icon-bowl" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M3.5 11h17a8 8 0 0 1-16.6 2.6"/>
+    <path d="M4.2 13.6c-.5 3.9 2.7 7.4 7.8 7.4s8.3-3.5 7.8-7.4"/>
+  </symbol>
+  <symbol id="icon-warn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 3.5 21.5 20h-19L12 3.5z"/>
+    <path d="M12 10v4"/>
+    <circle cx="12" cy="17" r="0.9" fill="currentColor" stroke="none"/>
+  </symbol>
+</svg>
+
+<div class="topbar">
+  <div class="brand">MATCH THE BIN<small>Tap item, tap bin</small></div>
+  <button id="exitBtn">Exit</button>
+</div>
+
+<div class="stripe"><span class="a"></span><span class="b"></span><span class="c"></span><span class="d"></span></div>
+
+<div class="stage">
+
+  <div class="screen active" id="playScreen">
+    <div class="rounds" id="rounds"></div>
+    <div class="score-pill">Score: <b id="scoreVal">0</b>/<b id="scoreTotal">21</b></div>
+    <h1 class="title" id="roundTitle">Where does it go?</h1>
+    <p class="prompt" id="roundPrompt">Tap an item, then tap its bin</p>
+
+    <div class="items-row" id="itemsRow"></div>
+    <div class="bins-row" id="binsRow"></div>
+
+    <div class="next-wrap" id="nextWrap">
+      <button class="btn btn-primary" id="nextBtn">Next round</button>
+    </div>
+  </div>
+
+  <div class="screen" id="doneScreen">
+    <div class="status-icon" id="statusIcon">
+      <svg viewBox="0 0 52 52">
+        <circle cx="26" cy="26" r="23"/>
+        <path id="statusPath" d="M15 27 l8 8 l16 -18"/>
+      </svg>
+    </div>
+    <div class="big">🎉</div>
+    <h2>You matched them all!</h2>
+    <p>Final score: <b id="finalScore" style="color:var(--ink);">21</b> / <b id="finalTotal" style="color:var(--ink);">21</b></p>
+    <button class="btn btn-primary" id="restartBtn">Play again</button>
+  </div>
+
+</div>
+
+<script>
+  var ICONS = { dry:"icon-bin", wet:"icon-leaf", food:"icon-bowl", reject:"icon-warn" };
+  var BINCLASS = { dry:"bin-a", wet:"bin-b", food:"bin-c", reject:"bin-d" };
+  var binMeta = { dry:{name:"Dry"}, wet:{name:"Wet"}, food:{name:"Food"}, reject:{name:"Other"} };
+
+  var rounds = [
+    [ {obj:"📰", name:"Paper", cat:"dry"}, {obj:"🍌", name:"Banana Peel", cat:"wet"}, {obj:"🍚", name:"Rice", cat:"food"} ],
+    [ {obj:"🧴", name:"Bottle", cat:"dry"}, {obj:"🥚", name:"Egg Shell", cat:"wet"}, {obj:"🪫", name:"Battery", cat:"reject"} ],
+    [ {obj:"📦", name:"Box", cat:"dry"}, {obj:"🥬", name:"Veg Peel", cat:"wet"}, {obj:"🍞", name:"Bread", cat:"food"} ],
+    [ {obj:"🍾", name:"Glass", cat:"dry"}, {obj:"🍂", name:"Dry Leaves", cat:"wet"}, {obj:"🩹", name:"Bandage", cat:"reject"} ],
+    [ {obj:"🥫", name:"Can", cat:"dry"}, {obj:"🧅", name:"Onion Peel", cat:"wet"}, {obj:"🍛", name:"Food", cat:"food"} ],
+    [ {obj:"🛍️", name:"Bag", cat:"dry"}, {obj:"💊", name:"Medicine", cat:"reject"}, {obj:"🧹", name:"Dust", cat:"reject"} ],
+    [ {obj:"👕", name:"Cloth", cat:"dry"}, {obj:"🟫", name:"Soil", cat:"reject"}, {obj:"🍌", name:"Peel", cat:"wet"} ]
+  ];
+
+  var roundIndex = 0, selectedEl = null, doneInRound = 0, score = 0;
+  var totalItems = rounds.reduce(function(s, r){ return s + r.length; }, 0);
+
+  var audioCtx = null;
+  function beep(freq, duration, type){
+    try{
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      var osc = audioCtx.createOscillator();
+      var gain = audioCtx.createGain();
+      osc.type = type || 'sine';
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.16, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+      osc.connect(gain); gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + duration);
+    } catch(e){}
+  }
+  function playCorrectSound(){ beep(523,0.10,'sine'); setTimeout(function(){beep(659,0.10,'sine');},90); setTimeout(function(){beep(784,0.18,'sine');},180); }
+  function playWrongSound(){ beep(220,0.16,'square'); setTimeout(function(){beep(165,0.22,'square');},140); }
+  function animateStroke(el, duration){
+    var len = el.getTotalLength();
+    el.style.transition = 'none';
+    el.style.strokeDasharray = len;
+    el.style.strokeDashoffset = len;
+    el.getBoundingClientRect();
+    el.style.transition = 'stroke-dashoffset ' + duration + 's cubic-bezier(.3,.7,.3,1)';
+    el.style.strokeDashoffset = '0';
+  }
+
+  document.getElementById('exitBtn').addEventListener('click', function(){
+    if (window.parent !== window) { window.parent.postMessage({ type: 'close-game' }, '*'); }
+    else { window.location.hash = '#/app'; }
+  });
+
+  function buildRoundsDots(){
+    var el = document.getElementById('rounds');
+    el.innerHTML = '';
+    rounds.forEach(function(){ var d = document.createElement('div'); d.className='rdot'; el.appendChild(d); });
+  }
+  function updateRoundsDots(){
+    [].slice.call(document.getElementById('rounds').children).forEach(function(d, i){
+      d.classList.remove('active','done');
+      if (i < roundIndex) d.classList.add('done');
+      else if (i === roundIndex) d.classList.add('active');
+    });
+  }
+
+  function startRound(){
+    selectedEl = null;
+    doneInRound = 0;
+    var set = rounds[roundIndex];
+
+    var itemsRow = document.getElementById('itemsRow');
+    var binsRow = document.getElementById('binsRow');
+    itemsRow.innerHTML = '';
+    binsRow.innerHTML = '';
+    document.getElementById('nextWrap').classList.remove('show');
+    updateRoundsDots();
+
+    var shuffledItems = set.slice().sort(function(){ return Math.random() - 0.5; });
+    shuffledItems.forEach(function(it){
+      it.wrongAttempt = false;
+      var card = document.createElement('div');
+      card.className = 'item-card';
+      card.innerHTML = '<div class="io">' + it.obj + '</div><div class="in">' + it.name + '</div>';
+      card.addEventListener('click', function(){ onItemClick(card, it); });
+      itemsRow.appendChild(card);
+    });
+
+    var cats = set.map(function(i){ return i.cat; }).filter(function(v, idx, arr){ return arr.indexOf(v) === idx; });
+    var shuffledCats = cats.sort(function(){ return Math.random() - 0.5; });
+    shuffledCats.forEach(function(cat){
+      var btn = document.createElement('button');
+      btn.className = 'bin-card ' + BINCLASS[cat];
+      btn.dataset.cat = cat;
+      btn.innerHTML = '<div class="bin-shape"><svg><use href="#' + ICONS[cat] + '"/></svg></div><div class="bn">' + binMeta[cat].name + '</div>';
+      btn.addEventListener('click', function(){ onBinClick(btn, cat); });
+      binsRow.appendChild(btn);
+    });
+  }
+
+  function onItemClick(card, it){
+    if (card.classList.contains('done')) return;
+    [].slice.call(document.querySelectorAll('.item-card.selected')).forEach(function(c){ c.classList.remove('selected'); });
+    card.classList.add('selected');
+    selectedEl = { card: card, it: it };
+  }
+
+  function onBinClick(binEl, cat){
+    if (!selectedEl) return;
+    var shape = binEl.querySelector('.bin-shape');
+    if (selectedEl.it.cat === cat){
+      playCorrectSound();
+      if (!selectedEl.it.wrongAttempt){ score++; document.getElementById('scoreVal').textContent = score; }
+      shape.classList.add('pop');
+      binEl.classList.add('correct');
+      setTimeout(function(){ shape.classList.remove('pop'); binEl.classList.remove('correct'); }, 400);
+      selectedEl.card.classList.remove('selected');
+      selectedEl.card.classList.add('done');
+      selectedEl = null;
+      doneInRound++;
+      if (doneInRound === rounds[roundIndex].length){
+        setTimeout(function(){
+          if (roundIndex === rounds.length - 1){
+            document.getElementById('playScreen').classList.remove('active');
+            document.getElementById('doneScreen').classList.add('active');
+            document.getElementById('finalScore').textContent = score;
+            document.getElementById('finalTotal').textContent = totalItems;
+            requestAnimationFrame(function(){
+              animateStroke(document.querySelector('#statusIcon circle'), 0.5);
+              setTimeout(function(){ animateStroke(document.getElementById('statusPath'), 0.35); }, 280);
+            });
+          } else {
+            document.getElementById('nextWrap').classList.add('show');
+          }
+        }, 450);
+      }
+    } else {
+      playWrongSound();
+      selectedEl.it.wrongAttempt = true;
+      binEl.classList.add('shake');
+      setTimeout(function(){ binEl.classList.remove('shake'); }, 350);
+    }
+  }
+
+  document.getElementById('nextBtn').addEventListener('click', function(){ roundIndex++; startRound(); });
+  document.getElementById('restartBtn').addEventListener('click', function(){
+    roundIndex = 0; score = 0;
+    document.getElementById('scoreVal').textContent = '0';
+    document.getElementById('doneScreen').classList.remove('active');
+    document.getElementById('playScreen').classList.add('active');
+    startRound();
+  });
+
+  document.getElementById('scoreTotal').textContent = totalItems;
+  buildRoundsDots();
+  startRound();
+</script>
+</body>
+</html>

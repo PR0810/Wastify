@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Compost Factory</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700;800&family=Inter:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F4F1EA;
+    --brown-dark: #3E2723;
+    --brown-mid: #5D4037;
+    --brown-light: #8D6E63;
+    --brown-tint: #EFEBE9;
+    --green-dark: #1B5E20;
+    --green-mid: #2E7D32;
+    --green-bright: #4CAF50;
+    --green-tint: #E8F5E9;
+    --ink: #212121;
+    --ink-soft: #616161;
+    --card: #FFFFFF;
+    --line: #E0DCD3;
+    --bad: #C62828;
+    --bad-tint: #FFEBEE;
+    --amber: #F57F17;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  * { box-sizing: inherit; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow-x: hidden;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  h1, h2, h3 { font-family: 'Space Grotesk', sans-serif; }
+
+  /* Top Bar */
+  .topbar {
+    width: 100%;
+    background: var(--brown-dark);
+    color: #fff;
+    padding: 12px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+    z-index: 30;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  }
+  .brand {
+    font-weight: 800;
+    font-size: 15px;
+    letter-spacing: 0.3px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .brand small {
+    display: block;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 10.5px;
+    color: #D7CCC8;
+    margin-top: 1px;
+  }
+  .topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .stat-pill {
+    background: rgba(255,255,255,0.12);
+    padding: 5px 10px;
+    border-radius: 8px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .stat-pill span { color: #81C784; }
+  .stat-pill.timer span { color: #FFD54F; }
+  .exit-btn {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: #EFEBE9;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 12.5px;
+    padding: 6px 13px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .exit-btn:active { background: rgba(255,255,255,0.2); transform: scale(0.96); }
+
+  /* Main Stage Container */
+  .stage {
+    width: 100%;
+    max-width: 460px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 12px 16px 20px;
+    position: relative;
+  }
+
+  /* Screens */
+  .screen {
+    display: none;
+    width: 100%;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+  }
+  .screen.active { display: flex; }
+
+  /* Start Screen */
+  #startScreen {
+    justify-content: center;
+    text-align: center;
+    padding: 20px 8px;
+    gap: 12px;
+  }
+  .badge-tag {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    color: var(--green-dark);
+    background: var(--green-tint);
+    border: 1px solid #C8E6C9;
+    padding: 5px 12px;
+    border-radius: 20px;
+  }
+  .hero-icon {
+    font-size: 68px;
+    filter: drop-shadow(0 6px 12px rgba(62,39,35,0.15));
+    animation: float 2.4s ease-in-out infinite;
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+  #startScreen h1 {
+    font-size: 29px;
+    margin: 4px 0 0;
+    color: var(--brown-dark);
+    line-height: 1.2;
+  }
+  #startScreen p {
+    font-size: 14.5px;
+    color: var(--ink-soft);
+    margin: 0 0 16px;
+    line-height: 1.5;
+    max-width: 320px;
+  }
+  .item-preview-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    width: 100%;
+    max-width: 330px;
+    margin-bottom: 20px;
+  }
+  .preview-card {
+    background: #fff;
+    border: 1.5px solid var(--line);
+    border-radius: 10px;
+    padding: 8px 10px;
+    font-size: 12px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-align: left;
+  }
+  .preview-card.good { border-color: #A5D6A7; background: #F1F8E9; color: var(--green-dark); }
+  .preview-card.bad { border-color: #EF9A9A; background: #FFEBEE; color: var(--bad); }
+
+  .btn {
+    font-family: 'Space Grotesk', sans-serif;
+    border: none;
+    cursor: pointer;
+    border-radius: 12px;
+    font-weight: 800;
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+  }
+  .btn:active { transform: scale(0.97); }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--green-dark), var(--green-mid));
+    color: #fff;
+    padding: 16px 36px;
+    font-size: 16px;
+    box-shadow: 0 4px 14px rgba(46,125,50,0.35);
+    width: 100%;
+    max-width: 280px;
+  }
+  .btn-ghost {
+    background: none;
+    color: var(--brown-mid);
+    font-size: 13.5px;
+    text-decoration: underline;
+    font-weight: 700;
+    padding: 10px;
+    margin-top: 4px;
+  }
+
+  /* Play Screen */
+  #playScreen {
+    position: relative;
+    padding-top: 6px;
+  }
+
+  /* Timer bar */
+  .timer-wrap {
+    width: 100%;
+    height: 8px;
+    background: #E0DCD3;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 12px;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+  }
+  .timer-bar {
+    height: 100%;
+    width: 100%;
+    background: linear-gradient(90deg, #4CAF50, #8BC34A, #FFB300, #E53935);
+    border-radius: 4px;
+    transition: width 0.1s linear;
+  }
+
+  /* Factory Pit / Drop Arena */
+  .factory-arena {
+    width: 100%;
+    flex: 1;
+    min-height: 290px;
+    background: linear-gradient(180deg, #EFEBE9 0%, #D7CCC8 60%, #8D6E63 100%);
+    border: 2px solid var(--brown-mid);
+    border-radius: 18px;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-shadow: inset 0 4px 10px rgba(0,0,0,0.1);
+  }
+
+  /* Silo Tube at Top */
+  .silo-tube {
+    width: 140px;
+    height: 28px;
+    background: repeating-linear-gradient(90deg, #4E342E 0 12px, #3E2723 12px 24px);
+    margin: 0 auto;
+    border-bottom-left-radius: 14px;
+    border-bottom-right-radius: 14px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    position: relative;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #D7CCC8;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1px;
+  }
+
+  /* Compost Bed at Bottom */
+  .compost-bed {
+    width: 100%;
+    height: 60px;
+    background: #4E342E;
+    position: relative;
+    border-top: 3px solid #3E2723;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #D7CCC8;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    box-shadow: inset 0 3px 6px rgba(0,0,0,0.3);
+  }
+  .compost-soil-texture {
+    position: absolute;
+    inset: 0;
+    opacity: 0.25;
+    background-image: radial-gradient(#8D6E63 15%, transparent 20%), radial-gradient(#2E7D32 15%, transparent 20%);
+    background-size: 12px 12px;
+    background-position: 0 0, 6px 6px;
+  }
+
+  /* Falling Item Entity */
+  .falling-item {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 10;
+    pointer-events: none;
+    transition: transform 0.05s linear;
+  }
+  .falling-bubble {
+    width: 82px;
+    height: 82px;
+    border-radius: 50%;
+    background: #FFFFFF;
+    border: 3px solid var(--brown-mid);
+    box-shadow: 0 8px 20px rgba(62,39,35,0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 44px;
+    position: relative;
+  }
+  .item-label {
+    margin-top: 6px;
+    background: var(--brown-dark);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 800;
+    padding: 3px 10px;
+    border-radius: 12px;
+    white-space: nowrap;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  }
+
+  /* Action Buttons */
+  .actions-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    width: 100%;
+    margin-top: 14px;
+  }
+  .action-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 16px 12px;
+    border-radius: 16px;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 5px 0 rgba(0,0,0,0.15);
+    transition: transform 0.08s ease, filter 0.08s ease;
+  }
+  .action-btn:active {
+    transform: translateY(4px);
+    box-shadow: 0 1px 0 rgba(0,0,0,0.15);
+  }
+  .action-btn.good-btn {
+    background: linear-gradient(135deg, #2E7D32, #43A047);
+    color: #fff;
+  }
+  .action-btn.bad-btn {
+    background: linear-gradient(135deg, #C62828, #E53935);
+    color: #fff;
+  }
+  .btn-title {
+    font-size: 17px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .btn-sub {
+    font-size: 11.5px;
+    font-weight: 600;
+    opacity: 0.9;
+    margin-top: 2px;
+  }
+
+  /* Feedback Toast */
+  .toast {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.85);
+    background: rgba(33, 33, 33, 0.94);
+    color: #fff;
+    padding: 10px 18px;
+    border-radius: 30px;
+    font-size: 13.5px;
+    font-weight: 700;
+    pointer-events: none;
+    opacity: 0;
+    z-index: 25;
+    transition: all 0.22s cubic-bezier(0.3, 1.4, 0.5, 1);
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .toast.show {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  .toast.good { background: rgba(27, 94, 32, 0.96); border: 1.5px solid #81C784; }
+  .toast.bad { background: rgba(198, 40, 40, 0.96); border: 1.5px solid #E57373; }
+
+  /* Combo Pill */
+  .combo-badge {
+    position: absolute;
+    top: 40px;
+    right: 14px;
+    background: #FF8F00;
+    color: #fff;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 12px;
+    font-weight: 800;
+    padding: 3px 8px;
+    border-radius: 12px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    display: none;
+    animation: pop 0.25s ease;
+  }
+  @keyframes pop {
+    0% { transform: scale(0.6); }
+    100% { transform: scale(1); }
+  }
+
+  /* Done Screen */
+  #doneScreen {
+    justify-content: center;
+    text-align: center;
+    padding: 20px 8px;
+  }
+  .trophy-ring {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: #fff;
+    border: 4px solid #C8E6C9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 48px;
+    margin-bottom: 12px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+  }
+  #doneScreen h2 {
+    font-size: 26px;
+    color: var(--brown-dark);
+    margin: 0 0 4px;
+  }
+  #doneScreen .done-sub {
+    font-size: 14px;
+    color: var(--ink-soft);
+    margin: 0 0 18px;
+    max-width: 300px;
+  }
+  .score-card {
+    background: #fff;
+    border: 1.5px solid var(--line);
+    border-radius: 16px;
+    padding: 16px 20px;
+    width: 100%;
+    max-width: 320px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  }
+  .score-item { text-align: center; }
+  .score-item .label { font-size: 11px; font-weight: 700; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 0.5px; }
+  .score-item .val { font-family: 'Space Grotesk', sans-serif; font-size: 24px; font-weight: 800; color: var(--brown-dark); margin-top: 2px; }
+  .score-item .val.green { color: var(--green-mid); }
+
+  .edu-tip-box {
+    background: var(--green-tint);
+    border: 1.5px solid #C8E6C9;
+    border-radius: 14px;
+    padding: 12px 14px;
+    font-size: 12.5px;
+    line-height: 1.45;
+    color: var(--green-dark);
+    text-align: left;
+    max-width: 320px;
+    margin-bottom: 20px;
+    display: flex;
+    gap: 10px;
+  }
+  .edu-tip-box span { font-size: 20px; flex-shrink: 0; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    🌱 COMPOST FACTORY
+    <small>Feed the compost pit!</small>
+  </div>
+  <div class="topbar-right">
+    <div class="stat-pill timer" id="timerPill">⏱️ <span id="timerVal">30</span>s</div>
+    <div class="stat-pill">⭐ <span id="scoreVal">0</span></div>
+    <button class="exit-btn" id="exitTopBtn">Exit</button>
+  </div>
+</div>
+
+<div class="stage">
+
+  <!-- START SCREEN -->
+  <div class="screen active" id="startScreen">
+    <div class="badge-tag">MODULE 3 · COMPOST CHAMPION</div>
+    <div class="hero-icon">🏭🍂</div>
+    <h1>Compost Factory</h1>
+    <p>Items are rolling down into the compost bin! Tap <b>GOOD</b> for compostable waste and <b>BAD</b> for non-compostable stuff before time runs out!</p>
+    
+    <div class="item-preview-grid">
+      <div class="preview-card good"><span>🍌</span> Chhilka (Good)</div>
+      <div class="preview-card bad"><span>🐟</span> Machhli (Bad)</div>
+      <div class="preview-card good"><span>🥚</span> Ande ka chhilka</div>
+      <div class="preview-card bad"><span>🍳</span> Tel wali sabzi</div>
+    </div>
+
+    <button class="btn btn-primary" id="startBtn">Start Factory (30s)</button>
+  </div>
+
+  <!-- PLAY SCREEN -->
+  <div class="screen" id="playScreen">
+    <div class="timer-wrap">
+      <div class="timer-bar" id="timerBar"></div>
+    </div>
+
+    <div class="factory-arena" id="factoryArena">
+      <div class="silo-tube">WASTE FEEDER</div>
+      <div class="combo-badge" id="comboBadge">2x STREAK!</div>
+
+      <div class="falling-item" id="fallingItem">
+        <div class="falling-bubble" id="itemEmoji">🍌</div>
+        <div class="item-label" id="itemName">Kele ka Chhilka</div>
+      </div>
+
+      <div class="toast" id="toast"></div>
+
+      <div class="compost-bed">
+        <div class="compost-soil-texture"></div>
+        <span>🌱 COMPOST PIT SOIL BED</span>
+      </div>
+    </div>
+
+    <div class="actions-grid">
+      <button class="action-btn good-btn" id="goodBtn">
+        <span class="btn-title">✅ GOOD</span>
+        <span class="btn-sub">Compost mein daalo</span>
+      </button>
+      <button class="action-btn bad-btn" id="badBtn">
+        <span class="btn-title">❌ BAD</span>
+        <span class="btn-sub">Bilkul nahi!</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- DONE SCREEN -->
+  <div class="screen" id="doneScreen">
+    <div class="trophy-ring" id="trophyIcon">🏆</div>
+    <h2 id="doneTitle">Compost Harvested!</h2>
+    <p class="done-sub" id="doneDesc">You kept the compost pit healthy and free from contaminants.</p>
+
+    <div class="score-card">
+      <div class="score-item">
+        <div class="label">Total Score</div>
+        <div class="val green" id="finalScore">0</div>
+      </div>
+      <div class="score-item">
+        <div class="label">Accuracy</div>
+        <div class="val" id="finalAccuracy">0%</div>
+      </div>
+      <div class="score-item">
+        <div class="label">Correct Items</div>
+        <div class="val" id="finalCorrect">0</div>
+      </div>
+      <div class="score-item">
+        <div class="label">Max Streak</div>
+        <div class="val" id="finalStreak">0</div>
+      </div>
+    </div>
+
+    <div class="edu-tip-box">
+      <span>💡</span>
+      <div><b>Golden Rule:</b> Fruit & veggie peels, tea leaves, and eggshells make rich compost. Avoid oily foods, meat/fish, and dairy as they attract pests and cause foul rot!</div>
+    </div>
+
+    <button class="btn btn-primary" id="replayBtn">Play Again</button>
+    <button class="btn-ghost" id="exitFromDoneBtn">Exit to App</button>
+  </div>
+
+</div>
+
+<script>
+  // Exit Handler
+  function closeGame() {
+    if (window.parent !== window) {
+      window.parent.postMessage({ type: 'close-game' }, '*');
+    } else {
+      window.location.hash = '#/app';
+    }
+  }
+  document.getElementById('exitTopBtn').addEventListener('click', closeGame);
+  document.getElementById('exitFromDoneBtn').addEventListener('click', closeGame);
+
+  // Sound Engine (Web Audio API)
+  let audioCtx = null;
+  function getAudioContext() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    return audioCtx;
+  }
+  function beep(freq, duration, type = 'sine', volume = 0.15) {
+    try {
+      const ctx = getAudioContext();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, ctx.currentTime);
+      gain.gain.setValueAtTime(volume, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + duration);
+    } catch(e) {}
+  }
+
+  function playCorrectSound() {
+    beep(587.33, 0.08, 'sine', 0.18); // D5
+    setTimeout(() => beep(783.99, 0.12, 'sine', 0.2), 70); // G5
+  }
+  function playWrongSound() {
+    beep(240, 0.12, 'sawtooth', 0.18);
+    setTimeout(() => beep(160, 0.20, 'sawtooth', 0.22), 100);
+  }
+  function playFanfare() {
+    [523, 659, 784, 1046].forEach((f, i) => {
+      setTimeout(() => beep(f, 0.18, 'triangle', 0.22), i * 110);
+    });
+  }
+
+  // Waste Items Pool (Specifically includes prompt items: chhilka, ande ka chhilka, roti, machhli, chai patti, dahi, sukhe patte, tel wali sabzi)
+  const ITEMS = [
+    { name: "Kele ka Chhilka", emoji: "🍌", isGood: true, reason: "Fruit peels add rich potassium and moisture!" },
+    { name: "Ande ka Chhilka", emoji: "🥚", isGood: true, reason: "Eggshells add calcium and aerate soil!" },
+    { name: "Basi Roti", emoji: "🫓", isGood: true, reason: "Plain stale roti breaks down easily in compost!" },
+    { name: "Machhli ke Kante", emoji: "🐟", isGood: false, reason: "Fish attracts maggots, pests & stinks!" },
+    { name: "Ubali Chai Patti", emoji: "🍵", isGood: true, reason: "Tea leaves are rich in Nitrogen (Greens)!" },
+    { name: "Khatta Dahi", emoji: "🥛", isGood: false, reason: "Dairy rots, turns sour and blocks airflow!" },
+    { name: "Sukhe Patte", emoji: "🍂", isGood: true, reason: "Dry leaves add vital Carbon (Browns)!" },
+    { name: "Tel Wali Sabzi", emoji: "🍳", isGood: false, reason: "Oil coats waste and suffocates good microbes!" },
+    { name: "Seb ka Tukda", emoji: "🍎", isGood: true, reason: "Fruit scraps rot into rich compost fast!" },
+    { name: "Mutton/Meat", emoji: "🥩", isGood: false, reason: "Meat rots, invites rodents & spreads foul smell!" }
+  ];
+
+  // Game State
+  const TOTAL_TIME = 30;
+  let timeLeft = TOTAL_TIME;
+  let timerInterval = null;
+  let animFrameId = null;
+  let score = 0;
+  let streak = 0;
+  let maxStreak = 0;
+  let totalTaps = 0;
+  let correctTaps = 0;
+  let currentItem = null;
+  let itemY = 0; // vertical position in pixels
+  let fallSpeed = 2.4; // pixels per frame
+  let arenaHeight = 300;
+  let isGameOver = false;
+
+  const startScreen = document.getElementById('startScreen');
+  const playScreen = document.getElementById('playScreen');
+  const doneScreen = document.getElementById('doneScreen');
+  const timerBar = document.getElementById('timerBar');
+  const timerVal = document.getElementById('timerVal');
+  const scoreVal = document.getElementById('scoreVal');
+  const fallingItem = document.getElementById('fallingItem');
+  const itemEmoji = document.getElementById('itemEmoji');
+  const itemName = document.getElementById('itemName');
+  const toast = document.getElementById('toast');
+  const comboBadge = document.getElementById('comboBadge');
+  const arena = document.getElementById('factoryArena');
+
+  function showScreen(name) {
+    startScreen.classList.toggle('active', name === 'start');
+    playScreen.classList.toggle('active', name === 'play');
+    doneScreen.classList.toggle('active', name === 'done');
+  }
+
+  function spawnNextItem() {
+    const randomIndex = Math.floor(Math.random() * ITEMS.length);
+    currentItem = ITEMS[randomIndex];
+    itemEmoji.textContent = currentItem.emoji;
+    itemName.textContent = currentItem.name;
+    itemY = 15;
+    fallingItem.style.transform = `translate(-50%, ${itemY}px)`;
+  }
+
+  function showToast(text, isGood) {
+    toast.textContent = text;
+    toast.className = `toast ${isGood ? 'good' : 'bad'} show`;
+    setTimeout(() => {
+      toast.classList.remove('show');
+    }, 750);
+  }
+
+  function handleDecision(userChoseGood) {
+    if (isGameOver || !currentItem) return;
+    totalTaps++;
+
+    const isCorrect = (userChoseGood === currentItem.isGood);
+
+    if (isCorrect) {
+      streak++;
+      if (streak > maxStreak) maxStreak = streak;
+      correctTaps++;
+      const multiplier = streak >= 3 ? (streak >= 5 ? 3 : 2) : 1;
+      const pts = 10 * multiplier;
+      score += pts;
+      scoreVal.textContent = score;
+
+      playCorrectSound();
+      showToast(`+${pts} ${currentItem.isGood ? 'Compost Mein!' : 'Sahi Roka!'}`, true);
+
+      if (streak >= 3) {
+        comboBadge.style.display = 'block';
+        comboBadge.textContent = `${streak}x COMBO!`;
+      }
+    } else {
+      streak = 0;
+      comboBadge.style.display = 'none';
+      score = Math.max(0, score - 5);
+      scoreVal.textContent = score;
+
+      playWrongSound();
+      showToast(`Oops! ${currentItem.reason}`, false);
+    }
+
+    // Slightly increase fall speed over time
+    fallSpeed = Math.min(5.2, 2.4 + (TOTAL_TIME - timeLeft) * 0.08);
+
+    spawnNextItem();
+  }
+
+  function gameLoop() {
+    if (isGameOver) return;
+
+    itemY += fallSpeed;
+    const maxDrop = arena.clientHeight - 130;
+
+    if (itemY >= maxDrop) {
+      // Item dropped to the bottom without being sorted
+      if (currentItem.isGood) {
+        // Missed a good item - no penalty but streak resets
+        streak = 0;
+        comboBadge.style.display = 'none';
+        showToast("Miss ho gaya!", false);
+      } else {
+        // Bad item contaminated the pit!
+        streak = 0;
+        comboBadge.style.display = 'none';
+        score = Math.max(0, score - 8);
+        scoreVal.textContent = score;
+        playWrongSound();
+        showToast("⚠️ Pit contaminate ho gaya!", false);
+      }
+      spawnNextItem();
+    } else {
+      fallingItem.style.transform = `translate(-50%, ${itemY}px)`;
+    }
+
+    animFrameId = requestAnimationFrame(gameLoop);
+  }
+
+  function startGame() {
+    isGameOver = false;
+    timeLeft = TOTAL_TIME;
+    score = 0;
+    streak = 0;
+    maxStreak = 0;
+    totalTaps = 0;
+    correctTaps = 0;
+    fallSpeed = 2.4;
+
+    scoreVal.textContent = '0';
+    timerVal.textContent = timeLeft;
+    timerBar.style.width = '100%';
+    comboBadge.style.display = 'none';
+
+    showScreen('play');
+    spawnNextItem();
+
+    if (timerInterval) clearInterval(timerInterval);
+    if (animFrameId) cancelAnimationFrame(animFrameId);
+
+    const startTime = Date.now();
+    timerInterval = setInterval(() => {
+      const elapsed = Math.floor((Date.now() - startTime) / 1000);
+      timeLeft = Math.max(0, TOTAL_TIME - elapsed);
+      timerVal.textContent = timeLeft;
+      timerBar.style.width = `${(timeLeft / TOTAL_TIME) * 100}%`;
+
+      if (timeLeft <= 5) {
+        document.getElementById('timerPill').style.background = 'rgba(229,57,53,0.35)';
+        beep(440, 0.05, 'triangle', 0.1);
+      } else {
+        document.getElementById('timerPill').style.background = 'rgba(255,255,255,0.12)';
+      }
+
+      if (timeLeft <= 0) {
+        endGame();
+      }
+    }, 250);
+
+    animFrameId = requestAnimationFrame(gameLoop);
+  }
+
+  function endGame() {
+    isGameOver = true;
+    clearInterval(timerInterval);
+    cancelAnimationFrame(animFrameId);
+
+    const accuracy = totalTaps > 0 ? Math.round((correctTaps / totalTaps) * 100) : 0;
+    document.getElementById('finalScore').textContent = score;
+    document.getElementById('finalAccuracy').textContent = `${accuracy}%`;
+    document.getElementById('finalCorrect').textContent = correctTaps;
+    document.getElementById('finalStreak').textContent = `${maxStreak}x`;
+
+    const trophy = document.getElementById('trophyIcon');
+    const title = document.getElementById('doneTitle');
+    const desc = document.getElementById('doneDesc');
+
+    if (score >= 120 && accuracy >= 80) {
+      trophy.textContent = '🌟';
+      title.textContent = 'Compost Master!';
+      desc.textContent = 'Superb! Your compost is 100% black gold with zero contamination.';
+      playFanfare();
+    } else if (score >= 60) {
+      trophy.textContent = '🌱';
+      title.textContent = 'Good Harvesting!';
+      desc.textContent = 'Nice job! You sorted most compost items cleanly.';
+      playFanfare();
+    } else {
+      trophy.textContent = '🍂';
+      title.textContent = 'Keep Practicing!';
+      desc.textContent = 'A few contaminants slipped in. Remember: no meat, dairy, or oil!';
+      beep(260, 0.25, 'triangle', 0.2);
+    }
+
+    showScreen('done');
+  }
+
+  // Event Listeners
+  document.getElementById('goodBtn').addEventListener('click', () => handleDecision(true));
+  document.getElementById('badBtn').addEventListener('click', () => handleDecision(false));
+  document.getElementById('startBtn').addEventListener('click', startGame);
+  document.getElementById('replayBtn').addEventListener('click', startGame);
+
+  // Keyboard accessibility
+  window.addEventListener('keydown', (e) => {
+    if (!playScreen.classList.contains('active')) return;
+    if (e.key === 'ArrowLeft' || e.key.toLowerCase() === 'a') handleDecision(true);
+    if (e.key === 'ArrowRight' || e.key.toLowerCase() === 'd') handleDecision(false);
+  });
+</script>
+</body>
+</html>

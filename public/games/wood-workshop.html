@@ -1,0 +1,1421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Wood Workshop — Recycling Hero Match</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: #2563EB;
+    --primary-dark: #1D4ED8;
+    --primary-light: #60A5FA;
+    --primary-tint: #EFF6FF;
+    --primary-subtle: #DBEAFE;
+    --steel: #0F172A;
+    --steel-2: #1E293B;
+    --ink: #0F172A;
+    --ink-soft: #64748B;
+    --card: #FFFFFF;
+    --line: #E2E8F0;
+    --line-active: #93C5FD;
+    --good: #059669;
+    --good-tint: #ECFDF5;
+    --good-border: #6EE7B7;
+    --bad: #DC2626;
+    --bad-tint: #FEF2F2;
+    --bad-border: #FCA5A5;
+    --amber: #D97706;
+    --amber-tint: #FFFBEB;
+    --gold: #F59E0B;
+    --radius: 14px;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  * { box-sizing: inherit; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; margin: 0; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: #F1F5F9;
+    color: var(--ink);
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow-x: hidden;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  h1, h2, h3, h4, .font-heading {
+    font-family: 'Space Grotesk', sans-serif;
+  }
+
+  /* Top Navigation Bar */
+  .topbar {
+    width: 100%;
+    background: var(--steel);
+    color: #FFFFFF;
+    padding: 12px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 30;
+    box-shadow: 0 2px 10px rgba(15, 23, 42, 0.25);
+  }
+
+  .topbar .brand {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 800;
+    font-size: 15px;
+    letter-spacing: 0.3px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .topbar .brand small {
+    display: block;
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+    font-size: 10.5px;
+    color: #94A3B8;
+    letter-spacing: 0.2px;
+    margin-top: 1px;
+  }
+
+  .topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .score-chip {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    background: #1E293B;
+    border: 1px solid #334155;
+    padding: 5px 10px;
+    border-radius: 8px;
+    color: #E2E8F0;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .score-chip span {
+    color: #38BDF8;
+    font-weight: 800;
+  }
+
+  .sound-btn {
+    background: #1E293B;
+    border: 1px solid #334155;
+    color: #CBD5E1;
+    font-size: 14px;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all .15s ease;
+  }
+  .sound-btn:active { background: #334155; }
+
+  .exit-btn {
+    background: #1E293B;
+    border: 1px solid #334155;
+    color: #E2E8F0;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 12.5px;
+    padding: 6px 13px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all .15s ease;
+  }
+  .exit-btn:hover { background: #334155; }
+  .exit-btn:active { transform: scale(0.96); }
+
+  /* App Container & Stage */
+  .stage {
+    width: 100%;
+    max-width: 680px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 14px 16px 24px;
+    position: relative;
+  }
+
+  .screen {
+    display: none;
+    width: 100%;
+    flex: 1;
+    flex-direction: column;
+  }
+  .screen.active {
+    display: flex;
+  }
+
+  /* START SCREEN */
+  #startScreen {
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 20px 10px;
+    animation: fadeIn .3s ease;
+  }
+
+  .badge-module {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: var(--primary);
+    background: var(--primary-tint);
+    border: 1px solid var(--border-blue);
+    padding: 5px 12px;
+    border-radius: 20px;
+    margin-bottom: 12px;
+  }
+
+  .hero-icon-wrap {
+    width: 88px;
+    height: 88px;
+    background: linear-gradient(135deg, #DBEAFE, #93C5FD);
+    border-radius: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 46px;
+    margin-bottom: 16px;
+    box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.25);
+  }
+
+  #startScreen h1 {
+    font-size: 26px;
+    font-weight: 800;
+    color: var(--ink);
+    margin: 0 0 8px;
+    letter-spacing: -0.5px;
+  }
+
+  #startScreen p {
+    font-size: 14px;
+    color: var(--ink-soft);
+    line-height: 1.55;
+    max-width: 440px;
+    margin: 0 0 20px;
+  }
+
+  .materials-preview {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    width: 100%;
+    max-width: 420px;
+    margin-bottom: 24px;
+  }
+
+  .preview-pill {
+    background: #FFFFFF;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 9px 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--ink);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  }
+
+  .preview-pill span { font-size: 16px; }
+
+  .btn {
+    font-family: 'Inter', sans-serif;
+    border: none;
+    cursor: pointer;
+    border-radius: 12px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: transform .12s ease, box-shadow .15s ease, background .15s ease;
+  }
+  .btn:active { transform: scale(0.97); }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: #FFFFFF;
+    padding: 14px 34px;
+    font-size: 15.5px;
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+  }
+  .btn-primary:hover {
+    box-shadow: 0 6px 20px rgba(37, 99, 235, 0.45);
+  }
+
+  /* PLAY SCREEN */
+  #playScreen {
+    padding-top: 4px;
+  }
+
+  .play-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+
+  .play-instructions {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink-soft);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .matches-badge {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    background: #FFFFFF;
+    border: 1px solid var(--line);
+    padding: 4px 10px;
+    border-radius: 20px;
+    color: var(--primary-dark);
+  }
+
+  .progress-bar-wrap {
+    width: 100%;
+    height: 6px;
+    background: #E2E8F0;
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 14px;
+  }
+
+  .progress-bar-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, var(--primary-light), var(--primary));
+    border-radius: 6px;
+    transition: width 0.35s ease;
+  }
+
+  /* GAME BOARD WITH 2 COLUMNS & SVG LINE OVERLAY */
+  .game-container {
+    position: relative;
+    width: 100%;
+    margin-bottom: 14px;
+  }
+
+  .columns-wrap {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    position: relative;
+    z-index: 5;
+  }
+
+  .col-title {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    color: var(--primary);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .cards-list {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+  }
+
+  /* ITEM CARD */
+  .item-card {
+    background: #FFFFFF;
+    border: 2px solid var(--line);
+    border-radius: var(--radius);
+    padding: 10px 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    position: relative;
+    transition: transform .12s ease, border-color .15s ease, box-shadow .15s ease, background-color .15s ease;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+    min-height: 58px;
+  }
+
+  .item-card:hover:not(.matched):not(.disabled) {
+    border-color: #93C5FD;
+    box-shadow: 0 3px 8px rgba(37, 99, 235, 0.08);
+  }
+
+  .item-card:active:not(.matched):not(.disabled) {
+    transform: scale(0.98);
+  }
+
+  .item-card.selected {
+    border-color: var(--primary);
+    background-color: #EFF6FF;
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.25), 0 4px 12px rgba(37, 99, 235, 0.15);
+    transform: scale(1.02);
+  }
+
+  .item-card.matched {
+    border-color: var(--good);
+    background-color: var(--good-tint);
+    cursor: default;
+  }
+
+  .item-card.shake {
+    animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+    border-color: var(--bad) !important;
+    background-color: var(--bad-tint) !important;
+  }
+
+  @keyframes shake {
+    10%, 90% { transform: translate3d(-3px, 0, 0); }
+    20%, 80% { transform: translate3d(4px, 0, 0); }
+    30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+    40%, 60% { transform: translate3d(4px, 0, 0); }
+  }
+
+  .card-icon {
+    font-size: 26px;
+    line-height: 1;
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .card-content {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .card-title {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1.25;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .card-sub {
+    font-size: 10.5px;
+    font-weight: 500;
+    color: var(--ink-soft);
+    margin-top: 1px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .card-status {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 1.5px solid #CBD5E1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    flex-shrink: 0;
+    color: transparent;
+    transition: all .2s ease;
+  }
+
+  .item-card.selected .card-status {
+    border-color: var(--primary);
+    background: var(--primary);
+    color: #FFFFFF;
+  }
+
+  .item-card.matched .card-status {
+    border-color: var(--good);
+    background: var(--good);
+    color: #FFFFFF;
+  }
+
+  /* SVG CONNECTING LINES OVERLAY */
+  .connections-svg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 10;
+  }
+
+  .match-line {
+    fill: none;
+    stroke: var(--primary);
+    stroke-width: 3.5;
+    stroke-linecap: round;
+    stroke-dasharray: 6 3;
+    animation: dashflow 1.5s linear infinite;
+    filter: drop-shadow(0 2px 4px rgba(37, 99, 235, 0.35));
+    transition: stroke .3s ease;
+  }
+
+  @keyframes dashflow {
+    from { stroke-dashoffset: 24; }
+    to { stroke-dashoffset: 0; }
+  }
+
+  /* FACT CALLOUT / DRAWER UNDER BOARD */
+  .fact-box {
+    background: #FFFFFF;
+    border: 1.5px solid var(--border-blue);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.08);
+    transition: transform .25s ease, opacity .25s ease;
+    min-height: 74px;
+  }
+
+  .fact-icon-badge {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: var(--primary-tint);
+    border: 1px solid var(--primary-subtle);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  .fact-content {
+    flex: 1;
+  }
+
+  .fact-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--primary);
+    margin-bottom: 2px;
+  }
+
+  .fact-text {
+    font-size: 12.5px;
+    color: #334155;
+    line-height: 1.45;
+    margin: 0;
+  }
+
+  .fact-pair-label {
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  /* FEEDBACK TOAST FOR WRONG ATTEMPTS */
+  .toast-hint {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: #1E293B;
+    color: #F8FAFC;
+    padding: 10px 18px;
+    border-radius: 30px;
+    font-size: 12.5px;
+    font-weight: 600;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+    z-index: 100;
+    transition: transform .25s cubic-bezier(.34,1.56,.64,1), opacity .2s ease;
+    opacity: 0;
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .toast-hint.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
+
+  /* WIN / SUCCESS SCREEN */
+  #winScreen {
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 16px 8px;
+    animation: fadeIn .4s ease;
+  }
+
+  .win-card {
+    background: #FFFFFF;
+    border: 1.5px solid var(--line);
+    border-radius: 20px;
+    padding: 26px 20px;
+    width: 100%;
+    max-width: 440px;
+    box-shadow: 0 10px 30px -5px rgba(15, 23, 42, 0.12);
+  }
+
+  .win-badge-icon {
+    width: 76px;
+    height: 76px;
+    background: linear-gradient(135deg, #ECFDF5, #D1FAE5);
+    border: 2px solid var(--good-border);
+    border-radius: 50%;
+    margin: 0 auto 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 40px;
+    animation: bounceIn .5s cubic-bezier(.34,1.56,.64,1);
+  }
+
+  @keyframes bounceIn {
+    0% { transform: scale(0.3); opacity: 0; }
+    60% { transform: scale(1.15); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  .win-card h2 {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--ink);
+    margin: 0 0 6px;
+  }
+
+  .win-card .win-sub {
+    font-size: 13.5px;
+    color: var(--ink-soft);
+    margin: 0 0 18px;
+    line-height: 1.45;
+  }
+
+  .stars-row {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    font-size: 28px;
+    margin-bottom: 18px;
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+
+  .stat-card {
+    background: #F8FAFC;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 10px 12px;
+    text-align: center;
+  }
+
+  .stat-val {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--primary-dark);
+  }
+
+  .stat-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--ink-soft);
+    margin-top: 2px;
+  }
+
+  .learned-list {
+    background: #F0FDF4;
+    border: 1px solid var(--good-border);
+    border-radius: 12px;
+    padding: 12px;
+    text-align: left;
+    margin-bottom: 20px;
+    max-height: 140px;
+    overflow-y: auto;
+  }
+
+  .learned-title {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: var(--good);
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .learned-item {
+    font-size: 11.5px;
+    color: #166534;
+    line-height: 1.4;
+    margin-bottom: 5px;
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+  }
+  .learned-item:last-child { margin-bottom: 0; }
+
+  .win-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+  }
+
+  .btn-secondary {
+    background: #FFFFFF;
+    border: 1.5px solid var(--line);
+    color: var(--ink);
+    padding: 12px;
+    font-size: 14px;
+  }
+  .btn-secondary:hover { background: #F8FAFC; border-color: #CBD5E1; }
+
+  /* Canvas Confetti */
+  #confettiCanvas {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 99;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Responsive Adjustments */
+  @media (max-width: 480px) {
+    .stage { padding: 10px 12px 20px; }
+    .item-card { padding: 8px 8px; min-height: 54px; gap: 7px; }
+    .card-icon { font-size: 22px; width: 26px; height: 26px; }
+    .card-title { font-size: 12px; }
+    .card-sub { font-size: 9.5px; }
+    .card-status { width: 18px; height: 18px; font-size: 10px; }
+    .fact-box { padding: 10px 12px; min-height: 68px; }
+    .fact-text { font-size: 11.5px; }
+    .columns-wrap { gap: 8px; }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="confettiCanvas"></canvas>
+
+<!-- Top Navigation Bar -->
+<div class="topbar">
+  <div class="brand">
+    <span>🪵</span>
+    <div>
+      WOOD WORKSHOP
+      <small>Recycling Hero · Module 2</small>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <div class="score-chip">SCORE <span id="scoreVal">0</span></div>
+    <button class="sound-btn" id="soundToggle" aria-label="Toggle sound" title="Toggle Sound">🔊</button>
+    <button class="exit-btn" id="topExitBtn">Exit</button>
+  </div>
+</div>
+
+<div class="stage">
+
+  <!-- START SCREEN -->
+  <div class="screen active" id="startScreen">
+    <div class="badge-module">♻️ Module 2 Interactive Activity</div>
+    <div class="hero-icon-wrap">🪵</div>
+    <h1>Wood Workshop</h1>
+    <p>Every dry waste material has a superpower to be reborn! Match each dry waste material on the left with what it transforms into after recycling on the right.</p>
+
+    <div class="materials-preview">
+      <div class="preview-pill"><span>📄</span> Kaagaz</div>
+      <div class="preview-pill"><span>🧴</span> Plastic</div>
+      <div class="preview-pill"><span>🍾</span> Kaanch</div>
+      <div class="preview-pill"><span>🥫</span> Dhaatu</div>
+      <div class="preview-pill"><span>👕</span> Kapda</div>
+      <div class="preview-pill"><span>🪵</span> Lakdi</div>
+    </div>
+
+    <button class="btn btn-primary" id="startBtn">Start Matching 🚀</button>
+  </div>
+
+  <!-- PLAY SCREEN -->
+  <div class="screen" id="playScreen">
+    <div class="play-header">
+      <div class="play-instructions" id="playInstruction">
+        <span>👉</span> Tap a material on the left, then tap its recycled output
+      </div>
+      <div class="matches-badge"><span id="matchCount">0</span>/6 Matched</div>
+    </div>
+
+    <div class="progress-bar-wrap">
+      <div class="progress-bar-fill" id="progressBar"></div>
+    </div>
+
+    <div class="game-container" id="gameContainer">
+      <svg class="connections-svg" id="connectionsSvg"></svg>
+      <div class="columns-wrap">
+        <!-- Left Column: Raw Materials -->
+        <div>
+          <div class="col-title"><span>🗑️</span> Dry Materials</div>
+          <div class="cards-list" id="leftColumn"></div>
+        </div>
+
+        <!-- Right Column: Recycled Outputs -->
+        <div>
+          <div class="col-title"><span>✨</span> Recycled Into</div>
+          <div class="cards-list" id="rightColumn"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Interactive Fact Display -->
+    <div class="fact-box" id="factBox">
+      <div class="fact-icon-badge" id="factIcon">💡</div>
+      <div class="fact-content">
+        <div class="fact-header">
+          <span>Recycling Hero Insight</span>
+        </div>
+        <p class="fact-text" id="factText">
+          Tap on any dry waste material on the left, then find its transformed avatar on the right to discover its circular recycling journey!
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- WIN SCREEN -->
+  <div class="screen" id="winScreen">
+    <div class="win-card">
+      <div class="win-badge-icon">♻️</div>
+      <h2>You know your materials!</h2>
+      <p class="win-sub">Superb job! You identified exactly how every dry waste item gets recycled and given a brand-new life.</p>
+
+      <div class="stars-row" id="starsRow">⭐⭐⭐</div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-val" id="finalScore">600</div>
+          <div class="stat-label">Final Points</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-val" id="accuracyVal">100%</div>
+          <div class="stat-label">Accuracy</div>
+        </div>
+      </div>
+
+      <div class="learned-list" id="learnedList">
+        <div class="learned-title"><span>🌱</span> Circular Economy Takeaways</div>
+        <div class="learned-item"><span>•</span> <b>Kaagaz:</b> 1 ton paper bachaane se 17 ped aur hazaron litre paani bachta hai.</div>
+        <div class="learned-item"><span>•</span> <b>Plastic:</b> Bottles se recycled polyester t-shirt aur nayi bottles banti hain.</div>
+        <div class="learned-item"><span>•</span> <b>Kaanch:</b> 100% anant (infinitely) baar bina quality loss ke recycle hota hai.</div>
+        <div class="learned-item"><span>•</span> <b>Dhaatu:</b> Can recycle karne mein 95% kam energy lagti hai.</div>
+        <div class="learned-item"><span>•</span> <b>Kapda:</b> Industrial wipes aur upcycled bags bante hain.</div>
+        <div class="learned-item"><span>•</span> <b>Lakdi:</b> Garden mulch aur pressed board banta hai.</div>
+      </div>
+
+      <div class="win-actions">
+        <button class="btn btn-primary" id="replayBtn">Play Again 🔄</button>
+        <button class="btn btn-secondary" id="exitWinBtn">Back to Learning Hub 🚪</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Transient Feedback Toast -->
+<div class="toast-hint" id="toastHint">
+  <span id="toastIcon">⚠️</span>
+  <span id="toastMsg">Try again! Check what that material becomes.</span>
+</div>
+
+<script>
+  /* =========================================================
+     WASTIFY GAME EXIT HANDLER (STANDARDIZED)
+     ========================================================= */
+  function closeGame() {
+    if (window.parent !== window) {
+      window.parent.postMessage({ type: 'close-game' }, '*');
+    } else {
+      window.location.hash = '#/app';
+    }
+  }
+
+  /* =========================================================
+     AUDIO SYNTHESIS (WEB AUDIO API)
+     ========================================================= */
+  let audioCtx = null;
+  let soundEnabled = true;
+
+  function initAudio() {
+    if (!audioCtx) {
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      if (AudioContextClass) audioCtx = new AudioContextClass();
+    }
+    if (audioCtx && audioCtx.state === 'suspended') {
+      audioCtx.resume();
+    }
+  }
+
+  function playTone(freq, duration, type = 'sine', gainVal = 0.15) {
+    if (!soundEnabled) return;
+    try {
+      initAudio();
+      if (!audioCtx) return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+      gain.gain.setValueAtTime(gainVal, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + duration);
+    } catch(e) {}
+  }
+
+  function playSelectSound() {
+    playTone(520, 0.08, 'sine', 0.12);
+  }
+
+  function playCorrectSound() {
+    if (!soundEnabled) return;
+    try {
+      initAudio();
+      if (!audioCtx) return;
+      const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6 arpeggio
+      notes.forEach((freq, idx) => {
+        setTimeout(() => playTone(freq, 0.18, 'sine', 0.16), idx * 80);
+      });
+    } catch(e) {}
+  }
+
+  function playWrongSound() {
+    if (!soundEnabled) return;
+    try {
+      initAudio();
+      if (!audioCtx) return;
+      playTone(200, 0.18, 'sawtooth', 0.12);
+      setTimeout(() => playTone(150, 0.22, 'sawtooth', 0.12), 90);
+    } catch(e) {}
+  }
+
+  function playWinSound() {
+    if (!soundEnabled) return;
+    try {
+      initAudio();
+      if (!audioCtx) return;
+      const melody = [
+        { f: 523.25, d: 0.12, w: 0 },
+        { f: 659.25, d: 0.12, w: 100 },
+        { f: 783.99, d: 0.12, w: 200 },
+        { f: 1046.50, d: 0.25, w: 320 },
+        { f: 880.00, d: 0.15, w: 500 },
+        { f: 1046.50, d: 0.45, w: 640 }
+      ];
+      melody.forEach(m => setTimeout(() => playTone(m.f, m.d, 'triangle', 0.2), m.w));
+    } catch(e) {}
+  }
+
+  /* =========================================================
+     GAME DATA: 6 DRY WASTE MATERIALS & WHAT THEY BECOME
+     ========================================================= */
+  const MATERIALS_DATA = [
+    {
+      id: 'kaagaz',
+      left: { title: 'Kaagaz', icon: '📄', sub: 'Purana Paper & Notebooks' },
+      right: { title: 'Naya kaagaz', icon: '📦', sub: 'Carton Boxes & Fresh Notebooks' },
+      fact: 'Purane kaagaz ko paani aur pulp bna kar naya kaagaz ya carton banta hai. 1 ton recycled paper se 17 ped katne se bachte hain!'
+    },
+    {
+      id: 'plastic',
+      left: { title: 'Plastic', icon: '🧴', sub: 'Khali Bottles & Dabbas' },
+      right: { title: 'Nayi bottle / kapda', icon: '🧵', sub: 'Polyester Fabric & New Bottles' },
+      fact: 'Plastic bottles ko flakes mein kaat kar pighlaate hain — sirf 5 plastic bottles se ek brand new athletic polyester t-shirt ban jaati hai!'
+    },
+    {
+      id: 'kaanch',
+      left: { title: 'Kaanch', icon: '🍾', sub: 'Glass Bottles & Jars' },
+      right: { title: 'Naya kaanch', icon: '🍶', sub: 'Infinitely Recyclable Glass' },
+      fact: 'Kaanch ko tod aur pighla kar anant (infinite) baar naya kaanch banaya ja sakta hai — iski quality aur shuddhata kabhi kam nahi hoti!'
+    },
+    {
+      id: 'dhaatu',
+      left: { title: 'Dhaatu', icon: '🥫', sub: 'Aluminium Cans & Tin' },
+      right: { title: 'Naya saman', icon: '⚙️', sub: 'Cans, Bicycle Parts & Metal' },
+      fact: 'Aluminium aur tin cans ko pighla kar recycle karna, naya metal banana se 95% kam energy leta hai. Ek can 60 din mein dobara shelf par hota hai!'
+    },
+    {
+      id: 'kapda',
+      left: { title: 'Kapda', icon: '👕', sub: 'Purani T-Shirt & Fabric' },
+      right: { title: 'Rag / cloth bag', icon: '👜', sub: 'Industrial Wipes & Tote Bags' },
+      fact: 'Purane kapde ko shred karke safai ke rags, upcycled tote bags, ya mattress insulation banate hain — landfill mein sadne se bachate hain!'
+    },
+    {
+      id: 'lakdi',
+      left: { title: 'Lakdi', icon: '🪵', sub: 'Wooden Scrap & Pallets' },
+      right: { title: 'Chips / mulch', icon: '🪵', sub: 'Garden Mulch & Particle Board' },
+      fact: 'Purani lakdi ko shred karke garden mulch ya pressed particle board banta hai, jo paudhon ki mitti mein nami aur poshan banaye rakhta hai!'
+    }
+  ];
+
+  /* =========================================================
+     GAME STATE
+     ========================================================= */
+  let selectedLeft = null;
+  let selectedRight = null;
+  let matchedPairs = new Set();
+  let attempts = 0;
+  let mistakes = 0;
+  let score = 0;
+  let lines = []; // Store matched pairs for drawing SVG lines
+
+  function shuffle(array) {
+    const arr = [...array];
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  /* =========================================================
+     UI & RENDERING
+     ========================================================= */
+  function showScreen(name) {
+    document.getElementById('startScreen').classList.toggle('active', name === 'start');
+    document.getElementById('playScreen').classList.toggle('active', name === 'play');
+    document.getElementById('winScreen').classList.toggle('active', name === 'win');
+  }
+
+  function initGame() {
+    selectedLeft = null;
+    selectedRight = null;
+    matchedPairs.clear();
+    lines = [];
+    attempts = 0;
+    mistakes = 0;
+    score = 0;
+
+    document.getElementById('scoreVal').textContent = '0';
+    document.getElementById('matchCount').textContent = '0';
+    document.getElementById('progressBar').style.width = '0%';
+    clearSvgLines();
+
+    // Default fact prompt
+    updateFactBox('💡', 'Recycling Hero Insight', 'Tap on any dry waste material on the left, then find its transformed avatar on the right to discover its circular recycling journey!');
+
+    renderCards();
+    showScreen('play');
+    setTimeout(updateSvgLines, 100);
+  }
+
+  function renderCards() {
+    const leftCol = document.getElementById('leftColumn');
+    const rightCol = document.getElementById('rightColumn');
+    leftCol.innerHTML = '';
+    rightCol.innerHTML = '';
+
+    // Left order can be sequential or lightly shuffled
+    const leftItems = [...MATERIALS_DATA];
+    // Right order is completely shuffled to make it an engaging matching game
+    const rightItems = shuffle(MATERIALS_DATA);
+
+    leftItems.forEach(item => {
+      const card = createCard(item.id, 'left', item.left.icon, item.left.title, item.left.sub);
+      leftCol.appendChild(card);
+    });
+
+    rightItems.forEach(item => {
+      const card = createCard(item.id, 'right', item.right.icon, item.right.title, item.right.sub);
+      rightCol.appendChild(card);
+    });
+  }
+
+  function createCard(id, side, icon, title, sub) {
+    const card = document.createElement('div');
+    card.className = 'item-card';
+    card.dataset.id = id;
+    card.dataset.side = side;
+
+    card.innerHTML = `
+      <div class="card-icon">${icon}</div>
+      <div class="card-content">
+        <h4 class="card-title">${title}</h4>
+        <div class="card-sub">${sub}</div>
+      </div>
+      <div class="card-status">${side === 'left' ? '•' : '○'}</div>
+    `;
+
+    card.addEventListener('click', () => handleCardClick(card, id, side));
+    return card;
+  }
+
+  /* =========================================================
+     MATCHING LOGIC & INTERACTION
+     ========================================================= */
+  function handleCardClick(card, id, side) {
+    initAudio();
+
+    // Ignore if already matched
+    if (card.classList.contains('matched')) {
+      // If user taps an already matched card, show its fact again!
+      const data = MATERIALS_DATA.find(m => m.id === id);
+      if (data) {
+        updateFactBox(data.left.icon, `${data.left.title} ➔ ${data.right.title}`, data.fact);
+        playSelectSound();
+      }
+      return;
+    }
+
+    playSelectSound();
+
+    if (side === 'left') {
+      // Toggle or change left selection
+      if (selectedLeft === card) {
+        selectedLeft.classList.remove('selected');
+        selectedLeft = null;
+        return;
+      }
+      if (selectedLeft) selectedLeft.classList.remove('selected');
+      card.classList.add('selected');
+      selectedLeft = card;
+
+      // If user already had a right card selected, evaluate match!
+      if (selectedRight) {
+        evaluateMatch();
+      } else {
+        document.getElementById('playInstruction').innerHTML = `<span>👉</span> Now tap the recycled output for <b>${MATERIALS_DATA.find(m => m.id === id).left.title}</b>!`;
+      }
+    } else {
+      // Right side card tapped
+      if (selectedRight === card) {
+        selectedRight.classList.remove('selected');
+        selectedRight = null;
+        return;
+      }
+      if (selectedRight) selectedRight.classList.remove('selected');
+      card.classList.add('selected');
+      selectedRight = card;
+
+      // If user already had a left card selected, evaluate match!
+      if (selectedLeft) {
+        evaluateMatch();
+      } else {
+        document.getElementById('playInstruction').innerHTML = `<span>👈</span> Now select which material transforms into <b>${MATERIALS_DATA.find(m => m.id === id).right.title}</b>!`;
+      }
+    }
+  }
+
+  function evaluateMatch() {
+    attempts++;
+    const leftId = selectedLeft.dataset.id;
+    const rightId = selectedRight.dataset.id;
+    const leftCard = selectedLeft;
+    const rightCard = selectedRight;
+
+    if (leftId === rightId) {
+      // CORRECT MATCH!
+      playCorrectSound();
+      matchedPairs.add(leftId);
+
+      // Score calculation: 100 points per match + bonus if few mistakes
+      const pointsGain = 100;
+      score += pointsGain;
+      document.getElementById('scoreVal').textContent = score;
+
+      // Update UI for matched cards
+      leftCard.classList.remove('selected');
+      rightCard.classList.remove('selected');
+      leftCard.classList.add('matched');
+      rightCard.classList.add('matched');
+
+      // Update status indicators to checkmark ✅
+      leftCard.querySelector('.card-status').innerHTML = '✓';
+      rightCard.querySelector('.card-status').innerHTML = '✓';
+
+      // Save connection for persistent SVG line
+      lines.push({ leftId, rightId, leftEl: leftCard, rightEl: rightCard });
+      updateSvgLines();
+
+      // Display the Educational Fun Fact
+      const matchData = MATERIALS_DATA.find(m => m.id === leftId);
+      if (matchData) {
+        updateFactBox(
+          matchData.left.icon,
+          `✅ Match! ${matchData.left.title} ➔ ${matchData.right.title}`,
+          matchData.fact
+        );
+      }
+
+      // Reset active selection pointers
+      selectedLeft = null;
+      selectedRight = null;
+
+      // Progress bar and match count
+      const matchedCount = matchedPairs.size;
+      document.getElementById('matchCount').textContent = matchedCount;
+      document.getElementById('progressBar').style.width = `${(matchedCount / 6) * 100}%`;
+      document.getElementById('playInstruction').innerHTML = `<span>🎉</span> Awesome! ${6 - matchedCount} materials remaining.`;
+
+      // Check for Game Completion
+      if (matchedCount === 6) {
+        setTimeout(handleGameVictory, 900);
+      }
+
+    } else {
+      // WRONG MATCH!
+      playWrongSound();
+      mistakes++;
+
+      leftCard.classList.add('shake');
+      rightCard.classList.add('shake');
+
+      showToast('⚠️ Not quite! Think about how this material transforms.');
+
+      setTimeout(() => {
+        leftCard.classList.remove('shake', 'selected');
+        rightCard.classList.remove('shake', 'selected');
+      }, 420);
+
+      selectedLeft = null;
+      selectedRight = null;
+      document.getElementById('playInstruction').innerHTML = `<span>👉</span> Tap a material on the left, then tap its recycled output`;
+    }
+  }
+
+  function updateFactBox(icon, header, text) {
+    document.getElementById('factIcon').textContent = icon;
+    document.querySelector('.fact-header').innerHTML = `<span>${header}</span>`;
+    document.getElementById('factText').innerHTML = text;
+  }
+
+  function showToast(msg) {
+    const toast = document.getElementById('toastHint');
+    document.getElementById('toastMsg').textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(toast._timer);
+    toast._timer = setTimeout(() => {
+      toast.classList.remove('show');
+    }, 2200);
+  }
+
+  /* =========================================================
+     SVG CONNECTING LINES BETWEEN MATCHED CARDS
+     ========================================================= */
+  function clearSvgLines() {
+    const svg = document.getElementById('connectionsSvg');
+    svg.innerHTML = '';
+  }
+
+  function updateSvgLines() {
+    const svg = document.getElementById('connectionsSvg');
+    const container = document.getElementById('gameContainer');
+    if (!container) return;
+
+    const contRect = container.getBoundingClientRect();
+    svg.setAttribute('viewBox', `0 0 ${contRect.width} ${contRect.height}`);
+    svg.innerHTML = '';
+
+    lines.forEach(line => {
+      const lRect = line.leftEl.getBoundingClientRect();
+      const rRect = line.rightEl.getBoundingClientRect();
+
+      // Coordinates relative to container
+      const x1 = lRect.right - contRect.left;
+      const y1 = lRect.top + (lRect.height / 2) - contRect.top;
+      const x2 = rRect.left - contRect.left;
+      const y2 = rRect.top + (rRect.height / 2) - contRect.top;
+
+      // Cubic Bezier curve for elegant connection
+      const dx = Math.max(25, (x2 - x1) * 0.5);
+      const cx1 = x1 + dx;
+      const cy1 = y1;
+      const cx2 = x2 - dx;
+      const cy2 = y2;
+
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('d', `M ${x1} ${y1} C ${cx1} ${cy1}, ${cx2} ${cy2}, ${x2} ${y2}`);
+      path.setAttribute('class', 'match-line');
+      svg.appendChild(path);
+
+      // Add a small connection dot at start and end
+      const dot1 = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      dot1.setAttribute('cx', x1);
+      dot1.setAttribute('cy', y1);
+      dot1.setAttribute('r', '4');
+      dot1.setAttribute('fill', '#2563EB');
+      svg.appendChild(dot1);
+
+      const dot2 = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      dot2.setAttribute('cx', x2);
+      dot2.setAttribute('cy', y2);
+      dot2.setAttribute('r', '4');
+      dot2.setAttribute('fill', '#2563EB');
+      svg.appendChild(dot2);
+    });
+  }
+
+  window.addEventListener('resize', () => {
+    if (document.getElementById('playScreen').classList.contains('active')) {
+      updateSvgLines();
+    }
+  });
+
+  /* =========================================================
+     VICTORY & WIN SCREEN
+     ========================================================= */
+  function handleGameVictory() {
+    playWinSound();
+    triggerConfetti();
+
+    // Accuracy and Stars Calculation
+    const totalTaps = attempts;
+    const accuracy = Math.max(0, Math.round((6 / Math.max(6, totalTaps)) * 100));
+    let stars = '⭐⭐⭐';
+    if (mistakes >= 4) stars = '⭐';
+    else if (mistakes >= 2) stars = '⭐⭐';
+
+    document.getElementById('finalScore').textContent = score;
+    document.getElementById('accuracyVal').textContent = `${accuracy}%`;
+    document.getElementById('starsRow').textContent = stars;
+
+    showScreen('win');
+  }
+
+  /* =========================================================
+     LIGHTWEIGHT PURE JS CONFETTI GENERATOR
+     ========================================================= */
+  function triggerConfetti() {
+    const canvas = document.getElementById('confettiCanvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    const colors = ['#2563EB', '#38BDF8', '#10B981', '#F59E0B', '#6366F1', '#EC4899'];
+    const particles = [];
+    const particleCount = 70;
+
+    for (let i = 0; i < particleCount; i++) {
+      particles.push({
+        x: canvas.width * 0.5,
+        y: canvas.height * 0.4,
+        w: Math.random() * 8 + 4,
+        h: Math.random() * 6 + 4,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        vx: (Math.random() - 0.5) * 14,
+        vy: (Math.random() - 0.5) * 14 - 4,
+        rot: Math.random() * 360,
+        vRot: (Math.random() - 0.5) * 10,
+        gravity: 0.22,
+        opacity: 1
+      });
+    }
+
+    let frame = 0;
+    function renderConfetti() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      let alive = false;
+
+      particles.forEach(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += p.gravity;
+        p.rot += p.vRot;
+        p.opacity -= 0.008;
+
+        if (p.opacity > 0 && p.y < canvas.height + 20) {
+          alive = true;
+          ctx.save();
+          ctx.translate(p.x, p.y);
+          ctx.rotate((p.rot * Math.PI) / 180);
+          ctx.fillStyle = p.color;
+          ctx.globalAlpha = Math.max(0, p.opacity);
+          ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+          ctx.restore();
+        }
+      });
+
+      frame++;
+      if (alive && frame < 200) {
+        requestAnimationFrame(renderConfetti);
+      } else {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+      }
+    }
+
+    requestAnimationFrame(renderConfetti);
+  }
+
+  /* =========================================================
+     EVENT LISTENERS & CONTROLS
+     ========================================================= */
+  document.getElementById('startBtn').addEventListener('click', initGame);
+  document.getElementById('replayBtn').addEventListener('click', initGame);
+
+  // Exit handlers (topbar & win screen)
+  document.getElementById('topExitBtn').addEventListener('click', closeGame);
+  document.getElementById('exitWinBtn').addEventListener('click', closeGame);
+
+  // Sound toggle button
+  const soundBtn = document.getElementById('soundToggle');
+  soundBtn.addEventListener('click', () => {
+    soundEnabled = !soundEnabled;
+    soundBtn.textContent = soundEnabled ? '🔊' : '🔇';
+    soundBtn.title = soundEnabled ? 'Mute Sound' : 'Enable Sound';
+    if (soundEnabled) playSelectSound();
+  });
+
+  // Touch and orientation handling
+  window.addEventListener('orientationchange', () => {
+    setTimeout(updateSvgLines, 300);
+  });
+</script>
+</body>
+</html>

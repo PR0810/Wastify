@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Compost Race</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700;800&family=Inter:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F0FDF4;
+    --green-dark: #064E3B;
+    --green-deep: #047857;
+    --green-main: #059669;
+    --green-bright: #10B981;
+    --green-tint: #DCFCE7;
+    --green-subtle: #ECFDF5;
+    --ink: #0F172A;
+    --ink-soft: #475569;
+    --card: #FFFFFF;
+    --line: #D1FAE5;
+    --bad: #DC2626;
+    --bad-tint: #FEE2E2;
+    --amber: #D97706;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  * { box-sizing: inherit; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow-x: hidden;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  h1, h2, h3 { font-family: 'Space Grotesk', sans-serif; }
+
+  /* Top Bar */
+  .topbar {
+    width: 100%;
+    background: var(--green-dark);
+    color: #fff;
+    padding: 12px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+    z-index: 30;
+    box-shadow: 0 2px 8px rgba(6,78,59,0.25);
+  }
+  .brand {
+    font-weight: 800;
+    font-size: 15px;
+    letter-spacing: 0.3px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .brand small {
+    display: block;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 10.5px;
+    color: #A7F3D0;
+    margin-top: 1px;
+  }
+  .topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .score-badge {
+    background: rgba(255,255,255,0.15);
+    padding: 5px 11px;
+    border-radius: 8px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 13.5px;
+    font-weight: 700;
+  }
+  .score-badge span { color: #6EE7B7; }
+  .exit-btn {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: #ECFDF5;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 12.5px;
+    padding: 6px 13px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .exit-btn:active { background: rgba(255,255,255,0.2); }
+
+  /* Stage */
+  .stage {
+    width: 100%;
+    max-width: 440px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 10px 16px 20px;
+    position: relative;
+  }
+
+  .screen {
+    display: none;
+    width: 100%;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+  }
+  .screen.active { display: flex; }
+
+  /* Start Screen */
+  #startScreen {
+    justify-content: center;
+    text-align: center;
+    padding: 20px 8px;
+    gap: 10px;
+  }
+  .pill-tag {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1.2px;
+    color: var(--green-deep);
+    background: var(--green-tint);
+    border: 1px solid #A7F3D0;
+    padding: 5px 14px;
+    border-radius: 20px;
+  }
+  .race-flag {
+    font-size: 68px;
+    margin: 8px 0;
+    animation: bounce 1.8s infinite;
+  }
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px) rotate(4deg); }
+  }
+  #startScreen h1 {
+    font-size: 30px;
+    margin: 0 0 6px;
+    color: var(--green-dark);
+  }
+  #startScreen p {
+    font-size: 14.5px;
+    color: var(--ink-soft);
+    margin: 0 0 20px;
+    line-height: 1.5;
+    max-width: 320px;
+  }
+
+  .speed-info {
+    background: #fff;
+    border: 1.5px solid var(--line);
+    border-radius: 14px;
+    padding: 14px 18px;
+    max-width: 320px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 22px;
+    box-shadow: 0 4px 12px rgba(6,78,59,0.06);
+  }
+  .si-item { text-align: center; }
+  .si-val { font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 800; color: var(--green-deep); }
+  .si-lbl { font-size: 11px; font-weight: 700; color: var(--ink-soft); margin-top: 2px; }
+
+  .btn {
+    font-family: 'Space Grotesk', sans-serif;
+    border: none;
+    cursor: pointer;
+    border-radius: 14px;
+    font-weight: 800;
+    transition: transform 0.08s ease, box-shadow 0.08s ease;
+  }
+  .btn:active { transform: scale(0.97); }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--green-deep), var(--green-main));
+    color: #fff;
+    padding: 16px 36px;
+    font-size: 16px;
+    box-shadow: 0 5px 15px rgba(5,150,105,0.35);
+    width: 100%;
+    max-width: 290px;
+  }
+  .btn-ghost {
+    background: none;
+    color: var(--green-deep);
+    font-size: 13px;
+    text-decoration: underline;
+    font-weight: 700;
+    padding: 10px;
+    margin-top: 4px;
+  }
+
+  /* Play Screen */
+  #playScreen {
+    padding-top: 8px;
+    justify-content: space-between;
+  }
+  .play-header {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  .item-counter {
+    font-size: 12.5px;
+    font-weight: 800;
+    color: var(--green-deep);
+    background: var(--green-tint);
+    padding: 4px 12px;
+    border-radius: 20px;
+  }
+  .speed-countdown {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--amber);
+  }
+
+  /* 2-Second Rush Bar */
+  .rush-timer {
+    width: 100%;
+    height: 10px;
+    background: #E2E8F0;
+    border-radius: 5px;
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+  .rush-fill {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, #10B981, #F59E0B, #EF4444);
+    border-radius: 5px;
+    transition: width 0.05s linear;
+  }
+
+  /* Item Card Arena */
+  .race-card {
+    width: 100%;
+    background: #fff;
+    border: 2px solid var(--line);
+    border-radius: 24px;
+    padding: 30px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    box-shadow: 0 10px 25px rgba(6,78,59,0.08);
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.15s ease, border-color 0.15s ease;
+  }
+  .race-card.shake {
+    animation: shake 0.3s ease;
+  }
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-8px); }
+    75% { transform: translateX(8px); }
+  }
+  .race-card.pop {
+    animation: popAnim 0.25s cubic-bezier(0.3, 1.4, 0.5, 1);
+  }
+  @keyframes popAnim {
+    0% { transform: scale(0.92); }
+    100% { transform: scale(1); }
+  }
+
+  .card-emoji {
+    font-size: 76px;
+    filter: drop-shadow(0 6px 10px rgba(0,0,0,0.1));
+    margin-bottom: 12px;
+  }
+  .card-title {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--green-dark);
+    margin: 0 0 6px;
+  }
+  .card-sub {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--ink-soft);
+  }
+
+  /* Rapid Decision Buttons */
+  .actions-row {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-top: 24px;
+  }
+  .btn-choice {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px 10px;
+    border-radius: 18px;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 6px 0 rgba(0,0,0,0.12);
+    transition: transform 0.06s ease, filter 0.06s ease;
+  }
+  .btn-choice:active {
+    transform: translateY(4px);
+    box-shadow: 0 2px 0 rgba(0,0,0,0.12);
+  }
+  .btn-choice.yes {
+    background: linear-gradient(135deg, #059669, #10B981);
+    color: #fff;
+  }
+  .btn-choice.no {
+    background: linear-gradient(135deg, #DC2626, #EF4444);
+    color: #fff;
+  }
+  .choice-icon { font-size: 26px; }
+  .choice-title { font-size: 17px; font-weight: 800; margin-top: 4px; }
+  .choice-sub { font-size: 11px; font-weight: 600; opacity: 0.9; margin-top: 2px; }
+
+  /* Quick Feedback Popup */
+  .flash-feedback {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.6);
+    padding: 10px 18px;
+    border-radius: 30px;
+    font-size: 15px;
+    font-weight: 800;
+    color: #fff;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.2s cubic-bezier(0.3, 1.5, 0.5, 1);
+    z-index: 20;
+    white-space: nowrap;
+  }
+  .flash-feedback.show {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+  .flash-feedback.good { background: #059669; }
+  .flash-feedback.bad { background: #DC2626; }
+
+  /* Done Screen & Leaderboard */
+  #doneScreen {
+    justify-content: center;
+    text-align: center;
+    padding: 20px 8px;
+  }
+  .finish-trophy {
+    font-size: 64px;
+    margin-bottom: 6px;
+  }
+  #doneScreen h2 {
+    font-size: 27px;
+    color: var(--green-dark);
+    margin: 0 0 6px;
+  }
+  #doneScreen p {
+    font-size: 14px;
+    color: var(--ink-soft);
+    margin: 0 0 16px;
+    max-width: 320px;
+  }
+
+  .results-grid {
+    width: 100%;
+    max-width: 330px;
+    background: #fff;
+    border: 1.5px solid var(--line);
+    border-radius: 16px;
+    padding: 14px 18px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 16px;
+    box-shadow: 0 4px 12px rgba(6,78,59,0.06);
+  }
+  .res-item { text-align: center; }
+  .res-lbl { font-size: 11px; font-weight: 700; color: var(--ink-soft); text-transform: uppercase; }
+  .res-val { font-family: 'Space Grotesk', sans-serif; font-size: 24px; font-weight: 800; color: var(--green-dark); margin-top: 2px; }
+  .res-val.green { color: var(--green-bright); }
+
+  /* Leaderboard Box */
+  .leaderboard-card {
+    width: 100%;
+    max-width: 330px;
+    background: #fff;
+    border: 1.5px solid var(--line);
+    border-radius: 16px;
+    padding: 14px 16px;
+    margin-bottom: 18px;
+    text-align: left;
+  }
+  .lb-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    font-weight: 800;
+    color: var(--green-deep);
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .lb-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .lb-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 12.5px;
+    padding: 6px 10px;
+    background: var(--green-subtle);
+    border-radius: 8px;
+  }
+  .lb-row.top { background: var(--green-tint); font-weight: 700; }
+  .lb-rank { font-weight: 800; width: 22px; color: var(--green-deep); }
+  .lb-name { flex: 1; font-weight: 600; }
+  .lb-score { font-family: 'Space Grotesk', sans-serif; font-weight: 800; color: var(--green-deep); }
+
+  .save-score-wrap {
+    display: flex;
+    gap: 8px;
+    width: 100%;
+    max-width: 330px;
+    margin-bottom: 16px;
+  }
+  .name-input {
+    flex: 1;
+    border: 1.5px solid var(--line);
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    outline: none;
+  }
+  .name-input:focus { border-color: var(--green-main); }
+  .btn-save {
+    background: var(--green-main);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 0 16px;
+    font-weight: 800;
+    font-size: 12.5px;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    ⚡ COMPOST RACE
+    <small>2 Seconds Per Item!</small>
+  </div>
+  <div class="topbar-right">
+    <div class="score-badge">⭐ <span id="topScore">0</span></div>
+    <button class="exit-btn" id="exitTopBtn">Exit</button>
+  </div>
+</div>
+
+<div class="stage">
+
+  <!-- START SCREEN -->
+  <div class="screen active" id="startScreen">
+    <div class="pill-tag">HIGH SPEED COMPOST CHALLENGE</div>
+    <div class="race-flag">🏁🌱</div>
+    <h1>Compost Race!</h1>
+    <p>10 items will appear one after another. You only have <b>2 seconds per item</b> to decide: <b>YES COMPOST</b> or <b>NO SKIP</b>!</p>
+    
+    <div class="speed-info">
+      <div class="si-item">
+        <div class="si-val">10 Items</div>
+        <div class="si-lbl">8 Good + 2 Bad</div>
+      </div>
+      <div class="si-item">
+        <div class="si-val">2.0 Sec</div>
+        <div class="si-lbl">Per Decision</div>
+      </div>
+    </div>
+
+    <button class="btn btn-primary" id="startBtn">Start the Race!</button>
+  </div>
+
+  <!-- PLAY SCREEN -->
+  <div class="screen" id="playScreen">
+    <div class="play-header">
+      <span class="item-counter" id="itemCounter">ITEM 1 / 10</span>
+      <span class="speed-countdown" id="timeDisplay">2.0s</span>
+    </div>
+
+    <div class="rush-timer">
+      <div class="rush-fill" id="rushFill"></div>
+    </div>
+
+    <div class="race-card" id="raceCard">
+      <div class="card-emoji" id="cardEmoji">🍌</div>
+      <h2 class="card-title" id="cardTitle">Kela ka Chhilka</h2>
+      <p class="card-sub" id="cardSub">Compost mein jaayega ya nahi?</p>
+
+      <div class="flash-feedback" id="flashFeedback">+100 Correct!</div>
+    </div>
+
+    <div class="actions-row">
+      <button class="btn-choice yes" id="yesBtn">
+        <span class="choice-icon">✅</span>
+        <span class="choice-title">YES compost</span>
+        <span class="choice-sub">Compost it!</span>
+      </button>
+
+      <button class="btn-choice no" id="noBtn">
+        <span class="choice-icon">❌</span>
+        <span class="choice-title">NO skip</span>
+        <span class="choice-sub">Don't compost!</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- DONE SCREEN -->
+  <div class="screen" id="doneScreen">
+    <div class="finish-trophy" id="finishTrophy">🏆</div>
+    <h2 id="finishTitle">Race Finished!</h2>
+    <p id="finishDesc">Lightning fast reflexes! Here is how your compost decision race went.</p>
+
+    <div class="results-grid">
+      <div class="res-item">
+        <div class="res-lbl">Final Score</div>
+        <div class="res-val green" id="finalScoreVal">0</div>
+      </div>
+      <div class="res-item">
+        <div class="res-lbl">Correct Taps</div>
+        <div class="res-val" id="finalCorrectVal">0 / 10</div>
+      </div>
+    </div>
+
+    <!-- Leaderboard Form -->
+    <div class="save-score-wrap" id="saveScoreWrap">
+      <input type="text" class="name-input" id="playerName" placeholder="Enter your name" maxlength="12" />
+      <button class="btn-save" id="saveScoreBtn">Save</button>
+    </div>
+
+    <!-- Leaderboard Display -->
+    <div class="leaderboard-card">
+      <div class="lb-header">
+        <span>🏆 Local Champions Leaderboard</span>
+      </div>
+      <div class="lb-list" id="leaderboardList"></div>
+    </div>
+
+    <button class="btn btn-primary" id="replayBtn">Race Again</button>
+    <button class="btn-ghost" id="exitFromDoneBtn">Exit to App</button>
+  </div>
+
+</div>
+
+<script>
+  function closeGame() {
+    if (window.parent !== window) {
+      window.parent.postMessage({ type: 'close-game' }, '*');
+    } else {
+      window.location.hash = '#/app';
+    }
+  }
+  document.getElementById('exitTopBtn').addEventListener('click', closeGame);
+  document.getElementById('exitFromDoneBtn').addEventListener('click', closeGame);
+
+  // Web Audio Synth
+  let audioCtx = null;
+  function getAudioContext() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    return audioCtx;
+  }
+  function beep(freq, duration, type = 'sine', volume = 0.15) {
+    try {
+      const ctx = getAudioContext();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, ctx.currentTime);
+      gain.gain.setValueAtTime(volume, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + duration);
+    } catch(e) {}
+  }
+  function playTickSound() { beep(600, 0.03, 'sine', 0.08); }
+  function playCorrectSound() {
+    beep(523.25, 0.08, 'sine', 0.2);
+    setTimeout(() => beep(659.25, 0.12, 'sine', 0.2), 70);
+  }
+  function playWrongSound() {
+    beep(240, 0.14, 'square', 0.2);
+    setTimeout(() => beep(160, 0.2, 'square', 0.22), 100);
+  }
+  function playFanfare() {
+    [523, 659, 784, 1046].forEach((f, i) => {
+      setTimeout(() => beep(f, 0.16, 'triangle', 0.25), i * 90);
+    });
+  }
+
+  // Exact 10 items: 8 good compost items + 2 bad (meat, dahi)
+  const ITEMS_POOL = [
+    { name: "Kela ka Chhilka", emoji: "🍌", isGood: true, note: "Peels make great compost!" },
+    { name: "Chai Patti", emoji: "🍵", isGood: true, note: "Used tea leaves add nitrogen!" },
+    { name: "Mutton / Meat", emoji: "🥩", isGood: false, note: "Meat attracts maggots & stinks!" },
+    { name: "Ande ke Chhilke", emoji: "🥚", isGood: true, note: "Egg shells add calcium!" },
+    { name: "Khatta Dahi", emoji: "🥛", isGood: false, note: "Dairy ruins aeration & attracts pests!" },
+    { name: "Sukhe Patte", emoji: "🍂", isGood: true, note: "Dry leaves add carbon (browns)!" },
+    { name: "Seb ka Tukda", emoji: "🍎", isGood: true, note: "Apple cores break down fast!" },
+    { name: "Pyaaz ke Chhilke", emoji: "🧅", isGood: true, note: "Onion skins add organic matter!" },
+    { name: "Kaagaz ke Shreds", emoji: "📜", isGood: true, note: "Plain paper adds brown carbon!" },
+    { name: "Coffee Grounds", emoji: "☕", isGood: true, note: "Coffee grounds attract earthworms!" }
+  ];
+
+  function shuffle(arr) {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  // Game Parameters
+  const ITEM_DURATION = 2000; // 2 seconds
+  let roundItems = [];
+  let currentIndex = 0;
+  let score = 0;
+  let correctCount = 0;
+  let itemStartTime = 0;
+  let timerInterval = null;
+  let isAnsweringLocked = false;
+
+  const startScreen = document.getElementById('startScreen');
+  const playScreen = document.getElementById('playScreen');
+  const doneScreen = document.getElementById('doneScreen');
+  const rushFill = document.getElementById('rushFill');
+  const timeDisplay = document.getElementById('timeDisplay');
+  const itemCounter = document.getElementById('itemCounter');
+  const cardEmoji = document.getElementById('cardEmoji');
+  const cardTitle = document.getElementById('cardTitle');
+  const cardSub = document.getElementById('cardSub');
+  const flashFeedback = document.getElementById('flashFeedback');
+  const raceCard = document.getElementById('raceCard');
+  const topScore = document.getElementById('topScore');
+
+  function showScreen(name) {
+    startScreen.classList.toggle('active', name === 'start');
+    playScreen.classList.toggle('active', name === 'play');
+    doneScreen.classList.toggle('active', name === 'done');
+  }
+
+  function startRace() {
+    roundItems = shuffle(ITEMS_POOL);
+    currentIndex = 0;
+    score = 0;
+    correctCount = 0;
+    topScore.textContent = '0';
+    showScreen('play');
+    showItem(0);
+  }
+
+  function showItem(index) {
+    if (index >= roundItems.length) {
+      endRace();
+      return;
+    }
+
+    currentIndex = index;
+    isAnsweringLocked = false;
+    const item = roundItems[index];
+
+    itemCounter.textContent = `ITEM ${index + 1} / ${roundItems.length}`;
+    cardEmoji.textContent = item.emoji;
+    cardTitle.textContent = item.name;
+    cardSub.textContent = "Compost mein jaayega ya nahi?";
+
+    raceCard.classList.remove('pop', 'shake');
+    void raceCard.offsetWidth;
+    raceCard.classList.add('pop');
+
+    rushFill.style.width = '100%';
+    timeDisplay.textContent = '2.0s';
+
+    itemStartTime = Date.now();
+    if (timerInterval) clearInterval(timerInterval);
+
+    timerInterval = setInterval(() => {
+      const elapsed = Date.now() - itemStartTime;
+      const remaining = Math.max(0, ITEM_DURATION - elapsed);
+      const pct = (remaining / ITEM_DURATION) * 100;
+      rushFill.style.width = `${pct}%`;
+      timeDisplay.textContent = `${(remaining / 1000).toFixed(1)}s`;
+
+      if (remaining <= 600 && remaining > 100) {
+        playTickSound();
+      }
+
+      if (remaining <= 0) {
+        clearInterval(timerInterval);
+        handleTimeout();
+      }
+    }, 40);
+  }
+
+  function triggerFlash(text, isGood) {
+    flashFeedback.textContent = text;
+    flashFeedback.className = `flash-feedback ${isGood ? 'good' : 'bad'} show`;
+    setTimeout(() => {
+      flashFeedback.classList.remove('show');
+    }, 450);
+  }
+
+  function handleDecision(userChoseYes) {
+    if (isAnsweringLocked) return;
+    isAnsweringLocked = true;
+    clearInterval(timerInterval);
+
+    const elapsed = Date.now() - itemStartTime;
+    const remainingTime = Math.max(0, ITEM_DURATION - elapsed);
+    const item = roundItems[currentIndex];
+    const isCorrect = (userChoseYes === item.isGood);
+
+    if (isCorrect) {
+      correctCount++;
+      // Base points + speed bonus
+      const speedBonus = Math.round((remainingTime / ITEM_DURATION) * 50);
+      const points = 100 + speedBonus;
+      score += points;
+      topScore.textContent = score;
+
+      playCorrectSound();
+      triggerFlash(`+${points} Correct!`, true);
+    } else {
+      raceCard.classList.add('shake');
+      playWrongSound();
+      triggerFlash(`Wrong! ${item.note}`, false);
+    }
+
+    setTimeout(() => {
+      showItem(currentIndex + 1);
+    }, 550);
+  }
+
+  function handleTimeout() {
+    if (isAnsweringLocked) return;
+    isAnsweringLocked = true;
+
+    const item = roundItems[currentIndex];
+    raceCard.classList.add('shake');
+    playWrongSound();
+    triggerFlash(`Time's up! (${item.isGood ? 'Compost' : 'Skip'})`, false);
+
+    setTimeout(() => {
+      showItem(currentIndex + 1);
+    }, 550);
+  }
+
+  function endRace() {
+    clearInterval(timerInterval);
+    document.getElementById('finalScoreVal').textContent = score;
+    document.getElementById('finalCorrectVal').textContent = `${correctCount} / 10`;
+
+    const trophy = document.getElementById('finishTrophy');
+    const title = document.getElementById('finishTitle');
+    const desc = document.getElementById('finishDesc');
+
+    if (correctCount >= 9) {
+      trophy.textContent = '⚡';
+      title.textContent = 'Compost Speed God!';
+      desc.textContent = 'Incredible speed and flawless waste sorting instincts!';
+      playFanfare();
+    } else if (correctCount >= 6) {
+      trophy.textContent = '🌱';
+      title.textContent = 'Fast Runner!';
+      desc.textContent = 'Good reflexes! Meat and dairy are the main trap items.';
+      playFanfare();
+    } else {
+      trophy.textContent = '⏱️';
+      title.textContent = 'Good Try!';
+      desc.textContent = '2 seconds is tough! Practice makes perfect.';
+      beep(300, 0.2, 'triangle', 0.2);
+    }
+
+    renderLeaderboard();
+    showScreen('done');
+  }
+
+  // Leaderboard with localStorage
+  const LB_KEY = 'wastify_compost_race_leaderboard';
+
+  function getLeaderboard() {
+    try {
+      const data = localStorage.getItem(LB_KEY);
+      if (data) return JSON.parse(data);
+    } catch(e) {}
+    // Default dummy champions
+    return [
+      { name: "EcoRacer", score: 1350, date: "Today" },
+      { name: "GreenGuru", score: 1220, date: "Yesterday" },
+      { name: "PlantLover", score: 1080, date: "Oct 16" },
+      { name: "BioChamp", score: 950, date: "Oct 15" }
+    ];
+  }
+
+  function renderLeaderboard() {
+    const list = getLeaderboard();
+    const lbContainer = document.getElementById('leaderboardList');
+    lbContainer.innerHTML = '';
+
+    list.slice(0, 5).forEach((entry, idx) => {
+      const row = document.createElement('div');
+      row.className = `lb-row ${idx === 0 ? 'top' : ''}`;
+      const medal = idx === 0 ? '🥇' : (idx === 1 ? '🥈' : (idx === 2 ? '🥉' : `${idx + 1}.`));
+      row.innerHTML = `
+        <span class="lb-rank">${medal}</span>
+        <span class="lb-name">${entry.name}</span>
+        <span class="lb-score">${entry.score} pts</span>
+      `;
+      lbContainer.appendChild(row);
+    });
+  }
+
+  document.getElementById('saveScoreBtn').addEventListener('click', () => {
+    const nameInput = document.getElementById('playerName');
+    const name = nameInput.value.trim() || 'Composter';
+    const list = getLeaderboard();
+    list.push({ name, score, date: "Today" });
+    list.sort((a, b) => b.score - a.score);
+    try {
+      localStorage.setItem(LB_KEY, JSON.stringify(list));
+    } catch(e) {}
+    document.getElementById('saveScoreWrap').style.display = 'none';
+    renderLeaderboard();
+    triggerFlash("Score Saved!", true);
+  });
+
+  // Buttons
+  document.getElementById('yesBtn').addEventListener('click', () => handleDecision(true));
+  document.getElementById('noBtn').addEventListener('click', () => handleDecision(false));
+  document.getElementById('startBtn').addEventListener('click', startRace);
+  document.getElementById('replayBtn').addEventListener('click', () => {
+    document.getElementById('saveScoreWrap').style.display = 'flex';
+    document.getElementById('playerName').value = '';
+    startRace();
+  });
+
+  // Keyboard controls
+  window.addEventListener('keydown', (e) => {
+    if (!playScreen.classList.contains('active')) return;
+    if (e.key === 'ArrowLeft' || e.key.toLowerCase() === 'y') handleDecision(true);
+    if (e.key === 'ArrowRight' || e.key.toLowerCase() === 'n') handleDecision(false);
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>♻️ Recycling Hero - Wastify Learning Module</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --theme-color: #2563eb;
+      --theme-light: #dbeafe;
+      --theme-dark: #1d4ed8;
+      --navy: #1e3a5f;
+      --text-main: #374151;
+      --text-dark: #0f172a;
+      --bg-page: #e8f4f8;
+      --card-bg: #ffffff;
+      --border-color: #e2e8f0;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: var(--bg-page);
+      color: var(--text-main);
+      line-height: 1.7;
+      padding: 24px 12px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .container {
+      max-width: 750px;
+      margin: 0 auto;
+      background: var(--card-bg);
+      padding: 32px;
+      border-radius: 8px;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    /* Top Navigation Bar */
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border-color);
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    #google_translate_element {
+      display: inline-block;
+      min-height: 32px;
+    }
+
+    .goog-te-gadget {
+      font-family: 'Inter', sans-serif !important;
+      font-size: 12px !important;
+      color: #64748b !important;
+    }
+
+    .goog-te-gadget .goog-te-combo {
+      padding: 6px 10px !important;
+      border-radius: 6px !important;
+      border: 1px solid #cbd5e1 !important;
+      font-family: 'Inter', sans-serif !important;
+      font-size: 12px !important;
+      background: #ffffff !important;
+      color: #1e293b !important;
+      outline: none !important;
+    }
+
+    .back-btn {
+      background: #334155;
+      color: #ffffff;
+      border: none;
+      border-radius: 9999px;
+      padding: 8px 18px;
+      font-weight: 600;
+      font-size: 13px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.2s, transform 0.15s;
+      text-decoration: none;
+    }
+
+    .back-btn:hover {
+      background: #1e293b;
+      transform: translateY(-1px);
+    }
+
+    /* Module Header */
+    .module-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--theme-light);
+      color: var(--theme-color);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      border: 1px solid rgba(37, 99, 235, 0.25);
+    }
+
+    .module-title {
+      font-size: 30px;
+      font-weight: 900;
+      color: var(--navy);
+      margin: 12px 0 6px 0;
+      line-height: 1.25;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .module-desc {
+      font-size: 15px;
+      color: #64748b;
+      margin-bottom: 20px;
+      line-height: 1.6;
+    }
+
+    hr.divider {
+      border: none;
+      height: 1px;
+      background-color: var(--border-color);
+      margin: 20px 0 28px 0;
+    }
+
+    /* Section Headings */
+    .section-heading {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--theme-color);
+      margin: 32px 0 16px 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .section-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--theme-color);
+      color: #ffffff;
+      font-size: 14px;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+
+    p {
+      margin-bottom: 14px;
+      font-size: 15px;
+      color: var(--text-main);
+      line-height: 1.7;
+    }
+
+    /* Examples Visual Grid */
+    .examples-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 10px;
+      margin: 18px 0 24px 0;
+    }
+
+    .example-pill {
+      background: #f8fafc;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 12px 10px;
+      text-align: center;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+
+    .example-pill:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 10px rgba(37, 99, 235, 0.08);
+      border-color: #93c5fd;
+    }
+
+    .example-pill-icon {
+      font-size: 28px;
+      margin-bottom: 4px;
+      display: block;
+    }
+
+    .example-pill-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--navy);
+    }
+
+    /* YouTube Video Wrapper */
+    .video-section {
+      margin: 24px 0 28px 0;
+    }
+
+    .video-wrapper {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+      border: 1px solid #cbd5e1;
+      background: #000000;
+    }
+
+    .video-wrapper iframe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border: 0;
+    }
+
+    .video-caption {
+      text-align: center;
+      font-size: 13px;
+      color: #64748b;
+      margin-top: 8px;
+      font-weight: 500;
+    }
+
+    /* Tables */
+    .table-container {
+      width: 100%;
+      overflow-x: auto;
+      margin: 20px 0;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 14px;
+    }
+
+    th {
+      background-color: var(--theme-color);
+      color: #ffffff;
+      font-weight: 700;
+      padding: 12px 16px;
+      letter-spacing: 0.02em;
+    }
+
+    td {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border-color);
+      color: #374151;
+      vertical-align: middle;
+      line-height: 1.6;
+    }
+
+    tbody tr:nth-child(even) {
+      background-color: #f8fafc;
+    }
+
+    tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    /* Kaanch Fact Box */
+    .fact-box {
+      background: linear-gradient(135deg, #eff6ff, #f0fdf4);
+      border: 2px dashed #3b82f6;
+      border-radius: 10px;
+      padding: 20px;
+      margin: 24px 0;
+      text-align: center;
+    }
+
+    .fact-box-icon {
+      font-size: 36px;
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    .fact-box-title {
+      font-size: 17px;
+      font-weight: 800;
+      color: var(--navy);
+      margin-bottom: 6px;
+    }
+
+    .fact-box-desc {
+      font-size: 14px;
+      color: #1e3a8a;
+      line-height: 1.6;
+    }
+
+    /* 3R Pyramid */
+    .pyramid-container {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 24px 20px;
+      margin: 24px 0;
+      text-align: center;
+    }
+
+    .pyramid-title {
+      font-size: 17px;
+      font-weight: 800;
+      color: var(--navy);
+      margin-bottom: 4px;
+    }
+
+    .pyramid-subtitle {
+      font-size: 13px;
+      color: #64748b;
+      margin-bottom: 18px;
+    }
+
+    .pyramid-stack {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      max-width: 540px;
+      margin: 0 auto;
+    }
+
+    .pyramid-tier {
+      border-radius: 8px;
+      padding: 13px 16px;
+      color: #ffffff;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+      transition: transform 0.2s;
+    }
+
+    .pyramid-tier:hover {
+      transform: scale(1.02);
+    }
+
+    .tier-reduce {
+      width: 55%;
+      background: linear-gradient(135deg, #f97316, #ea580c);
+      font-size: 14.5px;
+    }
+
+    .tier-reuse {
+      width: 75%;
+      background: linear-gradient(135deg, #3b82f6, #2563eb);
+      font-size: 14.5px;
+    }
+
+    .tier-recycle {
+      width: 95%;
+      background: linear-gradient(135deg, #10b981, #059669);
+      font-size: 14.5px;
+    }
+
+    .tip-card {
+      background: #eff6ff;
+      border-left: 4px solid var(--theme-color);
+      border-radius: 6px;
+      padding: 14px 18px;
+      margin-top: 18px;
+      text-align: left;
+      font-size: 14px;
+      color: #1e40af;
+      line-height: 1.5;
+    }
+
+    /* Bullets */
+    .bullet-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin: 16px 0;
+    }
+
+    .bullet-list li {
+      font-size: 14.5px;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      line-height: 1.6;
+      color: var(--text-main);
+    }
+
+    .bullet-icon {
+      font-size: 16px;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .myth-tag {
+      color: #dc2626;
+      font-weight: 700;
+    }
+
+    .fact-tag {
+      color: #16a34a;
+      font-weight: 700;
+    }
+
+    /* Teacher Note */
+    .teacher-note {
+      background-color: #ecfdf5;
+      border-left: 5px solid #10b981;
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin: 28px 0;
+      color: #065f46;
+    }
+
+    .teacher-note-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 15px;
+      font-weight: 800;
+      color: #047857;
+      margin-bottom: 6px;
+    }
+
+    .teacher-note p {
+      margin-bottom: 0;
+      font-size: 14px;
+      color: #065f46;
+      line-height: 1.6;
+    }
+
+    /* Quiz Card */
+    .quiz-card {
+      background-color: #fffbeb;
+      border: 1px solid #fde68a;
+      border-radius: 10px;
+      padding: 28px;
+      margin-top: 36px;
+    }
+
+    .quiz-header {
+      margin-bottom: 20px;
+    }
+
+    .quiz-title {
+      font-size: 22px;
+      font-weight: 900;
+      color: #ea580c;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .quiz-subtitle {
+      font-size: 14px;
+      color: #b45309;
+      margin-top: 4px;
+    }
+
+    .quiz-q-block {
+      background: #ffffff;
+      border: 1px solid #fef3c7;
+      border-radius: 8px;
+      padding: 18px;
+      margin-bottom: 18px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+    }
+
+    .quiz-q-text {
+      font-size: 15px;
+      font-weight: 700;
+      color: #1e293b;
+      margin-bottom: 12px;
+    }
+
+    .quiz-options {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .quiz-option-label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      color: #334155;
+      background: #ffffff;
+      transition: all 0.15s ease;
+    }
+
+    .quiz-option-label:hover {
+      background: #f8fafc;
+      border-color: #cbd5e1;
+    }
+
+    .quiz-option-label input[type="radio"] {
+      accent-color: var(--theme-color);
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+    }
+
+    .quiz-option-label.correct {
+      border-color: #10b981;
+      background-color: #ecfdf5;
+      color: #065f46;
+      font-weight: 600;
+    }
+
+    .quiz-option-label.incorrect {
+      border-color: #ef4444;
+      background-color: #fef2f2;
+      color: #991b1b;
+    }
+
+    .explanation {
+      margin-top: 10px;
+      padding: 10px 12px;
+      border-radius: 6px;
+      background: #f1f5f9;
+      font-size: 13px;
+      color: #334155;
+      display: none;
+    }
+
+    .submit-btn {
+      background-color: var(--theme-color);
+      color: #ffffff;
+      border: none;
+      padding: 12px 30px;
+      font-size: 15px;
+      font-weight: 700;
+      border-radius: 8px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
+      transition: background 0.2s, transform 0.15s;
+    }
+
+    .submit-btn:hover {
+      background-color: var(--theme-dark);
+      transform: translateY(-1px);
+    }
+
+    .quiz-result-box {
+      display: none;
+      margin-top: 24px;
+      padding: 20px;
+      border-radius: 8px;
+      text-align: center;
+    }
+
+    .quiz-result-box.passed {
+      background: #ecfdf5;
+      border: 2px solid #10b981;
+      color: #065f46;
+    }
+
+    .quiz-result-box.failed {
+      background: #fef2f2;
+      border: 2px solid #ef4444;
+      color: #991b1b;
+    }
+
+    .score-title {
+      font-size: 22px;
+      font-weight: 900;
+      margin-bottom: 6px;
+    }
+
+    .score-sub {
+      font-size: 14px;
+    }
+
+    /* Mobile Responsive */
+    @media (max-width: 640px) {
+      .container {
+        padding: 20px 16px;
+      }
+      .module-title {
+        font-size: 24px;
+      }
+      .tier-reduce, .tier-reuse, .tier-recycle {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+
+    <!-- Top Navigation Bar -->
+    <div class="top-bar">
+      <div id="google_translate_element"></div>
+      <button class="back-btn" onclick="if(window.parent!==window){window.parent.postMessage({type:'close-game'},'*')}else{history.back()}">
+        ← Back
+      </button>
+    </div>
+
+    <!-- Module Header -->
+    <header>
+      <span class="module-badge">Module 2 · Recycling Hero</span>
+      <h1 class="module-title">♻️ Recycling Hero</h1>
+      <p class="module-desc">
+        Sukhe kachre ko pehchano aur jaano ki har material kaise naya roop leta hai. Bano ek zimmedar Recycling Hero!
+      </p>
+    </header>
+
+    <hr class="divider">
+
+    <!-- Section 1 -->
+    <h2 class="section-heading">
+      <span class="section-num">1</span>
+      Dry Waste Kya Hai? 📦
+    </h2>
+    <p>
+      <strong>Dry Waste (Sukha Kachra)</strong> woh kachra hai jo sukha, saaf aur sadta nahi hai. Ise factory ya recycling plants mein bhej kar dobara upyog (reuse ya recycle) kiya ja sakta hai.
+    </p>
+    <p>
+      Ghar aur school mein milne wale mukhya dry waste materials:
+    </p>
+    <div class="examples-grid">
+      <div class="example-pill">
+        <span class="example-pill-icon">📄</span>
+        <div class="example-pill-title">Kaagaz</div>
+      </div>
+      <div class="example-pill">
+        <span class="example-pill-icon">📦</span>
+        <div class="example-pill-title">Cardboard</div>
+      </div>
+      <div class="example-pill">
+        <span class="example-pill-icon">🧴</span>
+        <div class="example-pill-title">Plastic</div>
+      </div>
+      <div class="example-pill">
+        <span class="example-pill-icon">🍾</span>
+        <div class="example-pill-title">Kaanch</div>
+      </div>
+      <div class="example-pill">
+        <span class="example-pill-icon">🥫</span>
+        <div class="example-pill-title">Dhaatu</div>
+      </div>
+      <div class="example-pill">
+        <span class="example-pill-icon">👕</span>
+        <div class="example-pill-title">Kapda</div>
+      </div>
+      <div class="example-pill">
+        <span class="example-pill-icon">🪵</span>
+        <div class="example-pill-title">Lakdi</div>
+      </div>
+    </div>
+
+    <!-- Section 2 -->
+    <h2 class="section-heading">
+      <span class="section-num">2</span>
+      Recycling Kaise Hoti Hai? ⚙️
+    </h2>
+    <p>
+      Jab hum sukha kachra alag karke dete hain, toh recycling factories mein alag-alag materials ko naye roop mein badla jaata hai:
+    </p>
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 25%;">Material</th>
+            <th style="width: 35%;">Kaise Recycle Hota Hai</th>
+            <th style="width: 40%;">Kya Banta Hai</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Kaagaz📄</strong></td>
+            <td>Paani mein bhigo kar pulp (luggdi) banate hain aur press karte hain</td>
+            <td>Naya kaagaz, carton boxes, egg trays</td>
+          </tr>
+          <tr>
+            <td><strong>Plastic🧴</strong></td>
+            <td>Saaf karke flakes mein kaat kar pighlaate hain</td>
+            <td>Nayi bottle, kapda/polyester fiber, garden bench</td>
+          </tr>
+          <tr>
+            <td><strong>Kaanch🍾</strong></td>
+            <td>Chhote tukdon (cullet) mein tod kar pighlaate hain</td>
+            <td>Naya kaanch (quality hamesha same rehti hai!)</td>
+          </tr>
+          <tr>
+            <td><strong>Dhaatu🥫</strong></td>
+            <td>Bhatti (furnace) mein pighla kar moulds mein dhalte hain</td>
+            <td>Naye metal cans, cycle frame, car ke parts</td>
+          </tr>
+          <tr>
+            <td><strong>Kapda👕</strong></td>
+            <td>Shred karke reshe (fibers) alag karte hain</td>
+            <td>Cloth carry bag, mattress padding, rags</td>
+          </tr>
+          <tr>
+            <td><strong>Lakdi🪵</strong></td>
+            <td>Chhote chips aur mulch mein peeste hain</td>
+            <td>Pressboard, wood panels, compost covering</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Training Video Section -->
+    <div class="video-section">
+      <div class="video-wrapper">
+        <iframe 
+          src="https://www.youtube.com/embed/OasbYWF4_S8" 
+          title="Recycling Process Training Video"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+          allowfullscreen>
+        </iframe>
+      </div>
+      <div class="video-caption">
+        📺 Training Video: Dekhiye kaise sukha kachra modern recycling plants mein naye samaan mein badalta hai.
+      </div>
+    </div>
+
+    <!-- Section 3 -->
+    <h2 class="section-heading">
+      <span class="section-num">3</span>
+      Kaanch Ki Khaas Baat ✨
+    </h2>
+    <div class="fact-box">
+      <span class="fact-box-icon">💎</span>
+      <div class="fact-box-title">Kaanch Ki Superpower!</div>
+      <div class="fact-box-desc">
+        Kaanch (Glass) <strong>BAAR BAAR (infinite times)</strong> recycle ho sakta hai — iski purity aur quality kabhi kam nahi hoti! 1 recycled glass bottle bachati hai itni urja jisse ek bulb 4 ghante jal sake.
+      </div>
+    </div>
+
+    <!-- Section 4 -->
+    <h2 class="section-heading">
+      <span class="section-num">4</span>
+      Reduce & Reuse Pehle! 🔺
+    </h2>
+    <p>
+      Recycle karna acchi baat hai, lekin 3R pyramid batata hai ki recycle se pehle do aur cheezein sabse zaroori hain:
+    </p>
+
+    <div class="pyramid-container">
+      <div class="pyramid-title">The 3R Priority Pyramid</div>
+      <div class="pyramid-subtitle">Upar ka step sabse pehle aur sabse mahatvapurna hai</div>
+      <div class="pyramid-stack">
+        <div class="pyramid-tier tier-reduce">
+          <span>🥇 1. REDUCE (Kachra Kam Paida Karo)</span>
+        </div>
+        <div class="pyramid-tier tier-reuse">
+          <span>🥈 2. REUSE (Dobara Upyog Karo)</span>
+        </div>
+        <div class="pyramid-tier tier-recycle">
+          <span>🥉 3. RECYCLE (Naye Roop Mein Badlo)</span>
+        </div>
+      </div>
+      <div class="tip-card">
+        💡 <strong>Pro Tip:</strong> Recycle karne mein bhi factory mein urja aur paani lagta hai, isliye recycle karne se pehle hamesha cheezon ko <strong>dobara use</strong> karein ya kachra kam paida karein!
+      </div>
+    </div>
+
+    <!-- Section 5 -->
+    <h2 class="section-heading">
+      <span class="section-num">5</span>
+      Ghar Pe Kya Karein? 🏠
+    </h2>
+    <p>
+      Ek sacche Recycling Hero ki tarah apne ghar par yeh 4 aasan aadat apnao:
+    </p>
+    <ul class="bullet-list">
+      <li>
+        <span class="bullet-icon">✅</span>
+        <span><strong>Dry waste saaf rakhkar alag karo:</strong> Neele dustbin mein sirf sukha kachra rakho taaki woh ganda na ho.</span>
+      </li>
+      <li>
+        <span class="bullet-icon">✅</span>
+        <span><strong>Raddi wale (kabadiwala) ko do:</strong> Purane akhbaar, cartons aur plastic bottle raddi wale ko do jo sidha recycling factory bhejte hain.</span>
+      </li>
+      <li>
+        <span class="bullet-icon">✅</span>
+        <span><strong>Plastic dhoke rakho:</strong> Dudh ke packet ya dahi ke dabbe ko halka paani se dho kar sukha kar rakhein. Ganda plastic recycle nahi ho pata.</span>
+      </li>
+      <li>
+        <span class="bullet-icon">✅</span>
+        <span><strong>Purane kapde donate karo:</strong> Jo kapde chhote ho gaye hain unhe fekne ke bajaye zarooratmand ko dein.</span>
+      </li>
+    </ul>
+
+    <!-- Myths vs Facts Table -->
+    <h2 class="section-heading" style="color: var(--navy); margin-top: 36px;">
+      💡 Myths vs Facts
+    </h2>
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 45%;">Myth (Galat Fahami) ❌</th>
+            <th style="width: 55%;">Fact (Sacchai) ✅</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="myth-tag">Myth:</span> "Plastic kabhi recycle nahi ho sakta, sab kachra zameen mein hi jaata hai."</td>
+            <td><span class="fact-tag">Fact:</span> Agar plastic saaf aur sukha ho, toh ise aasani se pighla kar nayi bottles, kapda aur benches banaye jaate hain.</td>
+          </tr>
+          <tr>
+            <td><span class="myth-tag">Myth:</span> "Kaanch ko dobara recycle karne se uski quality gir jaati hai."</td>
+            <td><span class="fact-tag">Fact:</span> Kaanch ki quality 100% same rehti hai; isme bilkul kami nahi aati chahe ise kitni baar bhi pighlaya jaye.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Teacher Note -->
+    <div class="teacher-note">
+      <div class="teacher-note-header">
+        🧑‍🏫 Teacher & Parent Note
+      </div>
+      <p>
+        Ek purani plastic bottle ya delivery box ghar pe kisi naye kaam mein use karo — jaise usme paudha lagao, stationary holder ya toy container banao! Bachon ko creative reuse (Upcycling) ka anubhav karayein.
+      </p>
+    </div>
+
+    <!-- Quiz Section -->
+    <div class="quiz-card">
+      <div class="quiz-header">
+        <h3 class="quiz-title">📝 Recycling Hero Quiz</h3>
+        <p class="quiz-subtitle">5 sawaalon ke sahi uttar de kar apna Recycling Hero badge haasil karein!</p>
+      </div>
+
+      <form id="quizForm" onsubmit="event.preventDefault(); submitQuiz();">
+        <!-- Q1 -->
+        <div class="quiz-q-block">
+          <div class="quiz-q-text">1. Kaanch (Glass) recycle hone ke baad kaisa banta hai?</div>
+          <div class="quiz-options">
+            <label class="quiz-option-label" id="q1-opt0">
+              <input type="radio" name="q1" value="0">
+              <span>A) Kharab aur kamzor ho jaata hai</span>
+            </label>
+            <label class="quiz-option-label" id="q1-opt1">
+              <input type="radio" name="q1" value="1">
+              <span>B) Bilkul naya kaanch banta hai (quality same!)</span>
+            </label>
+            <label class="quiz-option-label" id="q1-opt2">
+              <input type="radio" name="q1" value="2">
+              <span>C) Mitti ki compost khaad ban jaata hai</span>
+            </label>
+          </div>
+          <div class="explanation" id="q1-exp">
+            💡 <strong>Explanation:</strong> Kaanch ko baar-baar recycle karne par bhi uski quality aur chamak mein bilkul kami nahi aati.
+          </div>
+        </div>
+
+        <!-- Q2 -->
+        <div class="quiz-q-block">
+          <div class="quiz-q-text">2. Plastic recycle karne se pehle sabse zaroori kya hai?</div>
+          <div class="quiz-options">
+            <label class="quiz-option-label" id="q2-opt0">
+              <input type="radio" name="q2" value="0">
+              <span>A) Dhona aur saaf rakhna</span>
+            </label>
+            <label class="quiz-option-label" id="q2-opt1">
+              <input type="radio" name="q2" value="1">
+              <span>B) Chhote tukdon mein todna</span>
+            </label>
+            <label class="quiz-option-label" id="q2-opt2">
+              <input type="radio" name="q2" value="2">
+              <span>C) Maachis se jalana</span>
+            </label>
+          </div>
+          <div class="explanation" id="q2-exp">
+            💡 <strong>Explanation:</strong> Plastic ka saaf hona sabse zaroori hai. Tel ya khane se contaminated plastic recycle nahi ho sakta.
+          </div>
+        </div>
+
+        <!-- Q3 -->
+        <div class="quiz-q-block">
+          <div class="quiz-q-text">3. Inme se kaun sa dry waste (sukha kachra) hai?</div>
+          <div class="quiz-options">
+            <label class="quiz-option-label" id="q3-opt0">
+              <input type="radio" name="q3" value="0">
+              <span>A) Banana peel (Kele ka chhilka)</span>
+            </label>
+            <label class="quiz-option-label" id="q3-opt1">
+              <input type="radio" name="q3" value="1">
+              <span>B) Newspaper (Akhbaar)</span>
+            </label>
+            <label class="quiz-option-label" id="q3-opt2">
+              <input type="radio" name="q3" value="2">
+              <span>C) Expired dawai</span>
+            </label>
+          </div>
+          <div class="explanation" id="q3-exp">
+            💡 <strong>Explanation:</strong> Newspaper dry waste hai jise pulp banakar naya kaagaz banaya jaata hai.
+          </div>
+        </div>
+
+        <!-- Q4 -->
+        <div class="quiz-q-block">
+          <div class="quiz-q-text">4. 3R hierarchy mein sabse pehla aur sabse zaroori step kaun sa hai?</div>
+          <div class="quiz-options">
+            <label class="quiz-option-label" id="q4-opt0">
+              <input type="radio" name="q4" value="0">
+              <span>A) Recycle</span>
+            </label>
+            <label class="quiz-option-label" id="q4-opt1">
+              <input type="radio" name="q4" value="1">
+              <span>B) Reuse</span>
+            </label>
+            <label class="quiz-option-label" id="q4-opt2">
+              <input type="radio" name="q4" value="2">
+              <span>C) Reduce (Kachra kam paida karna)</span>
+            </label>
+          </div>
+          <div class="explanation" id="q4-exp">
+            💡 <strong>Explanation:</strong> 3R mein sabse pehla niyam REDUCE hai — kachra paida hi kam karna sabse behtar paryavaran suraksha hai.
+          </div>
+        </div>
+
+        <!-- Q5 -->
+        <div class="quiz-q-block">
+          <div class="quiz-q-text">5. Kaagaz recycle karne se sabse badi kya bachat hoti hai?</div>
+          <div class="quiz-options">
+            <label class="quiz-option-label" id="q5-opt0">
+              <input type="radio" name="q5" value="0">
+              <span>A) Ped (Trees) aur laakhon litre paani</span>
+            </label>
+            <label class="quiz-option-label" id="q5-opt1">
+              <input type="radio" name="q5" value="1">
+              <span>B) Sirf thodi si bijli</span>
+            </label>
+            <label class="quiz-option-label" id="q5-opt2">
+              <input type="radio" name="q5" value="2">
+              <span>C) Sirf gaadi ka petrol</span>
+            </label>
+          </div>
+          <div class="explanation" id="q5-exp">
+            💡 <strong>Explanation:</strong> 1 ton paper recycle karne se 17 bade ped aur 26,000 litre se zyada taaza paani bachta hai.
+          </div>
+        </div>
+
+        <button type="submit" class="submit-btn" id="submitBtn">
+          Submit Answers 🚀
+        </button>
+      </form>
+
+      <!-- Quiz Result Box -->
+      <div class="quiz-result-box" id="resultBox">
+        <div class="score-title" id="scoreTitle">Score: 0/5</div>
+        <div class="score-sub" id="scoreSub">You need 4/5 (80%) to pass!</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Google Translate Script -->
+  <script type="text/javascript">
+    function googleTranslateElementInit() {
+      new google.translate.TranslateElement({
+        pageLanguage: 'en',
+        includedLanguages: 'en,hi,bn,te,mr,ta,gu,kn,ml,pa',
+        layout: google.translate.TranslateElement.InlineLayout.SIMPLE
+      }, 'google_translate_element');
+    }
+  </script>
+  <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+  <!-- Quiz Logic Script -->
+  <script>
+    const correctAnswers = [1, 0, 1, 2, 0]; // Module 2 correct answers: B, A, B, C, A
+    const moduleId = 'module-2';
+    let quizSubmitted = false;
+
+    function submitQuiz() {
+      if (quizSubmitted) return;
+
+      let score = 0;
+      let allAnswered = true;
+
+      for (let i = 1; i <= 5; i++) {
+        const selected = document.querySelector(`input[name="q${i}"]:checked`);
+        if (!selected) {
+          allAnswered = false;
+        }
+      }
+
+      if (!allAnswered) {
+        alert("Kripya sabhi 5 sawaalon ke uttar chunein!");
+        return;
+      }
+
+      quizSubmitted = true;
+      document.getElementById('submitBtn').disabled = true;
+      document.getElementById('submitBtn').style.opacity = '0.6';
+      document.getElementById('submitBtn').style.cursor = 'not-allowed';
+
+      for (let i = 1; i <= 5; i++) {
+        const selected = document.querySelector(`input[name="q${i}"]:checked`);
+        const userAns = parseInt(selected.value);
+        const correctAns = correctAnswers[i - 1];
+
+        const selectedLabel = document.getElementById(`q${i}-opt${userAns}`);
+        const correctLabel = document.getElementById(`q${i}-opt${correctAns}`);
+
+        if (userAns === correctAns) {
+          score++;
+          selectedLabel.classList.add('correct');
+        } else {
+          selectedLabel.classList.add('incorrect');
+          correctLabel.classList.add('correct');
+        }
+
+        // Show explanation
+        const expEl = document.getElementById(`q${i}-exp`);
+        if (expEl) expEl.style.display = 'block';
+      }
+
+      const passed = score >= 4;
+      const resultBox = document.getElementById('resultBox');
+      const scoreTitle = document.getElementById('scoreTitle');
+      const scoreSub = document.getElementById('scoreSub');
+
+      resultBox.style.display = 'block';
+      if (passed) {
+        resultBox.className = 'quiz-result-box passed';
+        scoreTitle.innerHTML = `🎉 Zabardast! Aapka Score: ${score}/5`;
+        scoreSub.innerHTML = `Aapne Recycling Hero module safalta-purvak complete kar liya hai! ♻️`;
+      } else {
+        resultBox.className = 'quiz-result-box failed';
+        scoreTitle.innerHTML = `Aapka Score: ${score}/5`;
+        scoreSub.innerHTML = `Pass hone ke liye kam se kam 4/5 chahiye. Revision karein aur dubara koshish karein!`;
+      }
+
+      // postMessage to parent window
+      window.parent.postMessage({
+        type: 'quiz-complete',
+        moduleId: moduleId,
+        score: score,
+        total: 5,
+        passed: passed
+      }, '*');
+
+      resultBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  </script>
+</body>
+</html>

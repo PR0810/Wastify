@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sort It Out</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#15181C;
+    --ink-soft:#5C6168;
+    --paper:#FAFAF8;
+    --line:#E4E3DD;
+    --dry:#1F5FA8;
+    --dry-tint:#E3EEF9;
+    --wet:#2E7D32;
+    --wet-tint:#E5F1E3;
+    --food:#C25A1E;
+    --food-tint:#FAE6D8;
+    --hazard:#8B2E3B;
+    --hazard-tint:#F5E1E3;
+    --good:#2E7D32;
+    --bad:#AD3B2E;
+    box-sizing:border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  *{box-sizing:inherit;}
+  html,body{ height:100%; margin:0; }
+  body{
+    font-family:'Inter', sans-serif;
+    background: var(--paper);
+    min-height:100%;
+    color:var(--ink);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+  }
+  h1,h2,h3,.display{ font-family:'Space Grotesk', sans-serif; }
+
+  .stripe{
+    width:100%; height:5px; display:flex; flex-shrink:0;
+  }
+  .stripe span{ flex:1; }
+  .stripe .s-dry{ background:var(--dry); }
+  .stripe .s-wet{ background:var(--wet); }
+  .stripe .s-food{ background:var(--food); }
+  .stripe .s-hazard{ background:var(--hazard); }
+
+  .topbar{
+    width:100%; background:var(--ink); color:#fff;
+    padding:16px 20px;
+    display:flex; align-items:center; justify-content:space-between;
+    flex-shrink:0;
+  }
+  .topbar .brand{
+    font-weight:700; font-size:16px; letter-spacing:0.2px;
+  }
+  .topbar .brand small{ display:block; font-family:'Inter',sans-serif; font-weight:500; font-size:11px; color:#A7ABB1; margin-top:1px; letter-spacing:0.3px; }
+  .topbar .btns{ display:flex; gap:8px; }
+  .topbar button{
+    background:none; border:1px solid #3A3F46; color:#C7CAD0;
+    font-family:'Inter',sans-serif; font-weight:600; font-size:12.5px;
+    padding:7px 12px; border-radius:7px; cursor:pointer;
+  }
+  .topbar button:active{ background:#20242A; }
+
+  .stage{
+    width:100%; max-width:480px;
+    flex:1;
+    display:flex; flex-direction:column; align-items:center;
+    padding: 0 20px 28px;
+  }
+
+  .screen{ display:none; width:100%; flex-direction:column; align-items:center; flex:1; }
+  .screen.active{ display:flex; }
+
+  #homeScreen{ padding-top:36px; }
+  .home-kicker{ font-size:11.5px; font-weight:700; color:var(--ink-soft); letter-spacing:1.2px; margin-bottom:8px; }
+  .home-title{ font-weight:700; font-size:clamp(30px,8vw,40px); line-height:1.05; margin:0 0 10px; letter-spacing:-0.5px; }
+  .home-desc{ font-size:15px; color:var(--ink-soft); line-height:1.5; margin:0 0 28px; max-width:360px; }
+
+  .tiles{ width:100%; display:flex; flex-direction:column; gap:10px; margin-bottom:30px; }
+  .tile{
+    display:flex; align-items:center; justify-content:space-between;
+    background:#fff; border:1.5px solid var(--line); border-radius:12px;
+    padding:18px 20px; cursor:pointer; text-align:left;
+  }
+  .tile:active{ background:#F3F2EE; }
+  .tile .tl{ display:flex; align-items:center; gap:14px; }
+  .tile .num{
+    width:34px; height:34px; border-radius:8px; background:var(--ink);
+    color:#fff; display:flex; align-items:center; justify-content:center;
+    font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:14px; flex-shrink:0;
+  }
+  .tile h3{ margin:0 0 2px; font-size:17px; font-weight:600; }
+  .tile p{ margin:0; font-size:13px; color:var(--ink-soft); }
+  .tile .arrow{ font-size:18px; color:var(--ink-soft); flex-shrink:0; }
+
+  .key-label{ font-size:11.5px; font-weight:700; color:var(--ink-soft); letter-spacing:1px; margin-bottom:10px; }
+  .key-grid{ width:100%; display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .key-item{
+    display:flex; align-items:center; gap:9px;
+    border:1.5px solid var(--line); border-radius:10px; padding:10px 12px;
+  }
+  .key-icon{ width:26px; height:26px; flex-shrink:0; }
+  .key-item span.lbl{ font-size:12.5px; font-weight:600; }
+
+  #learnScreen{ padding-top:24px; }
+  .section-head{ width:100%; display:flex; align-items:center; justify-content:space-between; margin-bottom:4px; }
+  .section-head h2{ font-size:20px; font-weight:700; margin:0; }
+  .counter{ font-size:13px; font-weight:600; color:var(--ink-soft); }
+
+  .segbar{ width:100%; display:flex; gap:4px; margin:14px 0 20px; }
+  .seg{ flex:1; height:4px; background:var(--line); border-radius:2px; overflow:hidden; }
+  .seg i{ display:block; height:100%; width:0%; background:var(--ink); transition: width .25s ease; }
+  .seg.done i{ width:100%; }
+  .seg.active i{ width:100%; background:var(--food); }
+
+  .prompt{ font-size:13.5px; color:var(--ink-soft); font-weight:600; margin-bottom:14px; text-align:center; }
+
+  .flip-wrap{ width:100%; max-width:300px; aspect-ratio: 4/5; margin:0 auto; perspective:1600px; }
+  .flip{ width:100%; height:100%; position:relative; transform-style:preserve-3d; transition: transform .5s cubic-bezier(.3,.7,.3,1); cursor:pointer; }
+  .flip.flipped{ transform: rotateY(180deg); }
+  .side{ position:absolute; inset:0; border-radius:14px; backface-visibility:hidden; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:24px; text-align:center; }
+  .side-front{ background:#fff; border:1.5px solid var(--line); }
+  .side-front .obj{ font-size:72px; margin-bottom:16px; }
+  .side-front .name{ font-weight:700; font-size:19px; margin-bottom:18px; }
+  .side-front .cta{
+    font-size:11.5px; font-weight:700; letter-spacing:1px; color:#fff;
+    background:var(--ink); padding:9px 16px; border-radius:7px;
+  }
+  .side-back{ transform:rotateY(180deg); color:#fff; justify-content:flex-start; }
+  .side-back .bicon{ width:46px; height:46px; margin-bottom:10px; color:#fff; }
+  .side-back .bname{ font-weight:700; font-size:19px; margin-bottom:14px; }
+  .side-back .fact{ font-size:13.5px; line-height:1.5; font-weight:500; background:rgba(255,255,255,0.16); border-radius:10px; padding:13px 14px; }
+  .bg-dry{ background:var(--dry); }
+  .bg-wet{ background:var(--wet); }
+  .bg-food{ background:var(--food); }
+  .bg-hazard{ background:var(--hazard); }
+
+  .nav-row{ width:100%; max-width:300px; display:flex; gap:10px; margin-top:20px; }
+  .btn{
+    font-family:'Inter',sans-serif; border:none; cursor:pointer; border-radius:9px;
+    font-weight:700; transition: opacity .12s ease, transform .1s ease;
+  }
+  .btn:active{ transform:scale(0.97); }
+  .btn-primary{ flex:1; background:var(--ink); color:#fff; padding:14px 0; font-size:14.5px; }
+  .btn-outline{ width:48px; background:#fff; border:1.5px solid var(--line); color:var(--ink); font-size:16px; }
+  .btn-outline:disabled{ opacity:0.35; cursor:default; }
+  .btn-text{ background:none; color:var(--ink-soft); font-size:13px; text-decoration:underline; font-weight:600; padding:10px 0; }
+
+  .done-screen{ display:none; flex-direction:column; align-items:center; text-align:center; flex:1; justify-content:center; gap:10px; }
+  .done-screen.show{ display:flex; }
+  .done-tag{ font-size:11.5px; font-weight:700; letter-spacing:1px; color:var(--wet); margin-bottom:2px; }
+  .done-screen h2{ font-size:24px; margin:0; }
+  .done-screen p{ font-size:14px; color:var(--ink-soft); max-width:280px; margin:4px 0 6px; line-height:1.5; }
+
+  #quizScreen{ padding-top:20px; }
+  .quiz-top{ width:100%; display:flex; align-items:center; gap:12px; margin-bottom:28px; }
+  .exit-btn{ background:none; border:none; font-size:18px; color:var(--ink-soft); cursor:pointer; padding:4px; flex-shrink:0; }
+  .track{ flex:1; height:6px; background:var(--line); border-radius:3px; overflow:hidden; }
+  .fill{ height:100%; background:var(--ink); border-radius:3px; transition:width .3s ease; width:0%; }
+  .lives{ display:flex; gap:5px; flex-shrink:0; }
+  .life{ width:9px; height:9px; border-radius:50%; background:var(--ink); }
+  .life.lost{ background:var(--line); }
+  .score-live{
+    font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:14px;
+    color:var(--ink); flex-shrink:0; min-width:34px; text-align:right;
+  }
+  .score-live .lbl{ font-family:'Inter',sans-serif; font-weight:600; font-size:9.5px; color:var(--ink-soft); letter-spacing:0.5px; display:block; text-align:right; }
+
+  .best-strip{
+    width:100%; display:none; align-items:center; gap:10px;
+    background:#fff; border:1.5px solid var(--line); border-radius:10px;
+    padding:11px 14px; margin-bottom:14px; font-size:12.5px; font-weight:600; color:var(--ink-soft);
+  }
+  .best-strip.show{ display:flex; }
+  .best-strip b{ color:var(--ink); font-family:'Space Grotesk',sans-serif; }
+  .best-strip .badges-row{ margin-left:auto; display:flex; gap:5px; }
+  .best-strip .badge-chip{
+    font-size:14px; background:var(--wet-tint); border-radius:50%;
+    width:24px; height:24px; display:flex; align-items:center; justify-content:center;
+  }
+
+  .badge-unlock{
+    display:flex; align-items:center; gap:10px; background:#fff; border:1.5px solid var(--line);
+    border-radius:12px; padding:12px 16px; margin:4px 0 2px;
+  }
+  .badge-unlock .bicon-wrap{ font-size:26px; }
+  .badge-unlock .btxt{ text-align:left; }
+  .badge-unlock .btxt .bt{ font-weight:700; font-size:13.5px; }
+  .badge-unlock .btxt .bs{ font-size:11.5px; color:var(--ink-soft); }
+
+  .qlabel{ font-size:12.5px; font-weight:700; letter-spacing:0.8px; color:var(--ink-soft); text-transform:uppercase; margin-bottom:16px; }
+  .qobj{ font-size:88px; margin-bottom:10px; }
+  .qname{ font-weight:700; font-size:21px; margin-bottom:26px; }
+
+  .opts{ width:100%; display:flex; flex-direction:column; gap:9px; margin-bottom:120px; }
+  .opt{
+    display:flex; align-items:center; gap:12px; text-align:left;
+    background:#fff; border:1.5px solid var(--line); border-radius:10px;
+    padding:13px 15px; font-size:14.5px; font-weight:600; color:var(--ink); cursor:pointer;
+  }
+  .opt .oicon{ width:22px; height:22px; flex-shrink:0; color:var(--ink-soft); }
+  .opt:active{ background:#F3F2EE; }
+  .opt.correct{ background:var(--wet-tint); border-color:var(--good); }
+  .opt.correct .oicon{ color:var(--good); }
+  .opt.wrong{ background:var(--hazard-tint); border-color:var(--bad); }
+  .opt.wrong .oicon{ color:var(--bad); }
+  .opt.dim{ opacity:0.4; }
+
+  .streak-flag{
+    position:absolute; top:84px; right:20px;
+    background:var(--ink); color:#fff; font-size:12px; font-weight:700;
+    padding:6px 11px; border-radius:7px;
+    opacity:0; transform:translateY(-6px); transition: all .2s ease; pointer-events:none;
+  }
+  .streak-flag.show{ opacity:1; transform:translateY(0); }
+
+  .fbar{
+    position:fixed; left:0; right:0; bottom:0;
+    background:#fff; border-top:1.5px solid var(--line);
+    transform:translateY(100%); transition: transform .28s ease;
+    padding:16px 20px calc(16px + env(safe-area-inset-bottom,0px));
+    z-index:5;
+  }
+  .fbar.show{ transform:translateY(0); }
+  .fbar-inner{ max-width:460px; margin:0 auto; display:flex; align-items:center; gap:12px; }
+  .fbar-ic{ width:30px; height:30px; flex-shrink:0; }
+  .fbar.good .fbar-ic{ color:var(--good); }
+  .fbar.bad .fbar-ic{ color:var(--bad); }
+  .fbar-txt{ flex:1; }
+  .fbar-head{ font-weight:700; font-size:15.5px; }
+  .fbar.good .fbar-head{ color:var(--good); }
+  .fbar.bad .fbar-head{ color:var(--bad); }
+  .fbar-detail{ font-size:12.5px; color:var(--ink-soft); font-weight:500; margin-top:1px; }
+  .fbar-btn{ padding:11px 18px; font-size:13.5px; color:#fff; flex-shrink:0; border-radius:8px; }
+  .fbar.good .fbar-btn{ background:var(--good); }
+  .fbar.bad .fbar-btn{ background:var(--bad); }
+
+  #quizFinish{ justify-content:center; padding-top:20px; }
+  .status-icon{ width:64px; height:64px; margin-bottom:12px; }
+  .status-icon svg{ width:100%; height:100%; }
+  .status-icon circle{ fill:none; stroke-width:3; }
+  .status-icon path{ fill:none; stroke-width:4; stroke-linecap:round; stroke-linejoin:round; }
+  .status-icon.pass circle{ stroke:var(--good); }
+  .status-icon.pass path{ stroke:var(--good); }
+  .status-icon.fail circle{ stroke:var(--bad); }
+  .status-icon.fail path{ stroke:var(--bad); }
+  .score-ring{
+    width:120px; height:120px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    border:6px solid var(--line); margin-bottom:18px; position:relative;
+  }
+  .score-ring .num{ font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:30px; }
+  .score-ring .denom{ font-size:12px; color:var(--ink-soft); position:absolute; bottom:22px; font-weight:600; }
+  #quizFinish h2{ font-size:23px; margin:0 0 4px; }
+  #quizFinish .sub{ font-size:14px; color:var(--ink-soft); margin:0 0 20px; }
+  .stat-grid{ display:flex; gap:28px; margin-bottom:26px; }
+  .stat{ text-align:center; }
+  .stat .v{ font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:19px; }
+  .stat .l{ font-size:11px; color:var(--ink-soft); font-weight:600; margin-top:2px; }
+
+  @media (prefers-reduced-motion: reduce){
+    .flip{ transition:none; }
+  }
+
+  #matchScreen{ padding-top:24px; }
+  .match-wrap{ position:relative; width:100%; margin-top:10px; padding:4px 0; }
+  .match-lines{ position:absolute; inset:0; width:100%; height:100%; pointer-events:none; overflow:visible; }
+  .match-cols{ display:flex; justify-content:space-between; gap:18px; position:relative; z-index:1; }
+  .match-col{ display:flex; flex-direction:column; gap:14px; width:44%; }
+  .match-item, .match-bin{
+    position:relative;
+    display:flex; align-items:center; gap:8px;
+    background:#fff; border:1.5px solid var(--line); border-radius:12px;
+    padding:12px 14px; font-size:13px; font-weight:600; color:var(--ink);
+    cursor:pointer; text-align:left; width:100%; min-height:46px;
+    box-shadow: 0 2px 6px rgba(21,24,28,0.04);
+  }
+  .match-item{ padding-right:20px; justify-content:flex-start; }
+  .match-bin{ padding-left:20px; justify-content:flex-start; }
+  .match-item .mo{ font-size:19px; flex-shrink:0; }
+  .match-bin .bo{ width:19px; height:19px; flex-shrink:0; color:var(--ink-soft); }
+  .match-item:active, .match-bin:active{ background:#F3F2EE; }
+  .match-item.selected{ border-color:var(--ink); box-shadow: 0 0 0 2px var(--ink); }
+  .match-item.matched{ opacity:0.4; cursor:default; border-style:dashed; }
+  .match-item.matched:active{ background:#fff; }
+  .match-bin.shake{ animation: mshake .35s; border-color:var(--bad); }
+  @keyframes mshake{ 0%,100%{transform:translateX(0);} 25%{transform:translateX(-5px);} 75%{transform:translateX(5px);} }
+
+  .node{
+    position:absolute; top:50%; width:9px; height:9px; border-radius:50%;
+    background:var(--line); transform:translateY(-50%);
+    transition: background .15s ease, transform .15s ease;
+  }
+  .match-item .node{ right:-4.5px; }
+  .match-bin .node{ left:-4.5px; }
+  .match-item.matched .node{ background:var(--good); transform:translateY(-50%) scale(1.3); }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute">
+  <symbol id="icon-bin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M4.5 7h15l-1.3 13.2a2 2 0 0 1-2 1.8H7.8a2 2 0 0 1-2-1.8L4.5 7z"/>
+    <path d="M9 7V4.6A1.6 1.6 0 0 1 10.6 3h2.8A1.6 1.6 0 0 1 15 4.6V7"/>
+    <path d="M2.5 7h19"/>
+    <path d="M10 11v6M14 11v6"/>
+  </symbol>
+  <symbol id="icon-leaf" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M4 20c7-1 14-5 16-16C9 5 5 11 4 20z"/>
+    <path d="M4 20c2-5 5-8 10-11"/>
+  </symbol>
+  <symbol id="icon-bowl" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M3.5 11h17a8 8 0 0 1-16.6 2.6"/>
+    <path d="M4.2 13.6c-.5 3.9 2.7 7.4 7.8 7.4s8.3-3.5 7.8-7.4"/>
+    <path d="M9 7.5C9 5.6 10.3 4 12 4s3 1.6 3 3.5"/>
+  </symbol>
+  <symbol id="icon-warn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 3.5 21.5 20h-19L12 3.5z"/>
+    <path d="M12 10v4"/>
+    <circle cx="12" cy="17" r="0.9" fill="currentColor" stroke="none"/>
+  </symbol>
+</svg>
+
+<div class="topbar">
+  <div class="brand">SORT IT OUT<small>Waste education module</small></div>
+  <div class="btns">
+    <button id="homeBtnTop">Menu</button>
+    <button id="exitBtn">Exit</button>
+  </div>
+</div>
+<div class="stripe"><span class="s-dry"></span><span class="s-wet"></span><span class="s-food"></span><span class="s-hazard"></span></div>
+
+<div class="stage">
+
+  <div class="screen active" id="homeScreen">
+    <div class="home-kicker">LEARN &amp; PLAY</div>
+    <h1 class="home-title">Know where<br>it goes.</h1>
+    <p class="home-desc">Seventeen everyday items, four bins. Learn the system, then see how fast you can sort it.</p>
+
+    <div class="best-strip" id="bestStrip">
+      <span>Your best: <b id="bestVal">0 / 10</b></span>
+      <div class="badges-row" id="badgesRow"></div>
+    </div>
+
+    <div class="tiles">
+      <div class="tile" id="goLearn">
+        <div class="tl"><div class="num">01</div><div><h3>Learn</h3><p>Flip through items and see where each one belongs</p></div></div>
+        <div class="arrow">&rarr;</div>
+      </div>
+      <div class="tile" id="goQuiz">
+        <div class="tl"><div class="num">02</div><div><h3>Play</h3><p>Sort 10 items correctly before you run out of lives</p></div></div>
+        <div class="arrow">&rarr;</div>
+      </div>
+      <div class="tile" id="goMatch">
+        <div class="tl"><div class="num">03</div><div><h3>Match</h3><p>Draw a line from each item to its bin</p></div></div>
+        <div class="arrow">&rarr;</div>
+      </div>
+    </div>
+
+    <div class="key-label">THE FOUR BINS</div>
+    <div class="key-grid">
+      <div class="key-item"><svg class="key-icon" style="color:var(--dry)"><use href="#icon-bin"/></svg><span class="lbl">Dry waste</span></div>
+      <div class="key-item"><svg class="key-icon" style="color:var(--wet)"><use href="#icon-leaf"/></svg><span class="lbl">Wet waste</span></div>
+      <div class="key-item"><svg class="key-icon" style="color:var(--food)"><use href="#icon-bowl"/></svg><span class="lbl">Food surplus</span></div>
+      <div class="key-item"><svg class="key-icon" style="color:var(--hazard)"><use href="#icon-warn"/></svg><span class="lbl">Reject Waste</span></div>
+    </div>
+  </div>
+
+  <div class="screen" id="learnScreen">
+    <div class="section-head"><h2>Learn</h2><span class="counter" id="lCounter">1 / 17</span></div>
+    <div class="segbar" id="segbar"></div>
+    <p class="prompt" id="learnPrompt">Tap the card to see which bin it belongs in</p>
+
+    <div class="flip-wrap">
+      <div class="flip" id="flip">
+        <div class="side side-front">
+          <div class="obj" id="itemObj"></div>
+          <div class="name" id="itemName"></div>
+          <div class="cta">TAP TO SORT</div>
+        </div>
+        <div class="side side-back" id="flipBack">
+          <svg class="bicon" id="binIcon"><use href="#icon-bin"/></svg>
+          <div class="bname" id="binName"></div>
+          <div class="fact" id="binFact"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="nav-row">
+      <button class="btn btn-outline" id="prevBtn">&larr;</button>
+      <button class="btn btn-primary" id="nextBtn">Next item</button>
+    </div>
+  </div>
+
+  <div class="done-screen" id="learnDone">
+    <div class="done-tag">LEARN COMPLETE</div>
+    <h2>All 17 sorted.</h2>
+    <p>You've seen every item and where it belongs. Try the timed sort next.</p>
+    <div class="badge-unlock" id="badgeUnlock" style="display:none;">
+      <div class="bicon-wrap">🏆</div>
+      <div class="btxt"><div class="bt">Segregation Starter</div><div class="bs">Badge unlocked</div></div>
+    </div>
+    <button class="btn btn-primary" style="padding:14px 28px;" id="toQuizFromLearn">Go to Play</button>
+    <button class="btn-text" id="restartLearnBtn">Go through again</button>
+  </div>
+
+  <div class="screen" id="quizScreen">
+    <div class="quiz-top">
+      <button class="exit-btn" id="quizExit" aria-label="Exit">&times;</button>
+      <div class="track"><div class="fill" id="quizFill"></div></div>
+      <div class="score-live"><span class="lbl">SCORE</span><span id="scoreLive">0</span></div>
+      <div class="lives" id="lives"><span class="life"></span><span class="life"></span><span class="life"></span></div>
+    </div>
+    <div class="streak-flag" id="streakFlag">STREAK &times;<span id="streakVal">2</span></div>
+
+    <div class="qlabel">Which bin does this go in?</div>
+    <div class="qobj" id="qObj"></div>
+    <div class="qname" id="qName"></div>
+
+    <div class="opts" id="quizOpts"></div>
+  </div>
+
+  <div class="fbar" id="fbar">
+    <div class="fbar-inner">
+      <svg class="fbar-ic" id="fbarIcon"><use href="#icon-bin"/></svg>
+      <div class="fbar-txt">
+        <div class="fbar-head" id="fbarHead">Correct</div>
+        <div class="fbar-detail" id="fbarDetail">Nicely sorted.</div>
+      </div>
+      <button class="btn fbar-btn" id="fbarBtn">Continue</button>
+    </div>
+  </div>
+
+  <div class="screen" id="quizFinish">
+    <div class="status-icon" id="statusIcon">
+      <svg viewBox="0 0 52 52">
+        <circle cx="26" cy="26" r="23"/>
+        <path id="statusPath" d="M15 27 l8 8 l16 -18"/>
+      </svg>
+    </div>
+    <div class="score-ring"><span class="num" id="qfNum">8</span><span class="denom" id="qfDenom">of 10</span></div>
+    <h2 id="qfTitle">Strong sorting.</h2>
+    <p class="sub" id="qfSub">You kept most items out of the wrong bin.</p>
+    <div class="stat-grid">
+      <div class="stat"><div class="v" id="qfXp">80</div><div class="l">POINTS</div></div>
+      <div class="stat"><div class="v" id="qfStreak">4</div><div class="l">BEST STREAK</div></div>
+      <div class="stat"><div class="v" id="qfLives">2</div><div class="l">LIVES LEFT</div></div>
+    </div>
+    <div class="badge-unlock" id="badgeUnlockPerfect" style="display:none;">
+      <div class="bicon-wrap">🌟</div>
+      <div class="btxt"><div class="bt">Perfect Sorter</div><div class="bs">Badge unlocked</div></div>
+    </div>
+    <button class="btn btn-primary" style="padding:14px 28px;" id="quizRetry">Play again</button>
+    <button class="btn-text" id="quizHome">Back to menu</button>
+  </div>
+
+  <div class="screen" id="matchScreen">
+    <div class="section-head"><h2>Match</h2><span class="counter" id="mCounter">0 / 6</span></div>
+    <p class="prompt">Tap an item, then tap the bin it belongs to</p>
+    <div class="match-wrap" id="matchWrap">
+      <svg class="match-lines" id="matchLines"></svg>
+      <div class="match-cols">
+        <div class="match-col" id="matchItems"></div>
+        <div class="match-col" id="matchBins"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="done-screen" id="matchDone">
+    <div class="status-icon pass" id="statusIcon2">
+      <svg viewBox="0 0 52 52">
+        <circle cx="26" cy="26" r="23"/>
+        <path id="statusPath2" d="M15 27 l8 8 l16 -18"/>
+      </svg>
+    </div>
+    <div class="done-tag">MATCH COMPLETE</div>
+    <h2 id="matchTitle">All connected.</h2>
+    <p id="matchSub">You matched every item to its bin.</p>
+    <div class="stat-grid" style="margin-bottom:6px;">
+      <div class="stat"><div class="v" id="mfMistakes">0</div><div class="l">MISTAKES</div></div>
+    </div>
+    <button class="btn btn-primary" style="padding:14px 28px; margin-top:12px;" id="matchRetry">Play again</button>
+    <button class="btn-text" id="matchHome">Back to menu</button>
+  </div>
+
+</div>
+
+<script>
+  const ICONS = { dry:"icon-bin", wet:"icon-leaf", food:"icon-bowl", hazard:"icon-warn" };
+  const BG = { dry:"bg-dry", wet:"bg-wet", food:"bg-food", hazard:"bg-hazard" };
+
+  const items = [
+    { obj:"📰", name:"Newspaper", cat:"dry", bin:"Dry Waste",
+      fact:"Paper fibres can be recycled into new paper several times before they wear out." },
+    { obj:"🧴", name:"Plastic bottle", cat:"dry", bin:"Dry Waste",
+      fact:"A clean, empty bottle is baled with others and sold on to a plastic recycler." },
+    { obj:"📦", name:"Cardboard box", cat:"dry", bin:"Dry Waste",
+      fact:"Flatten it before handing it over — it takes up far less space that way." },
+    { obj:"🍾", name:"Glass bottle", cat:"dry", bin:"Dry Waste",
+      fact:"Glass doesn't wear out. It gets crushed, melted, and reformed into new glass." },
+    { obj:"👕", name:"Old cloth", cat:"dry", bin:"Dry Waste",
+      fact:"Worn-out fabric can be shredded and respun into new material." },
+    { obj:"🥫", name:"Metal can", cat:"dry", bin:"Dry Waste",
+      fact:"Metal can be recycled again and again without losing its strength." },
+    { obj:"🍌", name:"Banana peel", cat:"wet", bin:"Wet Waste",
+      fact:"Peels break down in weeks and turn into compost for soil." },
+    { obj:"🥬", name:"Vegetable peels", cat:"wet", bin:"Wet Waste",
+      fact:"These are rich in nutrients that compost passes straight back to the soil." },
+    { obj:"🥚", name:"Egg shells", cat:"wet", bin:"Wet Waste",
+      fact:"Crushed shells add calcium to compost, which helps plants grow stronger." },
+    { obj:"🍂", name:"Dry leaves", cat:"wet", bin:"Wet Waste",
+      fact:"Leaves are a classic compost ingredient — they balance out wetter scraps." },
+    { obj:"🍚", name:"Leftover rice", cat:"food", bin:"Food Surplus",
+      fact:"Cooked food doesn't compost well. If it's still good to eat, it can feed someone instead." },
+    { obj:"🍞", name:"Leftover bread", cat:"food", bin:"Food Surplus",
+      fact:"Edible surplus like this is exactly what food-rescue partners collect and redistribute." },
+    { obj:"🍛", name:"Extra cooked food", cat:"food", bin:"Food Surplus",
+      fact:"A quick post in the app lets a nearby partner know it's ready for pickup." },
+    { obj:"🪫", name:"Old battery", cat:"hazard", bin:"Reject Waste",
+      fact:"Batteries contain chemicals that need careful, separate handling — never a regular bin." },
+    { obj:"🩹", name:"Used bandage", cat:"hazard", bin:"Reject Waste",
+      fact:"Sanitary waste is kept apart from recyclables to protect the people handling it." },
+    { obj:"💊", name:"Expired medicine", cat:"hazard", bin:"Reject Waste",
+      fact:"Old medicine should go back to a pharmacy or hazardous collection point, not the bin." },
+    { obj:"🖥️", name:"Broken charger", cat:"hazard", bin:"Reject Waste",
+      fact:"E-waste holds materials that are valuable, but unsafe to handle without the right process." },
+    { obj:"🧹", name:"Sweeping dust", cat:"hazard", bin:"Reject Waste",
+      fact:"Dust from sweeping can't be recycled or composted, so it goes to general collection." },
+    { obj:"🟫", name:"Mud and soil", cat:"hazard", bin:"Reject Waste",
+      fact:"Loose soil swept off the floor isn't reused — it's collected with general waste." },
+    { obj:"🛍️", name:"Polythene bag", cat:"dry", bin:"Dry Waste",
+      fact:"Thin plastic bags are dry waste too — specific recyclers turn them into things like tiles." },
+    { obj:"🧅", name:"Onion peel", cat:"wet", bin:"Wet Waste",
+      fact:"Onion peels break down just like any other peel and add nutrients to compost." }
+  ];
+
+  const bins = [
+    { cat:"dry", name:"Dry Waste" },
+    { cat:"wet", name:"Wet Waste" },
+    { cat:"food", name:"Food Surplus" },
+    { cat:"hazard", name:"Reject Waste" }
+  ];
+
+  let audioCtx = null;
+  function beep(freq, duration, type){
+    try{
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = type || 'sine';
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.16, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+      osc.connect(gain); gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + duration);
+    } catch(e){}
+  }
+  function playCorrectSound(){
+    beep(523, 0.10, 'sine');
+    setTimeout(function(){ beep(659, 0.10, 'sine'); }, 90);
+    setTimeout(function(){ beep(784, 0.18, 'sine'); }, 180);
+  }
+  function playWrongSound(){
+    beep(220, 0.16, 'square');
+    setTimeout(function(){ beep(165, 0.22, 'square'); }, 140);
+  }
+
+  function getBadges(){
+    try{ return JSON.parse(localStorage.getItem('sortItOutBadges') || '{}'); } catch(e){ return {}; }
+  }
+  function unlockBadge(id){
+    var badges = getBadges();
+    if (badges[id]) return false;
+    badges[id] = true;
+    try{ localStorage.setItem('sortItOutBadges', JSON.stringify(badges)); } catch(e){}
+    return true;
+  }
+  var BADGE_ICONS = { starter:'🏆', perfect:'🌟' };
+  function renderBadgesRow(){
+    var badges = getBadges();
+    var row = document.getElementById('badgesRow');
+    row.innerHTML = '';
+    Object.keys(badges).forEach(function(id){
+      if (!badges[id]) return;
+      var span = document.createElement('span');
+      span.className = 'badge-chip';
+      span.textContent = BADGE_ICONS[id] || '🏅';
+      row.appendChild(span);
+    });
+  }
+  function getBestScore(){
+    var v = parseInt(localStorage.getItem('sortItOutBest') || '0', 10);
+    return isNaN(v) ? 0 : v;
+  }
+  function saveBestScore(score){
+    var best = getBestScore();
+    if (score > best) { try{ localStorage.setItem('sortItOutBest', String(score)); }catch(e){} }
+    return Math.max(best, score);
+  }
+  function renderHomeStats(){
+    var best = getBestScore();
+    var strip = document.getElementById('bestStrip');
+    var badges = getBadges();
+    var hasAny = best > 0 || Object.keys(badges).some(function(k){ return badges[k]; });
+    if (hasAny){
+      strip.classList.add('show');
+      document.getElementById('bestVal').textContent = best + ' / 10';
+    }
+    renderBadgesRow();
+  }
+
+  var screens = {
+    home: document.getElementById('homeScreen'),
+    learn: document.getElementById('learnScreen'),
+    quiz: document.getElementById('quizScreen'),
+    quizFinish: document.getElementById('quizFinish'),
+    match: document.getElementById('matchScreen')
+  };
+  function showScreen(name){
+    Object.keys(screens).forEach(function(k){ screens[k].classList.remove('active'); });
+    screens[name].classList.add('active');
+    document.getElementById('fbar').classList.remove('show');
+    document.getElementById('learnDone').classList.remove('show');
+    document.getElementById('matchDone').classList.remove('show');
+  }
+  document.getElementById('homeBtnTop').addEventListener('click', function(){ showScreen('home'); });
+  document.getElementById('exitBtn').addEventListener('click', function(){
+    if (window.parent !== window) { window.parent.postMessage({ type: 'close-game' }, '*'); }
+    else { window.location.hash = '#/app'; }
+  });
+  document.getElementById('goLearn').addEventListener('click', function(){ showScreen('learn'); restartLearn(); });
+  document.getElementById('goQuiz').addEventListener('click', function(){ showScreen('quiz'); startQuiz(); });
+  document.getElementById('toQuizFromLearn').addEventListener('click', function(){ showScreen('quiz'); startQuiz(); });
+  document.getElementById('quizExit').addEventListener('click', function(){ showScreen('home'); });
+  document.getElementById('quizHome').addEventListener('click', function(){ showScreen('home'); });
+  document.getElementById('quizRetry').addEventListener('click', function(){ showScreen('quiz'); startQuiz(); });
+  document.getElementById('goMatch').addEventListener('click', function(){ showScreen('match'); startMatch(); });
+  document.getElementById('matchHome').addEventListener('click', function(){ showScreen('home'); });
+  document.getElementById('matchRetry').addEventListener('click', function(){ showScreen('match'); startMatch(); });
+
+  var lIndex = 0, lFlipped = false;
+  var flipEl = document.getElementById('flip');
+  var itemObj = document.getElementById('itemObj');
+  var itemName = document.getElementById('itemName');
+  var binIcon = document.getElementById('binIcon');
+  var binName = document.getElementById('binName');
+  var binFact = document.getElementById('binFact');
+  var flipBack = document.getElementById('flipBack');
+  var segbar = document.getElementById('segbar');
+  var lCounter = document.getElementById('lCounter');
+  var prevBtn = document.getElementById('prevBtn');
+  var nextBtn = document.getElementById('nextBtn');
+  var learnPrompt = document.getElementById('learnPrompt');
+  var learnDone = document.getElementById('learnDone');
+  var learnTop = [document.querySelector('#learnScreen .section-head'), segbar, learnPrompt, document.querySelector('.flip-wrap'), document.querySelector('.nav-row')];
+
+  function buildSegbar(){
+    segbar.innerHTML = '';
+    items.forEach(function(){ var s = document.createElement('div'); s.className='seg'; s.innerHTML='<i></i>'; segbar.appendChild(s); });
+  }
+  function updateSegbar(){
+    [].slice.call(segbar.children).forEach(function(seg, i){
+      seg.classList.remove('done','active');
+      if (i < lIndex) seg.classList.add('done');
+      else if (i === lIndex) seg.classList.add('active');
+    });
+  }
+  function renderLearn(){
+    var it = items[lIndex];
+    flipEl.classList.remove('flipped');
+    lFlipped = false;
+    itemObj.textContent = it.obj;
+    itemName.textContent = it.name;
+    binIcon.querySelector('use').setAttribute('href', '#' + ICONS[it.cat]);
+    binName.textContent = it.bin;
+    binFact.textContent = it.fact;
+    flipBack.className = 'side side-back ' + BG[it.cat];
+    lCounter.textContent = (lIndex + 1) + ' / ' + items.length;
+    prevBtn.disabled = lIndex === 0;
+    nextBtn.textContent = lIndex === items.length - 1 ? "Finish" : "Next item";
+    updateSegbar();
+  }
+  flipEl.addEventListener('click', function(){
+    lFlipped = !lFlipped;
+    flipEl.classList.toggle('flipped', lFlipped);
+  });
+  nextBtn.addEventListener('click', function(){
+    if (lIndex < items.length - 1){ lIndex++; renderLearn(); }
+    else {
+      learnTop.forEach(function(el){ el.style.display='none'; });
+      learnDone.classList.add('show');
+      var newlyUnlocked = unlockBadge('starter');
+      document.getElementById('badgeUnlock').style.display = newlyUnlocked ? 'flex' : 'none';
+      renderHomeStats();
+    }
+  });
+  prevBtn.addEventListener('click', function(){ if (lIndex > 0){ lIndex--; renderLearn(); } });
+  document.getElementById('restartLearnBtn').addEventListener('click', restartLearn);
+  function restartLearn(){
+    lIndex = 0;
+    learnTop.forEach(function(el){ el.style.display=''; });
+    learnDone.classList.remove('show');
+    buildSegbar();
+    renderLearn();
+  }
+
+  var quizQueue = [], qIndex = 0, lives = 3, points = 0, streak = 0, bestStreak = 0, answered = false, correctTally = 0;
+
+  function shuffle(arr){
+    var a = arr.slice();
+    for (var i = a.length - 1; i > 0; i--){ var j = Math.floor(Math.random()*(i+1)); var tmp=a[i]; a[i]=a[j]; a[j]=tmp; }
+    return a;
+  }
+
+  function startQuiz(){
+    quizQueue = shuffle(items).slice(0, 10);
+    qIndex = 0; lives = 3; points = 0; streak = 0; bestStreak = 0; answered = false; correctTally = 0;
+    document.getElementById('scoreLive').textContent = '0';
+    renderLives();
+    renderQuestion();
+  }
+  function renderLives(){
+    [].slice.call(document.querySelectorAll('.life')).forEach(function(l, i){ l.classList.toggle('lost', i >= lives); });
+  }
+  function renderQuestion(){
+    answered = false;
+    var it = quizQueue[qIndex];
+    document.getElementById('qObj').textContent = it.obj;
+    document.getElementById('qName').textContent = it.name;
+    document.getElementById('quizFill').style.width = ((qIndex / quizQueue.length) * 100) + '%';
+
+    var optsEl = document.getElementById('quizOpts');
+    optsEl.innerHTML = '';
+    shuffle(bins).forEach(function(bin){
+      var btn = document.createElement('button');
+      btn.className = 'opt';
+      btn.innerHTML = '<svg class="oicon"><use href="#' + ICONS[bin.cat] + '"/></svg><span>' + bin.name + '</span>';
+      btn.dataset.bin = bin.name;
+      btn.addEventListener('click', function(){ handleAnswer(btn, bin, it); });
+      optsEl.appendChild(btn);
+    });
+    document.getElementById('fbar').classList.remove('show');
+  }
+
+  function handleAnswer(btn, chosenBin, it){
+    if (answered) return;
+    answered = true;
+    var correct = chosenBin.cat === it.cat;
+    var allOpts = document.querySelectorAll('.opt');
+    [].slice.call(allOpts).forEach(function(o){ if (o !== btn) o.classList.add('dim'); });
+
+    if (correct){
+      btn.classList.add('correct');
+      correctTally++;
+      streak++; bestStreak = Math.max(bestStreak, streak);
+      var gained = 10 + (streak >= 3 ? 5 : 0);
+      points += gained;
+      document.getElementById('scoreLive').textContent = points;
+      playCorrectSound();
+      showFeedback(true, it.cat, "Correct", "+" + gained + " points \u2014 " + it.bin + " is right.");
+      if (streak >= 2){
+        document.getElementById('streakVal').textContent = streak;
+        document.getElementById('streakFlag').classList.add('show');
+        setTimeout(function(){ document.getElementById('streakFlag').classList.remove('show'); }, 1300);
+      }
+    } else {
+      btn.classList.add('wrong');
+      streak = 0; lives--;
+      renderLives();
+      playWrongSound();
+      showFeedback(false, it.cat, "Not quite", it.name + " belongs in " + it.bin + ".");
+      [].slice.call(allOpts).forEach(function(o){ if (o.dataset.bin === it.bin) o.classList.add('correct'); });
+    }
+  }
+
+  function showFeedback(good, cat, headline, detail){
+    var bar = document.getElementById('fbar');
+    bar.classList.remove('good','bad');
+    bar.classList.add(good ? 'good' : 'bad', 'show');
+    document.getElementById('fbarIcon').querySelector('use').setAttribute('href', '#' + ICONS[cat]);
+    document.getElementById('fbarHead').textContent = headline;
+    document.getElementById('fbarDetail').textContent = detail;
+  }
+
+  document.getElementById('fbarBtn').addEventListener('click', function(){
+    if (lives <= 0){ finishQuiz(); return; }
+    if (qIndex < quizQueue.length - 1){ qIndex++; renderQuestion(); }
+    else { finishQuiz(); }
+  });
+
+  function finishQuiz(){
+    var total = quizQueue.length;
+    document.getElementById('quizFill').style.width = '100%';
+    showFinishScreen(total);
+  }
+
+  function animateStroke(el, duration){
+    var len = el.getTotalLength();
+    el.style.transition = 'none';
+    el.style.strokeDasharray = len;
+    el.style.strokeDashoffset = len;
+    el.getBoundingClientRect();
+    el.style.transition = 'stroke-dashoffset ' + duration + 's cubic-bezier(.3,.7,.3,1)';
+    el.style.strokeDashoffset = '0';
+  }
+  function showStatusIcon(passed){
+    var wrap = document.getElementById('statusIcon');
+    var circle = wrap.querySelector('circle');
+    var path = document.getElementById('statusPath');
+    wrap.classList.remove('pass','fail');
+    wrap.classList.add(passed ? 'pass' : 'fail');
+    path.setAttribute('d', passed ? 'M15 27 l8 8 l16 -18' : 'M18 18 l16 16 M34 18 l-16 16');
+    animateStroke(circle, 0.5);
+    setTimeout(function(){ animateStroke(path, 0.35); }, 280);
+  }
+
+  function showFinishScreen(total){
+    document.getElementById('qfNum').textContent = correctTally;
+    document.getElementById('qfDenom').textContent = 'of ' + total;
+    document.getElementById('qfXp').textContent = points;
+    document.getElementById('qfStreak').textContent = bestStreak;
+    document.getElementById('qfLives').textContent = lives > 0 ? lives : 0;
+
+    var pct = correctTally / total;
+    var title, sub;
+    if (lives <= 0){ title = "Out of lives."; sub = "Go through Learn again, then give it another try."; }
+    else if (pct >= 0.9){ title = "Excellent sorting."; sub = "You placed almost everything correctly."; }
+    else if (pct >= 0.6){ title = "Strong sorting."; sub = "You kept most items out of the wrong bin."; }
+    else { title = "Getting there."; sub = "A quick pass through Learn should help."; }
+    document.getElementById('qfTitle').textContent = title;
+    document.getElementById('qfSub').textContent = sub;
+    showStatusIcon(lives > 0);
+
+    saveBestScore(correctTally);
+    var perfectUnlocked = (correctTally === total) ? unlockBadge('perfect') : false;
+    document.getElementById('badgeUnlockPerfect').style.display = perfectUnlocked ? 'flex' : 'none';
+    renderHomeStats();
+
+    showScreen('quizFinish');
+  }
+
+  renderLives();
+  renderHomeStats();
+
+  var matchItems = [], selectedItem = null, mistakes = 0, matchedCount = 0;
+
+  function pickMatchSet(){
+    var byCategory = { dry:[], wet:[], food:[], hazard:[] };
+    shuffle(items).forEach(function(it){ byCategory[it.cat].push(it); });
+    var picks = [];
+    Object.keys(byCategory).forEach(function(cat){ picks = picks.concat(byCategory[cat].slice(0, 1)); });
+    shuffle(items).forEach(function(it){ if (picks.length < 6 && picks.indexOf(it) === -1) picks.push(it); });
+    return shuffle(picks.slice(0, 6));
+  }
+
+  function startMatch(){
+    matchItems = pickMatchSet();
+    selectedItem = null;
+    mistakes = 0;
+    matchedCount = 0;
+    document.getElementById('mCounter').textContent = '0 / ' + matchItems.length;
+
+    var itemsCol = document.getElementById('matchItems');
+    var binsCol = document.getElementById('matchBins');
+    itemsCol.innerHTML = '';
+    binsCol.innerHTML = '';
+    document.getElementById('matchLines').innerHTML = '';
+
+    shuffle(matchItems).forEach(function(it){
+      var b = document.createElement('button');
+      b.className = 'match-item';
+      b.dataset.cat = it.cat;
+      b.innerHTML = '<span class="mo">' + it.obj + '</span><span>' + it.name + '</span><span class="node"></span>';
+      b.addEventListener('click', function(){ onMatchItemClick(b, it); });
+      itemsCol.appendChild(b);
+    });
+
+    var usedCats = matchItems.map(function(i){ return i.cat; }).filter(function(v, idx, arr){ return arr.indexOf(v) === idx; });
+    shuffle(bins.filter(function(b){ return usedCats.indexOf(b.cat) !== -1; })).forEach(function(bin){
+      var b = document.createElement('button');
+      b.className = 'match-bin';
+      b.dataset.cat = bin.cat;
+      b.innerHTML = '<span class="node"></span><svg class="bo"><use href="#' + ICONS[bin.cat] + '"/></svg><span>' + bin.name + '</span>';
+      b.addEventListener('click', function(){ onMatchBinClick(b, bin); });
+      binsCol.appendChild(b);
+    });
+  }
+
+  function onMatchItemClick(el, it){
+    if (el.classList.contains('matched')) return;
+    [].slice.call(document.querySelectorAll('.match-item.selected')).forEach(function(x){ x.classList.remove('selected'); });
+    el.classList.add('selected');
+    selectedItem = { el: el, it: it };
+  }
+
+  function onMatchBinClick(el, bin){
+    if (!selectedItem) return;
+    var correct = selectedItem.it.cat === bin.cat;
+    if (correct){
+      playCorrectSound();
+      drawCurve(selectedItem.el, el);
+      selectedItem.el.classList.remove('selected');
+      selectedItem.el.classList.add('matched');
+      matchedCount++;
+      document.getElementById('mCounter').textContent = matchedCount + ' / ' + matchItems.length;
+      selectedItem = null;
+      if (matchedCount === matchItems.length){
+        setTimeout(finishMatch, 500);
+      }
+    } else {
+      playWrongSound();
+      mistakes++;
+      el.classList.add('shake');
+      setTimeout(function(){ el.classList.remove('shake'); }, 350);
+    }
+  }
+
+  function drawCurve(fromEl, toEl){
+    var wrap = document.getElementById('matchWrap');
+    var svg = document.getElementById('matchLines');
+    var wrapRect = wrap.getBoundingClientRect();
+    var fromNode = fromEl.querySelector('.node');
+    var toNode = toEl.querySelector('.node');
+    var fromRect = fromNode.getBoundingClientRect();
+    var toRect = toNode.getBoundingClientRect();
+    var x1 = fromRect.left + fromRect.width/2 - wrapRect.left;
+    var y1 = fromRect.top + fromRect.height/2 - wrapRect.top;
+    var x2 = toRect.left + toRect.width/2 - wrapRect.left;
+    var y2 = toRect.top + toRect.height/2 - wrapRect.top;
+    svg.setAttribute('viewBox', '0 0 ' + wrapRect.width + ' ' + wrapRect.height);
+
+    var midX = (x1 + x2) / 2;
+    var d = 'M ' + x1 + ' ' + y1 + ' C ' + midX + ' ' + y1 + ', ' + midX + ' ' + y2 + ', ' + x2 + ' ' + y2;
+
+    var path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('d', d);
+    path.setAttribute('fill', 'none');
+    path.setAttribute('stroke', '#2E7D32');
+    path.setAttribute('stroke-width', '2.5');
+    path.setAttribute('stroke-linecap', 'round');
+    svg.appendChild(path);
+
+    var len = path.getTotalLength();
+    path.style.strokeDasharray = len;
+    path.style.strokeDashoffset = len;
+    path.getBoundingClientRect();
+    path.style.transition = 'stroke-dashoffset .45s cubic-bezier(.3,.7,.3,1)';
+    path.style.strokeDashoffset = '0';
+  }
+
+  function finishMatch(){
+    document.getElementById('mfMistakes').textContent = mistakes;
+    var circle2 = document.querySelector('#statusIcon2 circle');
+    var path2 = document.getElementById('statusPath2');
+    animateStroke(circle2, 0.5);
+    setTimeout(function(){ animateStroke(path2, 0.35); }, 280);
+    var title = document.getElementById('matchTitle');
+    var sub = document.getElementById('matchSub');
+    if (mistakes === 0){ title.textContent = 'Perfect connections.'; sub.textContent = 'Every item went to the right bin on the first try.'; }
+    else if (mistakes <= 2){ title.textContent = 'Nicely done.'; sub.textContent = 'Just a couple of mix-ups along the way.'; }
+    else { title.textContent = 'All connected.'; sub.textContent = 'Try Learn again if a few bins still feel tricky.'; }
+    [].slice.call(document.querySelectorAll('#matchScreen .match-col, #matchScreen .prompt, #matchScreen .section-head')).forEach(function(el){ el.style.display = 'none'; });
+    document.getElementById('matchDone').classList.add('show');
+    document.getElementById('matchDone').style.flex = '1';
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Upcycle Picker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700;800&family=Inter:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FAF7F0;
+    --ink:#241F18;
+    --ink-soft:#7A7265;
+    --plum:#5B3A8E;
+    --plum-tint:#EFE6FA;
+    --card:#FFFFFF;
+    --line:#E7E0D3;
+    --good:#2E8B4F;
+    --good-tint:#E1F3E6;
+    --bad:#C0392B;
+    --bad-tint:#FBE4E1;
+    --amber:#E08A1F;
+    --amber-tint:#FBEBD4;
+    box-sizing:border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  *{box-sizing:inherit;}
+  html,body{ height:100%; margin:0; }
+  body{
+    font-family:'Inter', sans-serif;
+    background: var(--bg);
+    min-height:100%;
+    color:var(--ink);
+    display:flex; flex-direction:column; align-items:center;
+  }
+  h1,h2,h3{ font-family:'Space Grotesk', sans-serif; }
+
+  .topbar{
+    width:100%; background:var(--plum); color:#fff;
+    padding:14px 18px; display:flex; align-items:center; justify-content:space-between;
+    flex-shrink:0; position:relative; z-index:20;
+  }
+  .topbar .brand{ font-weight:800; font-size:15px; }
+  .topbar .brand small{ display:block; font-family:'Inter',sans-serif; font-weight:600; font-size:10.5px; color:#D8C9EF; margin-top:1px; }
+  .topbar-right{ display:flex; align-items:center; gap:12px; }
+  .score-chip{ font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:14px; background:#49306F; padding:5px 12px; border-radius:7px; }
+  .score-chip span{ color:#F0C96A; }
+  .exit-top-btn{
+    background:none; border:1px solid #6B4B9A; color:#D8C9EF;
+    font-family:'Inter',sans-serif; font-weight:600; font-size:12.5px;
+    padding:7px 14px; border-radius:7px; cursor:pointer;
+  }
+  .exit-top-btn:active{ background:#49306F; }
+
+  .stage{ width:100%; max-width:480px; flex:1; display:flex; flex-direction:column; align-items:center; padding:0 18px 26px; position:relative; }
+  .screen{ display:none; width:100%; flex-direction:column; align-items:center; flex:1; }
+  .screen.active{ display:flex; }
+
+  #startScreen{ justify-content:center; text-align:center; gap:6px; }
+  .start-ic{ font-size:68px; margin:6px 0; }
+  #startScreen h1{ font-size:27px; margin:0 0 6px; }
+  #startScreen p{ font-size:14.5px; color:var(--ink-soft); max-width:300px; margin:0 0 22px; line-height:1.5; }
+  .btn{ font-family:'Inter',sans-serif; border:none; cursor:pointer; border-radius:10px; font-weight:800; }
+  .btn:active{ transform:scale(0.97); }
+  .btn-primary{ background:var(--plum); color:#fff; padding:15px 38px; font-size:15.5px; }
+  .btn-ghost{ background:none; color:var(--ink-soft); font-size:13px; text-decoration:underline; font-weight:700; padding:12px; margin-top:2px; }
+
+  .exit-corner{
+    position:absolute; top:14px; left:14px; z-index:30;
+    width:32px; height:32px; border-radius:50%;
+    background:#fff; border:1.5px solid var(--line); color:var(--ink-soft);
+    font-size:16px; font-weight:800; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+  }
+
+  #playScreen{ padding-top:18px; position:relative; }
+  .track{ width:100%; height:6px; background:#EFE9DC; border-radius:3px; overflow:hidden; margin-bottom:18px; }
+  .track-fill{ height:100%; background:var(--plum); border-radius:3px; transition:width .3s ease; width:0%; }
+
+  .round-item{ display:flex; flex-direction:column; align-items:center; margin-bottom:6px; }
+  .round-item .io{ font-size:56px; }
+  .round-item .in{ font-weight:800; font-size:18px; margin-top:6px; }
+  .round-prompt{ font-size:13px; color:var(--ink-soft); font-weight:700; text-align:center; margin:4px 0 16px; }
+  .round-prompt b{ color:var(--plum); }
+
+  .chip-grid{ width:100%; display:grid; grid-template-columns:1fr 1fr; gap:9px; margin-bottom:16px; }
+  .chip{
+    display:flex; align-items:center; gap:8px; text-align:left;
+    background:#fff; border:1.5px solid var(--line); border-radius:11px;
+    padding:11px 12px; cursor:pointer;
+  }
+  .chip .co{ font-size:22px; flex-shrink:0; }
+  .chip .cn{ font-size:12.5px; font-weight:700; line-height:1.2; }
+  .chip:active{ background:#F6F3EC; }
+  .chip.selected{ border-color:var(--plum); box-shadow: inset 0 0 0 1.5px var(--plum); background:var(--plum-tint); }
+  .chip.correct{ border-color:var(--good); background:var(--good-tint); }
+  .chip.wrong{ border-color:var(--bad); background:var(--bad-tint); }
+  .chip.missed{ border-color:var(--amber); background:var(--amber-tint); }
+  .chip.locked{ cursor:default; }
+
+  .submit-btn{ width:100%; padding:15px 0; font-size:15px; }
+  .submit-btn:disabled{ opacity:0.4; }
+
+  .fbar{
+    position:fixed; left:0; right:0; bottom:0;
+    background:#fff; border-top:1.5px solid var(--line);
+    transform:translateY(100%); transition: transform .28s ease;
+    padding:16px 20px calc(16px + env(safe-area-inset-bottom,0px));
+    z-index:15;
+  }
+  .fbar.show{ transform:translateY(0); }
+  .fbar-inner{ max-width:460px; margin:0 auto; display:flex; align-items:center; gap:12px; }
+  .fbar-txt{ flex:1; }
+  .fbar-head{ font-weight:800; font-size:15px; color:var(--plum); }
+  .fbar-detail{ font-size:12px; color:var(--ink-soft); font-weight:500; margin-top:1px; }
+  .fbar-btn{ padding:11px 18px; font-size:13px; color:#fff; flex-shrink:0; border-radius:8px; background:var(--plum); }
+
+  #doneScreen{ justify-content:center; text-align:center; gap:4px; }
+  .status-icon{ width:64px; height:64px; margin-bottom:8px; }
+  .status-icon svg{ width:100%; height:100%; }
+  .status-icon circle{ fill:none; stroke-width:3; stroke:var(--good); }
+  .status-icon path{ fill:none; stroke-width:4; stroke-linecap:round; stroke-linejoin:round; stroke:var(--good); }
+  #doneScreen h2{ font-size:23px; margin:0 0 4px; }
+  #doneScreen .sub{ font-size:14px; color:var(--ink-soft); margin:0 0 18px; }
+  .score-ring{
+    width:112px; height:112px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    border:6px solid var(--line); margin-bottom:20px; position:relative;
+  }
+  .score-ring .num{ font-family:'Space Grotesk',sans-serif; font-weight:800; font-size:26px; }
+  .score-ring .denom{ font-size:11px; color:var(--ink-soft); position:absolute; bottom:21px; font-weight:700; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">♻️ UPCYCLE PICKER<small>One item, many new lives</small></div>
+  <div class="topbar-right">
+    <div class="score-chip">SCORE <span id="scoreVal">0</span></div>
+    <button class="exit-top-btn" id="exitTopBtn">Exit</button>
+  </div>
+</div>
+
+<div class="stage">
+  <button class="exit-corner" id="exitBtn" aria-label="Exit" style="display:none;">&times;</button>
+
+  <div class="screen active" id="startScreen">
+    <div class="start-ic">🧴➜👕🧱🪴</div>
+    <h1>One item,<br>many lives.</h1>
+    <p>Dry waste doesn't just become one thing. Pick every real product each item can turn into.</p>
+    <button class="btn btn-primary" id="startBtn">Start picking</button>
+  </div>
+
+  <div class="screen" id="playScreen">
+    <div class="track"><div class="track-fill" id="trackFill"></div></div>
+    <div class="round-item">
+      <div class="io" id="itemObj">🧴</div>
+      <div class="in" id="itemName">Plastic bottle</div>
+    </div>
+    <p class="round-prompt">Tap <b>every</b> product this can really become, then submit</p>
+
+    <div class="chip-grid" id="chipGrid"></div>
+    <button class="btn btn-primary submit-btn" id="submitBtn">Submit answers</button>
+  </div>
+
+  <div class="fbar" id="fbar">
+    <div class="fbar-inner">
+      <div class="fbar-txt">
+        <div class="fbar-head" id="fbarHead">+30 points</div>
+        <div class="fbar-detail" id="fbarDetail">3 of 4 found, no wrong picks.</div>
+      </div>
+      <button class="btn fbar-btn" id="fbarBtn">Next item</button>
+    </div>
+  </div>
+
+  <div class="screen" id="doneScreen">
+    <div class="status-icon" id="statusIcon">
+      <svg viewBox="0 0 52 52">
+        <circle cx="26" cy="26" r="23"/>
+        <path id="statusPath" d="M15 27 l8 8 l16 -18"/>
+      </svg>
+    </div>
+    <h2>All items picked.</h2>
+    <p class="sub" id="doneSub">You know your dry waste well.</p>
+    <div class="score-ring"><span class="num" id="finalScore">0</span><span class="denom" id="finalTotal">of 280</span></div>
+    <button class="btn btn-primary" id="replayBtn">Play again</button>
+    <button class="btn-ghost" id="exitFromDoneBtn">Back to start</button>
+  </div>
+</div>
+
+<script>
+  function closeGame(){
+    if (window.parent !== window) { window.parent.postMessage({ type: 'close-game' }, '*'); }
+    else { window.location.hash = '#/app'; }
+  }
+
+  const items = [
+    { obj:"📰", name:"Newspaper",
+      correct:[ {o:"🧻",n:"Recycled paper"}, {o:"🥚",n:"Egg carton"}, {o:"🛍️",n:"Paper bag"}, {o:"✏️",n:"Pencil casing"} ],
+      wrong:[ {o:"🍾",n:"Glass jar"}, {o:"🪑",n:"Plastic chair"}, {o:"🔩",n:"Metal bolt"} ] },
+    { obj:"🧴", name:"Plastic bottle",
+      correct:[ {o:"👕",n:"Fleece jacket"}, {o:"🧱",n:"Plastic tile"}, {o:"🧴",n:"New bottle"}, {o:"🪴",n:"Plant pot"} ],
+      wrong:[ {o:"📜",n:"Writing paper"}, {o:"🪵",n:"Wood plank"}, {o:"🥫",n:"Metal can"} ] },
+    { obj:"🍾", name:"Glass bottle",
+      correct:[ {o:"🍾",n:"New glass bottle"}, {o:"🔷",n:"Glass tile"}, {o:"💎",n:"Glass craft"}, {o:"🏖️",n:"Fibreglass"} ],
+      wrong:[ {o:"📦",n:"Cardboard box"}, {o:"🧶",n:"Yarn"}, {o:"🪵",n:"Wood plank"} ] },
+    { obj:"🥫", name:"Metal can",
+      correct:[ {o:"🥫",n:"New can"}, {o:"🔧",n:"Metal sheet"}, {o:"💍",n:"Metal craft"}, {o:"🚗",n:"Car part"} ],
+      wrong:[ {o:"📜",n:"Writing paper"}, {o:"👕",n:"Fabric"}, {o:"🍾",n:"Glass jar"} ] },
+    { obj:"📦", name:"Cardboard box",
+      correct:[ {o:"📦",n:"New cardboard"}, {o:"🥚",n:"Egg tray"}, {o:"🛍️",n:"Packaging paper"}, {o:"🎨",n:"Craft material"} ],
+      wrong:[ {o:"🔩",n:"Metal bolt"}, {o:"🍾",n:"Glass jar"}, {o:"🧶",n:"Yarn"} ] },
+    { obj:"👕", name:"Old cloth",
+      correct:[ {o:"🧶",n:"Yarn"}, {o:"🧻",n:"Cleaning rags"}, {o:"🏠",n:"Insulation"}, {o:"🧺",n:"Rug"} ],
+      wrong:[ {o:"🍾",n:"Glass jar"}, {o:"🔩",n:"Metal bolt"}, {o:"📦",n:"Cardboard"} ] },
+    { obj:"🪵", name:"Wood scraps",
+      correct:[ {o:"🪑",n:"Particle board"}, {o:"🌱",n:"Garden mulch"}, {o:"🧸",n:"Craft toys"}, {o:"🔥",n:"Fuel briquette"} ],
+      wrong:[ {o:"🍾",n:"Glass jar"}, {o:"🔩",n:"Metal bolt"}, {o:"👕",n:"Fabric"} ] }
+  ];
+
+  let audioCtx = null;
+  function beep(freq, duration, type){
+    try{
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = type || 'sine';
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.16, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+      osc.connect(gain); gain.connect(audioCtx.destination);
+      osc.start(); osc.stop(audioCtx.currentTime + duration);
+    } catch(e){}
+  }
+  function playGoodSound(){ beep(523,0.10,'sine'); setTimeout(()=>beep(659,0.10,'sine'),90); setTimeout(()=>beep(784,0.18,'sine'),180); }
+  function playMehSound(){ beep(330,0.14,'triangle'); }
+  function playBadSound(){ beep(220,0.16,'square'); setTimeout(()=>beep(165,0.22,'square'),140); }
+  function animateStroke(el, duration){
+    const len = el.getTotalLength();
+    el.style.transition = 'none';
+    el.style.strokeDasharray = len;
+    el.style.strokeDashoffset = len;
+    el.getBoundingClientRect();
+    el.style.transition = `stroke-dashoffset ${duration}s cubic-bezier(.3,.7,.3,1)`;
+    el.style.strokeDashoffset = '0';
+  }
+  function shuffle(arr){
+    const a = [...arr];
+    for (let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+    return a;
+  }
+
+  let qIndex = 0, score = 0, maxScore = 0, submitted = false;
+
+  function showScreen(name){
+    document.getElementById('startScreen').classList.toggle('active', name==='start');
+    document.getElementById('playScreen').classList.toggle('active', name==='play');
+    document.getElementById('doneScreen').classList.toggle('active', name==='done');
+    document.getElementById('fbar').classList.remove('show');
+    document.getElementById('exitBtn').style.display = name==='play' ? 'flex' : 'none';
+  }
+
+  function startGame(){
+    qIndex = 0; score = 0; maxScore = 0;
+    document.getElementById('scoreVal').textContent = '0';
+    showScreen('play');
+    renderRound();
+  }
+
+  function renderRound(){
+    submitted = false;
+    const it = items[qIndex];
+    document.getElementById('itemObj').textContent = it.obj;
+    document.getElementById('itemName').textContent = it.name;
+    document.getElementById('trackFill').style.width = `${(qIndex/items.length)*100}%`;
+
+    const pool = shuffle([
+      ...it.correct.map(c => ({...c, ok:true})),
+      ...it.wrong.map(c => ({...c, ok:false}))
+    ]);
+    const grid = document.getElementById('chipGrid');
+    grid.innerHTML = '';
+    pool.forEach(p => {
+      const chip = document.createElement('div');
+      chip.className = 'chip';
+      chip.dataset.ok = p.ok;
+      chip.innerHTML = `<span class="co">${p.o}</span><span class="cn">${p.n}</span>`;
+      chip.addEventListener('click', () => {
+        if (submitted) return;
+        chip.classList.toggle('selected');
+      });
+      grid.appendChild(chip);
+    });
+    document.getElementById('submitBtn').disabled = false;
+    document.getElementById('submitBtn').textContent = 'Submit answers';
+    document.getElementById('fbar').classList.remove('show');
+  }
+
+  document.getElementById('submitBtn').addEventListener('click', () => {
+    if (submitted) return;
+    submitted = true;
+    const it = items[qIndex];
+    const chips = [...document.querySelectorAll('.chip')];
+    let correctPicks = 0, wrongPicks = 0, missed = 0;
+
+    chips.forEach(chip => {
+      chip.classList.add('locked');
+      const isOk = chip.dataset.ok === 'true';
+      const isSel = chip.classList.contains('selected');
+      if (isOk && isSel){ chip.classList.add('correct'); correctPicks++; }
+      else if (!isOk && isSel){ chip.classList.add('wrong'); wrongPicks++; }
+      else if (isOk && !isSel){ chip.classList.add('missed'); missed++; }
+    });
+
+    const roundScore = Math.max(0, correctPicks * 10 - wrongPicks * 5);
+    score += roundScore;
+    maxScore += it.correct.length * 10;
+    document.getElementById('scoreVal').textContent = score;
+
+    let headline, detail;
+    if (correctPicks === it.correct.length && wrongPicks === 0){
+      headline = `Perfect — +${roundScore} points`;
+      detail = `All ${it.correct.length} real products found.`;
+      playGoodSound();
+    } else if (correctPicks > 0){
+      headline = `+${roundScore} points`;
+      detail = `${correctPicks} of ${it.correct.length} found${wrongPicks ? `, ${wrongPicks} wrong pick${wrongPicks>1?'s':''}` : ''}.`;
+      playMehSound();
+    } else {
+      headline = `+${roundScore} points`;
+      detail = `None found this time — the amber chips show what's real.`;
+      playBadSound();
+    }
+    document.getElementById('fbarHead').textContent = headline;
+    document.getElementById('fbarDetail').textContent = detail;
+    document.getElementById('fbar').classList.add('show');
+    document.getElementById('submitBtn').disabled = true;
+  });
+
+  document.getElementById('fbarBtn').addEventListener('click', () => {
+    document.getElementById('fbar').classList.remove('show');
+    qIndex++;
+    if (qIndex >= items.length){ finishGame(); }
+    else { renderRound(); }
+  });
+
+  function finishGame(){
+    document.getElementById('trackFill').style.width = '100%';
+    document.getElementById('finalScore').textContent = score;
+    document.getElementById('finalTotal').textContent = `of ${maxScore}`;
+    const pct = score / maxScore;
+    document.getElementById('doneSub').textContent = pct >= 0.85
+      ? "You know your dry waste well — excellent picking."
+      : pct >= 0.5
+      ? "Good instincts. A couple of items are worth a second look."
+      : "Try the Learn section again, then come back for another round.";
+    showScreen('done');
+    requestAnimationFrame(() => {
+      const circle = document.querySelector('#statusIcon circle');
+      const path = document.getElementById('statusPath');
+      animateStroke(circle, 0.5);
+      setTimeout(() => animateStroke(path, 0.35), 280);
+    });
+  }
+
+  document.getElementById('startBtn').addEventListener('click', startGame);
+  document.getElementById('replayBtn').addEventListener('click', startGame);
+  document.getElementById('exitBtn').addEventListener('click', () => showScreen('start'));
+  document.getElementById('exitFromDoneBtn').addEventListener('click', () => showScreen('start'));
+  document.getElementById('exitTopBtn').addEventListener('click', closeGame);
+
+  showScreen('start');
+</script>
+</body>
+</html>

@@ -1,0 +1,1264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>Hazard Hunt — Wastify</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0B0F17;
+    --card-bg: #151B26;
+    --card-border: #242D3D;
+    --text-primary: #F3F4F6;
+    --text-secondary: #9CA3AF;
+    --text-muted: #6B7280;
+    --hazard-yellow: #FACC15;
+    --hazard-yellow-glow: rgba(250, 204, 21, 0.25);
+    --hazard-orange: #FB923C;
+    --danger-red: #EF4444;
+    --danger-red-bg: rgba(239, 68, 68, 0.15);
+    --success-green: #22C55E;
+    --success-green-bg: rgba(34, 197, 94, 0.15);
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  * {
+    box-sizing: inherit;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    -webkit-user-select: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  html, body {
+    height: 100%;
+    margin: 0;
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: 'Inter', -apple-system, sans-serif;
+    overflow-x: hidden;
+    overscroll-behavior: none;
+  }
+
+  body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-image: 
+      radial-gradient(circle at 50% 0%, rgba(250, 204, 21, 0.08) 0%, transparent 60%),
+      linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+    background-size: 100% 100%, 28px 28px, 28px 28px;
+    background-position: 0 0, -1px -1px, -1px -1px;
+    min-height: 100%;
+  }
+
+  /* Hazard Stripe Strip */
+  .hazard-bar {
+    width: 100%;
+    height: 5px;
+    background: repeating-linear-gradient(
+      -45deg,
+      #FACC15,
+      #FACC15 10px,
+      #000000 10px,
+      #000000 20px
+    );
+    flex-shrink: 0;
+  }
+
+  /* Header */
+  .topbar {
+    width: 100%;
+    max-width: 580px;
+    padding: 12px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-shrink: 0;
+    z-index: 20;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .brand-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: #1E2638;
+    border: 1px solid rgba(250, 204, 21, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    box-shadow: 0 0 14px rgba(250, 204, 21, 0.2);
+  }
+
+  .brand-text h1 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 16px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    color: #FFFFFF;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .brand-text h1 span {
+    color: var(--hazard-yellow);
+  }
+
+  .brand-text p {
+    font-size: 11px;
+    color: var(--text-secondary);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .btn-icon {
+    background: #182030;
+    border: 1px solid var(--card-border);
+    color: var(--text-secondary);
+    width: 36px;
+    height: 36px;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 15px;
+    transition: all 0.2s ease;
+  }
+
+  .btn-icon:hover {
+    border-color: var(--hazard-yellow);
+    color: #fff;
+  }
+
+  .btn-exit {
+    background: #1C2333;
+    border: 1px solid #323C50;
+    color: #E5E7EB;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 12.5px;
+    padding: 7px 14px;
+    border-radius: 9px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-exit:hover {
+    background: #252F45;
+    border-color: #4A5568;
+  }
+
+  /* Main Container */
+  .container {
+    width: 100%;
+    max-width: 580px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 4px 18px 20px;
+    min-height: 0;
+    position: relative;
+  }
+
+  /* Status and Progress */
+  .tracker {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    background: #131924;
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 10px 14px;
+  }
+
+  .progress-info {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  .progress-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+  }
+
+  .progress-val {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    color: #FFFFFF;
+  }
+
+  .dots-track {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #252D3D;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .dot.active {
+    background: var(--hazard-yellow);
+    transform: scale(1.3);
+    box-shadow: 0 0 8px var(--hazard-yellow);
+  }
+
+  .dot.correct {
+    background: var(--success-green);
+  }
+
+  .dot.wrong {
+    background: var(--danger-red);
+  }
+
+  .score-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(250, 204, 21, 0.1);
+    border: 1px solid rgba(250, 204, 21, 0.3);
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--hazard-yellow);
+  }
+
+  /* Scenario Card */
+  .scenario-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 18px;
+    padding: 20px;
+    box-shadow: 0 16px 32px rgba(0, 0, 0, 0.4);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    animation: cardEnter 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  @keyframes cardEnter {
+    from {
+      opacity: 0;
+      transform: translateY(12px) scale(0.98);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  .card-top-tag {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+
+  .hazard-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    background: rgba(250, 204, 21, 0.12);
+    border: 1px solid rgba(250, 204, 21, 0.3);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--hazard-yellow);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .danger-level {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--hazard-orange);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .scenario-hero {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 12px 14px;
+    background: #0E131C;
+    border: 1px solid #1E2638;
+    border-radius: 14px;
+    margin-bottom: 16px;
+  }
+
+  .scenario-emoji-wrap {
+    width: 68px;
+    height: 68px;
+    background: radial-gradient(circle, #253147 0%, #151D2C 100%);
+    border: 1px solid #33425A;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 38px;
+    flex-shrink: 0;
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.4);
+    animation: gentlePulse 3s ease-in-out infinite;
+  }
+
+  @keyframes gentlePulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.04); }
+  }
+
+  .scenario-text-wrap {
+    flex: 1;
+  }
+
+  .scenario-prompt {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text-muted);
+    font-weight: 700;
+    margin-bottom: 3px;
+  }
+
+  .scenario-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.35;
+    color: #FFFFFF;
+  }
+
+  .question-heading {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  /* Options */
+  .options-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+
+  .option-btn {
+    width: 100%;
+    background: #1A2232;
+    border: 1.5px solid #2B374E;
+    border-radius: 13px;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    color: #F3F4F6;
+    font-family: 'Inter', sans-serif;
+    font-size: 14.5px;
+    font-weight: 600;
+    text-align: left;
+    transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+    position: relative;
+  }
+
+  .option-btn:hover:not(:disabled) {
+    background: #202B40;
+    border-color: #435474;
+    transform: translateY(-1px);
+  }
+
+  .option-btn:active:not(:disabled) {
+    transform: translateY(1px);
+  }
+
+  .option-letter {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: #253147;
+    color: #CBD5E1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    flex-shrink: 0;
+    transition: all 0.2s;
+  }
+
+  .option-text {
+    flex: 1;
+    line-height: 1.3;
+  }
+
+  .option-indicator {
+    font-size: 17px;
+    display: none;
+    flex-shrink: 0;
+  }
+
+  /* Correct State */
+  .option-btn.correct {
+    background: var(--success-green-bg);
+    border-color: var(--success-green);
+    color: #FFFFFF;
+    box-shadow: 0 0 16px rgba(34, 197, 94, 0.3);
+  }
+
+  .option-btn.correct .option-letter {
+    background: var(--success-green);
+    color: #000;
+  }
+
+  .option-btn.correct .option-indicator {
+    display: inline-block;
+  }
+
+  /* Wrong State */
+  .option-btn.wrong {
+    background: var(--danger-red-bg);
+    border-color: var(--danger-red);
+    color: #FCA5A5;
+    animation: shake 0.4s ease;
+  }
+
+  .option-btn.wrong .option-letter {
+    background: var(--danger-red);
+    color: #FFFFFF;
+  }
+
+  .option-btn.wrong .option-indicator {
+    display: inline-block;
+  }
+
+  .option-btn.dimmed {
+    opacity: 0.4;
+    border-color: #1E2738;
+  }
+
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-6px); }
+    40%, 80% { transform: translateX(6px); }
+  }
+
+  /* Explanation Box */
+  .explanation-box {
+    display: none;
+    background: #0E1624;
+    border: 1px solid #1E2A40;
+    border-radius: 14px;
+    padding: 14px 16px;
+    margin-top: 4px;
+    animation: fadeIn 0.3s ease;
+  }
+
+  .explanation-box.show {
+    display: block;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .explanation-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 6px;
+  }
+
+  .explanation-title.correct-title {
+    color: var(--success-green);
+  }
+
+  .explanation-title.wrong-title {
+    color: #F87171;
+  }
+
+  .explanation-text {
+    font-size: 13px;
+    line-height: 1.45;
+    color: #D1D5DB;
+  }
+
+  .next-btn-wrap {
+    margin-top: 14px;
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .btn-next {
+    background: var(--hazard-yellow);
+    color: #000000;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 14px;
+    font-weight: 800;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+    box-shadow: 0 4px 14px rgba(250, 204, 21, 0.35);
+  }
+
+  .btn-next:hover {
+    background: #FDE047;
+    transform: translateY(-2px);
+  }
+
+  .btn-next:active {
+    transform: translateY(0);
+  }
+
+  /* Result / Win Screen */
+  .result-screen {
+    display: none;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 20px;
+    padding: 28px 22px;
+    text-align: center;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+    flex-direction: column;
+    align-items: center;
+    animation: scaleIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .result-screen.show {
+    display: flex;
+  }
+
+  @keyframes scaleIn {
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  .badge-holder {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+  }
+
+  .badge-star-pulse {
+    position: absolute;
+    inset: -10px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(250, 204, 21, 0.35) 0%, transparent 70%);
+    animation: pulseGlow 2.4s ease-in-out infinite;
+  }
+
+  @keyframes pulseGlow {
+    0%, 100% { transform: scale(0.95); opacity: 0.6; }
+    50% { transform: scale(1.2); opacity: 1; }
+  }
+
+  .badge-icon {
+    font-size: 72px;
+    position: relative;
+    z-index: 2;
+    filter: drop-shadow(0 10px 14px rgba(0,0,0,0.4));
+  }
+
+  .star-badge-ribbon {
+    background: linear-gradient(135deg, #F59E0B, #FACC15, #EAB308);
+    color: #111827;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 13px;
+    font-weight: 900;
+    letter-spacing: 1px;
+    padding: 5px 16px;
+    border-radius: 20px;
+    text-transform: uppercase;
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+    margin-bottom: 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .result-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 24px;
+    font-weight: 800;
+    color: #FFFFFF;
+    margin-bottom: 8px;
+  }
+
+  .result-desc {
+    font-size: 14px;
+    line-height: 1.5;
+    color: #9CA3AF;
+    max-width: 420px;
+    margin-bottom: 20px;
+  }
+
+  .score-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    width: 100%;
+    margin-bottom: 24px;
+  }
+
+  .stat-card {
+    background: #0E131E;
+    border: 1px solid #1E2738;
+    border-radius: 12px;
+    padding: 12px 8px;
+  }
+
+  .stat-card .val {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 20px;
+    font-weight: 800;
+    color: #FFFFFF;
+  }
+
+  .stat-card .val.gold {
+    color: var(--hazard-yellow);
+  }
+
+  .stat-card .val.green {
+    color: var(--success-green);
+  }
+
+  .stat-card .lbl {
+    font-size: 10.5px;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    margin-top: 2px;
+  }
+
+  .result-actions {
+    display: flex;
+    gap: 12px;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .btn-replay {
+    background: #1F2937;
+    border: 1.5px solid #374151;
+    color: #FFFFFF;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    padding: 12px 24px;
+    border-radius: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+  }
+
+  .btn-replay:hover {
+    background: #374151;
+    border-color: #4B5563;
+  }
+
+  .btn-finish-exit {
+    background: var(--hazard-yellow);
+    border: none;
+    color: #000000;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 800;
+    font-size: 14px;
+    padding: 12px 26px;
+    border-radius: 12px;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(250, 204, 21, 0.4);
+    transition: all 0.2s;
+  }
+
+  .btn-finish-exit:hover {
+    background: #FDE047;
+    transform: translateY(-2px);
+  }
+
+  @media (max-width: 480px) {
+    .container {
+      padding: 2px 12px 16px;
+    }
+    .scenario-title {
+      font-size: 16px;
+    }
+    .scenario-emoji-wrap {
+      width: 58px;
+      height: 58px;
+      font-size: 32px;
+    }
+    .option-btn {
+      padding: 12px 14px;
+      font-size: 13.5px;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="hazard-bar"></div>
+
+<header class="topbar">
+  <div class="brand">
+    <div class="brand-icon">⚠️</div>
+    <div class="brand-text">
+      <h1>HAZARD <span>HUNT</span></h1>
+      <p>Safety Protocol Drill</p>
+    </div>
+  </div>
+  <div class="actions">
+    <button class="btn-icon" id="soundBtn" title="Toggle Sound" aria-label="Toggle Sound">🔊</button>
+    <button class="btn-exit" id="exitBtn">Exit</button>
+  </div>
+</header>
+
+<main class="container">
+  <!-- Progress Tracker -->
+  <div class="tracker" id="trackerRow">
+    <div class="progress-info">
+      <span class="progress-label">DRILL STATUS</span>
+      <span class="progress-val" id="progressText">Scenario 1 / 8</span>
+    </div>
+    <div class="dots-track" id="dotsTrack"></div>
+    <div class="score-badge">
+      <span>⭐</span> <span id="liveScore">0</span> / 8
+    </div>
+  </div>
+
+  <!-- Scenario Quiz Card -->
+  <div class="scenario-card" id="quizCard">
+    <div class="card-top-tag">
+      <span class="hazard-pill" id="categoryPill">⚠️ HAZARDOUS WASTE</span>
+      <span class="danger-level" id="dangerLevel">⚡ LEVEL: CRITICAL</span>
+    </div>
+
+    <div class="scenario-hero">
+      <div class="scenario-emoji-wrap" id="scenarioEmoji">💉</div>
+      <div class="scenario-text-wrap">
+        <div class="scenario-prompt">Khatarnak Situational Case:</div>
+        <div class="scenario-title" id="scenarioTitle">Syringe dikhi road pe</div>
+      </div>
+    </div>
+
+    <div class="question-heading">
+      <span>🛡️</span> Sahi aur safe action chuno:
+    </div>
+
+    <div class="options-group" id="optionsGroup">
+      <!-- Injected by JS -->
+    </div>
+
+    <!-- Explanation Box (Appears after pick) -->
+    <div class="explanation-box" id="explanationBox">
+      <div class="explanation-title" id="explanationTitle"></div>
+      <p class="explanation-text" id="explanationText"></p>
+      <div class="next-btn-wrap">
+        <button class="btn-next" id="nextBtn">
+          Next Scenario <span>→</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Result Screen -->
+  <div class="result-screen" id="resultScreen">
+    <div class="badge-holder">
+      <div class="badge-star-pulse" id="badgePulse"></div>
+      <div class="badge-icon" id="badgeIcon">⭐</div>
+    </div>
+    <div class="star-badge-ribbon" id="badgeRibbon">SAFETY STAR BADGE</div>
+    <h2 class="result-title" id="resultTitle">Mission Complete!</h2>
+    <p class="result-desc" id="resultDesc">
+      Outstanding alertness! You know how to identify and handle hazardous waste safely.
+    </p>
+
+    <div class="score-stats-grid">
+      <div class="stat-card">
+        <div class="val gold" id="finalScoreVal">8/8</div>
+        <div class="lbl">Final Score</div>
+      </div>
+      <div class="stat-card">
+        <div class="val green" id="finalAccuracy">100%</div>
+        <div class="lbl">Safety Accuracy</div>
+      </div>
+      <div class="stat-card">
+        <div class="val" id="finalRating">Master</div>
+        <div class="lbl">Rank Badge</div>
+      </div>
+    </div>
+
+    <div class="result-actions">
+      <button class="btn-replay" id="replayBtn">↺ Try Again</button>
+      <button class="btn-finish-exit" id="finishExitBtn">Done / Exit</button>
+    </div>
+  </div>
+</main>
+
+<script>
+  // Scenarios Data (8 exact scenarios from prompt)
+  const SCENARIOS = [
+    {
+      id: 1,
+      emoji: '💉',
+      title: 'Syringe dikhi road pe',
+      category: 'BIO-MEDICAL HAZARD',
+      danger: '⚡ LEVEL: EXTREME',
+      options: [
+        { text: 'Bade ko batao', isCorrect: true },
+        { text: 'Haath se uthao', isCorrect: false },
+        { text: 'Ignore karo', isCorrect: false }
+      ],
+      explanation: 'Syringe se serious infectious bimariyan aur chot lag sakti hai. KABHI haath mat lagao! Turant bade ya municipal helpline ko batao taaki safe handling ho sake.'
+    },
+    {
+      id: 2,
+      emoji: '🔋',
+      title: 'Purani battery hai',
+      category: 'CHEMICAL / E-WASTE',
+      danger: '⚡ LEVEL: HIGH',
+      options: [
+        { text: 'E-waste mein do', isCorrect: true },
+        { text: 'Dustbin mein', isCorrect: false },
+        { text: 'Jalao', isCorrect: false }
+      ],
+      explanation: 'Batteries mein toxic lead, cadmium aur corrosive acids hote hain. Dustbin mein phenkne ya jalane se zameen aur hawa mein zeher failta hai. Inhe authorized e-waste collection centre mein hi do.'
+    },
+    {
+      id: 3,
+      emoji: '💡',
+      title: 'Phati tubelight',
+      category: 'MERCURY & SHARP GLASS',
+      danger: '⚡ LEVEL: HIGH',
+      options: [
+        { text: 'Cardboard mein wrap karke hazardous bin', isCorrect: true },
+        { text: 'Normal dustbin', isCorrect: false },
+        { text: 'Todo', isCorrect: false }
+      ],
+      explanation: 'Tubelight mein zehreela paara (mercury vapor) aur tez kaanch hota hai. Todo mat! Cardboard ya thick paper mein wrap karke hazardous (red) bin mein daalo taaki safai karmi ko chot na lage.'
+    },
+    {
+      id: 4,
+      emoji: '💊',
+      title: 'Expired dawai',
+      category: 'PHARMACEUTICAL HAZARD',
+      danger: '⚡ LEVEL: CRITICAL',
+      options: [
+        { text: 'Pharmacy take-back', isCorrect: true },
+        { text: 'Flush karo', isCorrect: false },
+        { text: 'Dustbin', isCorrect: false }
+      ],
+      explanation: 'Dawai ko flush karne se nadiyan aur groundwater zehreela ho jaata hai. Normal dustbin se stray animals kha sakte hain. Sahi raasta Pharmacy take-back ya medical waste drive hai.'
+    },
+    {
+      id: 5,
+      emoji: '🛢️',
+      title: 'Paint can (khali)',
+      category: 'TOXIC CHEMICAL RESIDUE',
+      danger: '⚡ LEVEL: HIGH',
+      options: [
+        { text: 'Hazardous waste collection', isCorrect: true },
+        { text: 'Recycle bin', isCorrect: false },
+        { text: 'Nale mein', isCorrect: false }
+      ],
+      explanation: 'Paint mein heavy metals aur inflammable solvents hote hain. Nale mein bahana environment ke sath khilwad hai. Isse hazardous waste collection point par bhejna chahiye.'
+    },
+    {
+      id: 6,
+      emoji: '🔌',
+      title: 'Old charger',
+      category: 'ELECTRONIC WASTE',
+      danger: '⚡ LEVEL: MODERATE',
+      options: [
+        { text: 'E-waste collection', isCorrect: true },
+        { text: 'Dustbin', isCorrect: false },
+        { text: 'Jalao', isCorrect: false }
+      ],
+      explanation: 'Charger electronic waste hai jisme copper wires aur plastic hote hain. Jalane se zehreela dhuan nikalta hai. E-waste collection drive safe recycling karwata hai.'
+    },
+    {
+      id: 7,
+      emoji: '🩸',
+      title: 'Sanitary waste',
+      category: 'SANITARY / INFECTION RISK',
+      danger: '⚡ LEVEL: CRITICAL',
+      options: [
+        { text: 'Wrap karke alag bag', isCorrect: true },
+        { text: 'Normal dustbin', isCorrect: false },
+        { text: 'Flush', isCorrect: false }
+      ],
+      explanation: 'Sanitary pads/diapers flush karne se sewer system jam hoti hai. Inhe newspaper ya bag mein achhe se wrap karke alag hazardous bag (red mark) mein do taaki safai karmi infection se bachein.'
+    },
+    {
+      id: 8,
+      emoji: '🌡️',
+      title: 'Broken thermometer (paara)',
+      category: 'TOXIC HEAVY METAL',
+      danger: '⚡ LEVEL: EXTREME',
+      options: [
+        { text: 'Bade ko batao, special collection', isCorrect: true },
+        { text: 'Sweep karo', isCorrect: false },
+        { text: 'Dustbin', isCorrect: false }
+      ],
+      explanation: 'Thermometer ka paara (Mercury) highly toxic hota hai jo hawa mein evaporate hota hai. Jhadu se sweep karne par iske boondein fail jaati hain. Bade ko batao aur special collection team ko call karo.'
+    }
+  ];
+
+  // Game State
+  let currentIndex = 0;
+  let score = 0;
+  let hasAnswered = false;
+  let soundEnabled = true;
+  let audioCtx = null;
+
+  // Web Audio Synth
+  function initAudio() {
+    if (!audioCtx) {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (audioCtx.state === 'suspended') {
+      audioCtx.resume();
+    }
+  }
+
+  function playTone(freq, duration, type = 'sine', gainVal = 0.15) {
+    if (!soundEnabled) return;
+    try {
+      initAudio();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+      gain.gain.setValueAtTime(gainVal, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + duration);
+    } catch (e) {}
+  }
+
+  function playSoundCorrect() {
+    playTone(523.25, 0.12, 'sine', 0.2); // C5
+    setTimeout(() => playTone(659.25, 0.14, 'sine', 0.2), 90); // E5
+    setTimeout(() => playTone(783.99, 0.25, 'triangle', 0.25), 180); // G5
+  }
+
+  function playSoundWrong() {
+    playTone(220, 0.18, 'sawtooth', 0.18);
+    setTimeout(() => playTone(165, 0.28, 'sawtooth', 0.2), 120);
+  }
+
+  function playSoundVictory() {
+    const notes = [523.25, 659.25, 783.99, 1046.5];
+    notes.forEach((freq, i) => {
+      setTimeout(() => playTone(freq, 0.35, 'triangle', 0.25), i * 120);
+    });
+  }
+
+  // DOM Elements
+  const trackerRow = document.getElementById('trackerRow');
+  const progressText = document.getElementById('progressText');
+  const dotsTrack = document.getElementById('dotsTrack');
+  const liveScore = document.getElementById('liveScore');
+  const quizCard = document.getElementById('quizCard');
+  const scenarioEmoji = document.getElementById('scenarioEmoji');
+  const scenarioTitle = document.getElementById('scenarioTitle');
+  const categoryPill = document.getElementById('categoryPill');
+  const dangerLevel = document.getElementById('dangerLevel');
+  const optionsGroup = document.getElementById('optionsGroup');
+  const explanationBox = document.getElementById('explanationBox');
+  const explanationTitle = document.getElementById('explanationTitle');
+  const explanationText = document.getElementById('explanationText');
+  const nextBtn = document.getElementById('nextBtn');
+  const resultScreen = document.getElementById('resultScreen');
+  const soundBtn = document.getElementById('soundBtn');
+  const exitBtn = document.getElementById('exitBtn');
+  const replayBtn = document.getElementById('replayBtn');
+  const finishExitBtn = document.getElementById('finishExitBtn');
+
+  // Exit Handler
+  function handleExit() {
+    if (window.parent !== window) {
+      window.parent.postMessage({ type: 'close-game' }, '*');
+    } else {
+      window.location.hash = '#/app';
+    }
+  }
+
+  exitBtn.addEventListener('click', handleExit);
+  finishExitBtn.addEventListener('click', handleExit);
+
+  // Sound Toggle
+  soundBtn.addEventListener('click', () => {
+    soundEnabled = !soundEnabled;
+    soundBtn.textContent = soundEnabled ? '🔊' : '🔇';
+    if (soundEnabled) initAudio();
+  });
+
+  // Build Tracker Dots
+  function buildDots() {
+    dotsTrack.innerHTML = '';
+    SCENARIOS.forEach((_, i) => {
+      const d = document.createElement('div');
+      d.className = 'dot';
+      d.id = `dot-${i}`;
+      dotsTrack.appendChild(d);
+    });
+  }
+
+  function updateDots() {
+    SCENARIOS.forEach((_, i) => {
+      const d = document.getElementById(`dot-${i}`);
+      if (!d) return;
+      if (i === currentIndex && !d.classList.contains('correct') && !d.classList.contains('wrong')) {
+        d.classList.add('active');
+      } else {
+        d.classList.remove('active');
+      }
+    });
+  }
+
+  // Shuffle array helper for options
+  function shuffleArray(arr) {
+    const copy = [...arr];
+    for (let i = copy.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [copy[i], copy[j]] = [copy[j], copy[i]];
+    }
+    return copy;
+  }
+
+  // Load Scenario
+  function loadScenario(index) {
+    hasAnswered = false;
+    const item = SCENARIOS[index];
+
+    progressText.textContent = `Scenario ${index + 1} / ${SCENARIOS.length}`;
+    liveScore.textContent = score;
+    updateDots();
+
+    // Reset card animation
+    quizCard.style.animation = 'none';
+    quizCard.offsetHeight; // trigger reflow
+    quizCard.style.animation = 'cardEnter 0.35s cubic-bezier(0.2, 0.8, 0.2, 1)';
+
+    scenarioEmoji.textContent = item.emoji;
+    scenarioTitle.textContent = item.title;
+    categoryPill.textContent = `⚠️ ${item.category}`;
+    dangerLevel.textContent = item.danger;
+
+    explanationBox.classList.remove('show');
+
+    // Render options (shuffled so user can't just memorize position)
+    optionsGroup.innerHTML = '';
+    const shuffledOptions = shuffleArray(item.options);
+    const letters = ['A', 'B', 'C'];
+
+    shuffledOptions.forEach((opt, optIdx) => {
+      const btn = document.createElement('button');
+      btn.className = 'option-btn';
+      btn.innerHTML = `
+        <span class="option-letter">${letters[optIdx]}</span>
+        <span class="option-text">${opt.text}</span>
+        <span class="option-indicator">${opt.isCorrect ? '✅' : '❌'}</span>
+      `;
+
+      btn.addEventListener('click', () => handleOptionClick(btn, opt, item));
+      optionsGroup.appendChild(btn);
+    });
+  }
+
+  // Option Click Handler
+  function handleOptionClick(btn, opt, item) {
+    if (hasAnswered) return;
+    hasAnswered = true;
+    initAudio();
+
+    const buttons = optionsGroup.querySelectorAll('.option-btn');
+    const currentDot = document.getElementById(`dot-${currentIndex}`);
+
+    if (opt.isCorrect) {
+      score++;
+      liveScore.textContent = score;
+      btn.classList.add('correct');
+      if (currentDot) {
+        currentDot.classList.remove('active');
+        currentDot.classList.add('correct');
+      }
+      playSoundCorrect();
+
+      explanationTitle.className = 'explanation-title correct-title';
+      explanationTitle.innerHTML = '<span>✅ Sahi Faisla!</span> Full Protection!';
+    } else {
+      btn.classList.add('wrong');
+      if (currentDot) {
+        currentDot.classList.remove('active');
+        currentDot.classList.add('wrong');
+      }
+      playSoundWrong();
+
+      // Highlight the correct one
+      buttons.forEach(b => {
+        const ind = b.querySelector('.option-indicator');
+        if (ind && ind.textContent === '✅') {
+          b.classList.add('correct');
+        } else if (b !== btn) {
+          b.classList.add('dimmed');
+        }
+      });
+
+      explanationTitle.className = 'explanation-title wrong-title';
+      explanationTitle.innerHTML = '<span>❌ Khatarnak Galati!</span> Sahi tarika dekho:';
+    }
+
+    // Disable all options
+    buttons.forEach(b => {
+      b.disabled = true;
+      if (!b.classList.contains('correct') && !b.classList.contains('wrong')) {
+        b.classList.add('dimmed');
+      }
+    });
+
+    // Show Explanation
+    explanationText.textContent = item.explanation;
+    explanationBox.classList.add('show');
+
+    if (currentIndex === SCENARIOS.length - 1) {
+      nextBtn.innerHTML = 'Finish Drill <span>🏆</span>';
+    } else {
+      nextBtn.innerHTML = 'Next Scenario <span>→</span>';
+    }
+  }
+
+  // Next Button Click
+  nextBtn.addEventListener('click', () => {
+    if (currentIndex < SCENARIOS.length - 1) {
+      currentIndex++;
+      loadScenario(currentIndex);
+    } else {
+      showFinalResult();
+    }
+  });
+
+  // Final Results
+  function showFinalResult() {
+    quizCard.style.display = 'none';
+    trackerRow.style.display = 'none';
+    resultScreen.classList.add('show');
+
+    const finalScoreVal = document.getElementById('finalScoreVal');
+    const finalAccuracy = document.getElementById('finalAccuracy');
+    const finalRating = document.getElementById('finalRating');
+    const badgeRibbon = document.getElementById('badgeRibbon');
+    const badgeIcon = document.getElementById('badgeIcon');
+    const resultTitle = document.getElementById('resultTitle');
+    const resultDesc = document.getElementById('resultDesc');
+    const badgePulse = document.getElementById('badgePulse');
+
+    finalScoreVal.textContent = `${score} / ${SCENARIOS.length}`;
+    const pct = Math.round((score / SCENARIOS.length) * 100);
+    finalAccuracy.textContent = `${pct}%`;
+
+    // Safety Star Badge if 7+/8
+    if (score >= 7) {
+      playSoundVictory();
+      badgeIcon.textContent = '⭐';
+      badgeRibbon.textContent = '⭐ SAFETY STAR BADGE ⭐';
+      badgeRibbon.style.background = 'linear-gradient(135deg, #F59E0B, #FACC15, #EAB308)';
+      badgeRibbon.style.color = '#111827';
+      badgePulse.style.display = 'block';
+
+      resultTitle.textContent = 'Safety Star Certified!';
+      resultDesc.textContent = `Zabardast! Aapne ${score}/8 scenarios mein bilkul sahi safety response diya. Aap hazardous waste se khud ko aur society ko protect karna jaante ho!`;
+      finalRating.textContent = score === 8 ? 'Hero ⭐' : 'Star ⭐';
+      finalRating.className = 'val gold';
+    } else {
+      badgeIcon.textContent = '🛡️';
+      badgeRibbon.textContent = 'SAFETY RECRUIT';
+      badgeRibbon.style.background = '#374151';
+      badgeRibbon.style.color = '#F3F4F6';
+      badgePulse.style.display = 'none';
+
+      resultTitle.textContent = 'Good Attempt! Keep Practicing!';
+      resultDesc.textContent = `Aapka score ${score}/8 raha. 'Safety Star' badge earn karne ke liye kam se kam 7/8 score zaroori hai. Ek baar aur try karke full points laao!`;
+      finalRating.textContent = 'Learner';
+      finalRating.className = 'val';
+    }
+  }
+
+  // Replay
+  replayBtn.addEventListener('click', () => {
+    currentIndex = 0;
+    score = 0;
+    resultScreen.classList.remove('show');
+    quizCard.style.display = 'flex';
+    trackerRow.style.display = 'flex';
+    buildDots();
+    loadScenario(currentIndex);
+  });
+
+  // Start game on load
+  buildDots();
+  loadScenario(0);
+</script>
+
+</body>
+</html>

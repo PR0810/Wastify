@@ -1,0 +1,1110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+  <title>Bin Match — Waste Detective</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&family=Space+Grotesk:wght@600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #F0FDFA;
+      --surface: #FFFFFF;
+      --ink: #0F172A;
+      --ink-soft: #475569;
+      --ink-muted: #94A3B8;
+      --line: #E2E8F0;
+      
+      --teal: #0D9488;
+      --teal-dark: #115E59;
+      --teal-light: #CCFBF1;
+      
+      --dry-blue: #2563EB;
+      --dry-tint: #EFF6FF;
+      --dry-border: #93C5FD;
+      
+      --wet-green: #16A34A;
+      --wet-tint: #F0FDF4;
+      --wet-border: #86EFAC;
+      
+      --haz-red: #DC2626;
+      --haz-tint: #FEF2F2;
+      --haz-border: #FCA5A5;
+      
+      --good: #10B981;
+      --bad: #EF4444;
+      --gold: #F59E0B;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    h1, h2, h3, .heading-font {
+      font-family: 'Space Grotesk', sans-serif;
+    }
+
+    /* Top Bar */
+    .topbar {
+      background: #0B1320;
+      color: #FFFFFF;
+      padding: 12px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+      z-index: 30;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+    }
+
+    .brand-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #0D9488, #14B8A6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+
+    .brand-text h1 {
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      color: #F8FAFC;
+    }
+
+    .brand-text p {
+      font-size: 11px;
+      color: #94A3B8;
+      font-weight: 500;
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .sound-btn {
+      background: #1E293B;
+      border: 1px solid #334155;
+      color: #CBD5E1;
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    .exit-btn {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.35);
+      color: #FCA5A5;
+      font-family: 'Inter', sans-serif;
+      font-size: 12.5px;
+      font-weight: 700;
+      padding: 7px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .exit-btn:active {
+      transform: scale(0.95);
+    }
+
+    /* Sub Navigation */
+    .subnav {
+      background: #FFFFFF;
+      border-bottom: 1px solid var(--line);
+      padding: 10px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    .rounds-indicator {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .round-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #E2E8F0;
+      transition: all 0.2s ease;
+    }
+
+    .round-dot.done {
+      background: var(--good);
+    }
+
+    .round-dot.active {
+      background: var(--teal);
+      transform: scale(1.3);
+    }
+
+    .score-badge {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--ink-soft);
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .score-badge b {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 15px;
+      color: var(--teal-dark);
+    }
+
+    /* Stage Area */
+    .stage {
+      flex: 1;
+      width: 100%;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 14px 14px 20px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    .prompt-box {
+      text-align: center;
+      margin-bottom: 12px;
+    }
+
+    .prompt-box h2 {
+      font-size: 17px;
+      font-weight: 800;
+      color: var(--ink);
+      margin-bottom: 2px;
+    }
+
+    .prompt-box p {
+      font-size: 12.5px;
+      color: var(--ink-soft);
+      font-weight: 600;
+    }
+
+    /* Two Columns Matching Arena */
+    .match-arena {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      position: relative;
+      align-items: center;
+    }
+
+    /* SVG Overlay for dynamic connector line */
+    .line-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 15;
+    }
+
+    .connect-path {
+      fill: none;
+      stroke-width: 3.5;
+      stroke-linecap: round;
+      stroke-dasharray: 400;
+      stroke-dashoffset: 400;
+      animation: drawLine 0.35s ease forwards;
+    }
+
+    @keyframes drawLine {
+      to { stroke-dashoffset: 0; }
+    }
+
+    /* Left Column: 6 Items */
+    .items-column {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      z-index: 20;
+    }
+
+    .item-card {
+      background: #FFFFFF;
+      border: 2px solid #E2E8F0;
+      border-radius: 14px;
+      padding: 8px 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+      transition: all 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
+      position: relative;
+    }
+
+    .item-card:hover {
+      border-color: #99F6E4;
+      background: #F0FDFA;
+    }
+
+    .item-card:active {
+      transform: scale(0.97);
+    }
+
+    .item-card.selected {
+      border-color: var(--teal);
+      background: var(--teal-light);
+      box-shadow: 0 0 0 3px var(--teal-light), 0 4px 12px rgba(13, 148, 136, 0.2);
+      transform: scale(1.02);
+    }
+
+    .item-card.matched {
+      opacity: 0.38;
+      border-color: #CBD5E1;
+      background: #F8FAFC;
+      pointer-events: none;
+      transform: scale(0.97);
+    }
+
+    .item-card.shake {
+      animation: shakeCard 0.4s ease;
+      border-color: var(--bad);
+      background: #FEF2F2;
+    }
+
+    @keyframes shakeCard {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-6px); }
+      75% { transform: translateX(6px); }
+    }
+
+    .item-card .item-emoji {
+      font-size: 26px;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+
+    .item-card .item-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .item-card .item-name {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--ink);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .item-card .check-icon {
+      font-size: 14px;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .item-card.matched .check-icon {
+      opacity: 1;
+    }
+
+    /* Right Column: 3 Bins */
+    .bins-column {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      justify-content: space-around;
+      height: 100%;
+      z-index: 20;
+    }
+
+    .bin-card {
+      border-radius: 18px;
+      padding: 16px 14px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      cursor: pointer;
+      border: 2.5px solid transparent;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .bin-card:active {
+      transform: scale(0.96);
+    }
+
+    .bin-card.bin-dry {
+      background: var(--dry-tint);
+      border-color: var(--dry-border);
+      color: var(--dry-blue);
+    }
+    .bin-card.bin-dry:hover {
+      background: #DBEAFE;
+    }
+
+    .bin-card.bin-wet {
+      background: var(--wet-tint);
+      border-color: var(--wet-border);
+      color: var(--wet-green);
+    }
+    .bin-card.bin-wet:hover {
+      background: #DCFCE7;
+    }
+
+    .bin-card.bin-hazard {
+      background: var(--haz-tint);
+      border-color: var(--haz-border);
+      color: var(--haz-red);
+    }
+    .bin-card.bin-hazard:hover {
+      background: #FEE2E2;
+    }
+
+    .bin-card.shake {
+      animation: shakeCard 0.4s ease;
+      border-color: var(--bad);
+    }
+
+    .bin-card.correct-pulse {
+      animation: popBin 0.4s ease;
+    }
+
+    @keyframes popBin {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.08); }
+    }
+
+    .bin-card .bin-icon {
+      font-size: 34px;
+      line-height: 1;
+    }
+
+    .bin-card .bin-title {
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .bin-card .bin-subtitle {
+      font-size: 11px;
+      font-weight: 600;
+      opacity: 0.85;
+    }
+
+    /* Round Interstitial Dialog */
+    .round-complete-wrap {
+      position: absolute;
+      inset: 0;
+      background: rgba(240, 253, 250, 0.94);
+      backdrop-filter: blur(4px);
+      z-index: 40;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      text-align: center;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .round-complete-wrap.active {
+      display: flex;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .round-dialog-card {
+      background: #FFFFFF;
+      border-radius: 24px;
+      padding: 28px 24px;
+      max-width: 360px;
+      width: 100%;
+      border: 1px solid var(--line);
+      box-shadow: 0 15px 35px -5px rgba(0,0,0,0.1);
+    }
+
+    .round-dialog-icon {
+      font-size: 52px;
+      margin-bottom: 8px;
+    }
+
+    .round-dialog-title {
+      font-size: 22px;
+      font-weight: 800;
+      margin-bottom: 6px;
+      color: var(--ink);
+    }
+
+    .round-dialog-text {
+      font-size: 13.5px;
+      color: var(--ink-soft);
+      margin-bottom: 18px;
+    }
+
+    /* Result Modal */
+    .result-screen {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(8px);
+      z-index: 100;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .result-screen.active {
+      display: flex;
+    }
+
+    .result-card {
+      background: #FFFFFF;
+      border-radius: 28px;
+      padding: 34px 24px;
+      max-width: 400px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    @keyframes popIn {
+      0% { transform: scale(0.8); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .trophy-emoji {
+      font-size: 64px;
+      margin-bottom: 12px;
+      display: inline-block;
+      animation: bounce 1.8s infinite ease-in-out;
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+
+    .result-title {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--ink);
+      margin-bottom: 8px;
+    }
+
+    .result-desc {
+      font-size: 14px;
+      color: var(--ink-soft);
+      line-height: 1.5;
+      margin-bottom: 22px;
+    }
+
+    .stats-row {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      margin-bottom: 24px;
+    }
+
+    .stat-pill {
+      background: #F8FAFC;
+      border: 1px solid #E2E8F0;
+      border-radius: 14px;
+      padding: 12px 16px;
+      flex: 1;
+    }
+
+    .stat-pill .num {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--teal-dark);
+    }
+
+    .stat-pill .lbl {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--ink-muted);
+      text-transform: uppercase;
+      margin-top: 2px;
+    }
+
+    .btn-block {
+      width: 100%;
+      padding: 13px 16px;
+      font-size: 14.5px;
+      font-weight: 700;
+      border-radius: 12px;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-family: 'Inter', sans-serif;
+      transition: all 0.15s ease;
+      margin-bottom: 8px;
+    }
+
+    .btn-block:active {
+      transform: scale(0.97);
+    }
+
+    .btn-teal {
+      background: linear-gradient(135deg, #0D9488, #0F766E);
+      color: #FFFFFF;
+      box-shadow: 0 4px 12px rgba(13, 148, 136, 0.3);
+    }
+
+    .btn-outline {
+      background: transparent;
+      border: 1.5px solid #CBD5E1;
+      color: var(--ink);
+    }
+
+    /* Small Screen Adjustments */
+    @media (max-height: 660px) {
+      .item-card {
+        padding: 6px 8px;
+        gap: 6px;
+      }
+      .item-card .item-emoji {
+        font-size: 22px;
+      }
+      .bin-card {
+        padding: 10px 8px;
+      }
+      .bin-card .bin-icon {
+        font-size: 26px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Bar -->
+  <header class="topbar">
+    <div class="brand-wrap">
+      <div class="brand-icon">⚡</div>
+      <div class="brand-text">
+        <h1 class="heading-font">BIN MATCH</h1>
+        <p>Waste Detective · 3 Rounds</p>
+      </div>
+    </div>
+    <div class="top-actions">
+      <button class="sound-btn" id="soundBtn" title="Sound Toggle">🔊</button>
+      <button class="exit-btn" id="exitBtn">✕ Exit</button>
+    </div>
+  </header>
+
+  <!-- Sub Navigation -->
+  <div class="subnav">
+    <div class="rounds-indicator">
+      <span style="font-size:12px; font-weight:700; color:var(--ink-soft); margin-right:4px;">Round:</span>
+      <div class="round-dot active" id="dot0"></div>
+      <div class="round-dot" id="dot1"></div>
+      <div class="round-dot" id="dot2"></div>
+    </div>
+    <div class="score-badge">
+      Score: <b id="scoreVal">0</b> / 18
+    </div>
+  </div>
+
+  <!-- Stage -->
+  <main class="stage" id="stage">
+
+    <div class="prompt-box">
+      <h2 class="heading-font" id="roundPromptTitle">Round 1: Match the Waste</h2>
+      <p id="roundPromptSub">Tap an item on the left, then tap its bin on the right</p>
+    </div>
+
+    <!-- Match Arena: Left Items vs Right Bins -->
+    <div class="match-arena" id="arena">
+      <!-- SVG dynamic connection lines canvas -->
+      <svg class="line-canvas" id="lineCanvas"></svg>
+
+      <!-- Left Column: 6 Items -->
+      <div class="items-column" id="itemsColumn"></div>
+
+      <!-- Right Column: 3 Bins (Shuffled) -->
+      <div class="bins-column" id="binsColumn"></div>
+    </div>
+
+    <!-- Round Complete Interstitial -->
+    <div class="round-complete-wrap" id="roundCompleteWrap">
+      <div class="round-dialog-card">
+        <div class="round-dialog-icon">🎉</div>
+        <h3 class="round-dialog-title heading-font" id="roundDiagTitle">Round 1 Cleared!</h3>
+        <p class="round-dialog-text" id="roundDiagText">
+          All 6 waste items matched correctly. Ready for round 2?
+        </p>
+        <button class="btn-block btn-teal" id="nextRoundBtn">
+          Next Round →
+        </button>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Final Results Modal -->
+  <div class="result-screen" id="resultModal">
+    <div class="result-card">
+      <div class="trophy-emoji" id="resTrophy">🏆</div>
+      <h2 class="result-title heading-font" id="resTitle">Detective Certified!</h2>
+      <p class="result-desc" id="resDesc">
+        You completed all 3 rounds and matched 18 waste items!
+      </p>
+
+      <div class="stats-row">
+        <div class="stat-pill">
+          <div class="num" id="finalScoreVal">18/18</div>
+          <div class="lbl">Total Score</div>
+        </div>
+        <div class="stat-pill">
+          <div class="num" id="finalAccuracyVal">100%</div>
+          <div class="lbl">Accuracy</div>
+        </div>
+      </div>
+
+      <button class="btn-block btn-teal" id="playAgainBtn">
+        🔄 Play Again
+      </button>
+      <button class="btn-block btn-outline" id="exitModalBtn">
+        ← Back to App
+      </button>
+    </div>
+  </div>
+
+  <script>
+    /* ==========================================================
+       ROUNDS DATASET: 3 Rounds × 6 Items = 18 Items Total
+       ========================================================== */
+    const ROUNDS = [
+      // Round 1
+      [
+        { id: 1, name: "Newspaper", emoji: "📰", category: "Dry" },
+        { id: 2, name: "Banana Peel", emoji: "🍌", category: "Wet" },
+        { id: 3, name: "Old Battery", emoji: "🪫", category: "Hazardous" },
+        { id: 4, name: "Plastic Bottle", emoji: "🧴", category: "Dry" },
+        { id: 5, name: "Vegetable Peel", emoji: "🥬", category: "Wet" },
+        { id: 6, name: "Syringe", emoji: "💉", category: "Hazardous" }
+      ],
+      // Round 2
+      [
+        { id: 7, name: "Cardboard", emoji: "📦", category: "Dry" },
+        { id: 8, name: "Egg Shells", emoji: "🥚", category: "Wet" },
+        { id: 9, name: "Expired Meds", emoji: "💊", category: "Hazardous" },
+        { id: 10, name: "Glass Bottle", emoji: "🍾", category: "Dry" },
+        { id: 11, name: "Tea Leaves", emoji: "🍵", category: "Wet" },
+        { id: 12, name: "Broken Bulb", emoji: "💡", category: "Hazardous" }
+      ],
+      // Round 3
+      [
+        { id: 13, name: "Metal Can", emoji: "🥫", category: "Dry" },
+        { id: 14, name: "Dry Leaves", emoji: "🍂", category: "Wet" },
+        { id: 15, name: "Paint Can", emoji: "🎨", category: "Hazardous" },
+        { id: 16, name: "Cloth", emoji: "👕", category: "Dry" },
+        { id: 17, name: "Onion Peel", emoji: "🧅", category: "Wet" },
+        { id: 18, name: "Charger Cable", emoji: "🔌", category: "Hazardous" }
+      ]
+    ];
+
+    const BIN_META = {
+      Dry: {
+        title: "DRY BIN",
+        subtitle: "Blue Bin · Recyclable",
+        icon: "🗑️",
+        cssClass: "bin-dry",
+        strokeColor: "#2563EB"
+      },
+      Wet: {
+        title: "WET BIN",
+        subtitle: "Green Bin · Compostable",
+        icon: "🌱",
+        cssClass: "bin-wet",
+        strokeColor: "#16A34A"
+      },
+      Hazardous: {
+        title: "HAZARDOUS",
+        subtitle: "Red Bin · Safe Care",
+        icon: "⚠️",
+        cssClass: "bin-hazard",
+        strokeColor: "#DC2626"
+      }
+    };
+
+    /* ==========================================================
+       AUDIO SYNTHESIZER (Web Audio API)
+       ========================================================== */
+    let audioCtx = null;
+    let soundEnabled = true;
+
+    function getAudioContext() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      return audioCtx;
+    }
+
+    function playTone(freq, duration, type = 'sine', gainVal = 0.12) {
+      if (!soundEnabled) return;
+      try {
+        const ctx = getAudioContext();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, ctx.currentTime);
+        gain.gain.setValueAtTime(gainVal, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + duration);
+      } catch (e) {}
+    }
+
+    function soundSelect() {
+      playTone(420, 0.06, 'sine', 0.1);
+    }
+
+    function soundMatch() {
+      playTone(523.25, 0.08, 'sine', 0.12); // C5
+      setTimeout(() => playTone(659.25, 0.08, 'sine', 0.12), 70); // E5
+      setTimeout(() => playTone(783.99, 0.18, 'sine', 0.14), 140); // G5
+    }
+
+    function soundError() {
+      playTone(220, 0.14, 'square', 0.12);
+      setTimeout(() => playTone(165, 0.2, 'square', 0.12), 110);
+    }
+
+    function soundRoundWin() {
+      const notes = [440, 554, 659, 880];
+      notes.forEach((freq, i) => {
+        setTimeout(() => playTone(freq, 0.15, 'triangle', 0.14), i * 90);
+      });
+    }
+
+    const soundBtn = document.getElementById('soundBtn');
+    soundBtn.addEventListener('click', () => {
+      soundEnabled = !soundEnabled;
+      soundBtn.textContent = soundEnabled ? '🔊' : '🔇';
+      if (soundEnabled) playTone(440, 0.08);
+    });
+
+    /* ==========================================================
+       EXIT BUTTON HANDLER
+       ========================================================== */
+    function exitGame() {
+      if (window.parent !== window) {
+        window.parent.postMessage({ type: 'close-game' }, '*');
+      } else {
+        window.location.hash = '#/app';
+      }
+    }
+    document.getElementById('exitBtn').addEventListener('click', exitGame);
+    document.getElementById('exitModalBtn').addEventListener('click', exitGame);
+
+    /* ==========================================================
+       GAME STATE
+       ========================================================== */
+    let currentRound = 0;
+    let score = 0;
+    let selectedItem = null;
+    let matchedInRound = 0;
+    let isProcessing = false;
+
+    const itemsColumn = document.getElementById('itemsColumn');
+    const binsColumn = document.getElementById('binsColumn');
+    const scoreVal = document.getElementById('scoreVal');
+    const lineCanvas = document.getElementById('lineCanvas');
+    const roundCompleteWrap = document.getElementById('roundCompleteWrap');
+    const nextRoundBtn = document.getElementById('nextRoundBtn');
+    const resultModal = document.getElementById('resultModal');
+
+    function initGame() {
+      currentRound = 0;
+      score = 0;
+      scoreVal.textContent = '0';
+      resultModal.classList.remove('active');
+      roundCompleteWrap.classList.remove('active');
+      startRound(0);
+    }
+
+    function updateRoundDots() {
+      for (let i = 0; i < 3; i++) {
+        const dot = document.getElementById(`dot${i}`);
+        dot.className = 'round-dot';
+        if (i < currentRound) dot.classList.add('done');
+        else if (i === currentRound) dot.classList.add('active');
+      }
+    }
+
+    function startRound(roundIdx) {
+      currentRound = roundIdx;
+      selectedItem = null;
+      matchedInRound = 0;
+      isProcessing = false;
+      updateRoundDots();
+
+      document.getElementById('roundPromptTitle').textContent = `Round ${currentRound + 1}: Match the Waste`;
+      roundCompleteWrap.classList.remove('active');
+      lineCanvas.innerHTML = '';
+
+      // Get items for this round & shuffle
+      const roundItems = [...ROUNDS[currentRound]].sort(() => Math.random() - 0.5);
+      itemsColumn.innerHTML = '';
+
+      roundItems.forEach(item => {
+        item.wrongAttempts = 0;
+        const card = document.createElement('div');
+        card.className = 'item-card';
+        card.dataset.id = item.id;
+        card.innerHTML = `
+          <span class="item-emoji">${item.emoji}</span>
+          <div class="item-info">
+            <div class="item-name">${item.name}</div>
+          </div>
+          <span class="check-icon">✓</span>
+        `;
+
+        card.addEventListener('click', () => {
+          onItemClick(card, item);
+        });
+
+        itemsColumn.appendChild(card);
+      });
+
+      // Shuffled 3 bins on the right
+      const binCategories = ['Dry', 'Wet', 'Hazardous'].sort(() => Math.random() - 0.5);
+      binsColumn.innerHTML = '';
+
+      binCategories.forEach(cat => {
+        const meta = BIN_META[cat];
+        const binBtn = document.createElement('div');
+        binBtn.className = `bin-card ${meta.cssClass}`;
+        binBtn.dataset.cat = cat;
+        binBtn.innerHTML = `
+          <div class="bin-icon">${meta.icon}</div>
+          <div class="bin-title heading-font">${meta.title}</div>
+          <div class="bin-subtitle">${meta.subtitle}</div>
+        `;
+
+        binBtn.addEventListener('click', () => {
+          onBinClick(binBtn, cat);
+        });
+
+        binsColumn.appendChild(binBtn);
+      });
+    }
+
+    /* ==========================================================
+       SELECTION & MATCHING
+       ========================================================== */
+    function onItemClick(cardEl, item) {
+      if (isProcessing || cardEl.classList.contains('matched')) return;
+      getAudioContext();
+      soundSelect();
+
+      // Deselect existing
+      const allItemCards = itemsColumn.querySelectorAll('.item-card');
+      allItemCards.forEach(c => c.classList.remove('selected'));
+
+      // If clicked again, toggle off
+      if (selectedItem && selectedItem.cardEl === cardEl) {
+        selectedItem = null;
+        return;
+      }
+
+      cardEl.classList.add('selected');
+      selectedItem = { cardEl, item };
+    }
+
+    function onBinClick(binEl, cat) {
+      if (isProcessing) return;
+      getAudioContext();
+
+      if (!selectedItem) {
+        // If user tapped bin without selecting item, gentle prompt
+        binEl.classList.add('shake');
+        setTimeout(() => binEl.classList.remove('shake'), 400);
+        return;
+      }
+
+      const { cardEl, item } = selectedItem;
+      const meta = BIN_META[cat];
+
+      if (item.category === cat) {
+        // === CORRECT MATCH ===
+        isProcessing = true;
+        soundMatch();
+
+        if (item.wrongAttempts === 0) {
+          score++;
+          scoreVal.textContent = score;
+        }
+
+        binEl.classList.add('correct-pulse');
+        setTimeout(() => binEl.classList.remove('correct-pulse'), 400);
+
+        // Draw animated SVG line connecting the item to the bin
+        drawConnectionPath(cardEl, binEl, meta.strokeColor);
+
+        // Fade out item card
+        cardEl.classList.remove('selected');
+        cardEl.classList.add('matched');
+        selectedItem = null;
+        matchedInRound++;
+
+        setTimeout(() => {
+          isProcessing = false;
+          if (matchedInRound === 6) {
+            handleRoundClear();
+          }
+        }, 550);
+
+      } else {
+        // === WRONG MATCH ===
+        soundError();
+        item.wrongAttempts++;
+
+        cardEl.classList.add('shake');
+        binEl.classList.add('shake');
+
+        setTimeout(() => {
+          cardEl.classList.remove('shake');
+          binEl.classList.remove('shake');
+        }, 420);
+      }
+    }
+
+    /* ==========================================================
+       SVG CONNECTOR LINE ANIMATION
+       ========================================================== */
+    function drawConnectionPath(itemEl, binEl, strokeColor) {
+      const arenaRect = document.getElementById('arena').getBoundingClientRect();
+      const itemRect = itemEl.getBoundingClientRect();
+      const binRect = binEl.getBoundingClientRect();
+
+      const startX = itemRect.right - arenaRect.left;
+      const startY = (itemRect.top + itemRect.height / 2) - arenaRect.top;
+      const endX = binRect.left - arenaRect.left;
+      const endY = (binRect.top + binRect.height / 2) - arenaRect.top;
+
+      const deltaX = (endX - startX) * 0.55;
+      const d = `M ${startX} ${startY} C ${startX + deltaX} ${startY}, ${endX - deltaX} ${endY}, ${endX} ${endY}`;
+
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('d', d);
+      path.setAttribute('class', 'connect-path');
+      path.setAttribute('stroke', strokeColor);
+
+      lineCanvas.appendChild(path);
+
+      // Fade line out after connecting
+      setTimeout(() => {
+        path.style.transition = 'opacity 0.3s ease';
+        path.style.opacity = '0';
+        setTimeout(() => path.remove(), 300);
+      }, 550);
+    }
+
+    /* ==========================================================
+       ROUND COMPLETION & RESULTS
+       ========================================================== */
+    function handleRoundClear() {
+      soundRoundWin();
+
+      if (currentRound < 2) {
+        // Show Round Complete Interstitial
+        const roundTitles = ["Round 1 Cleared! 🎉", "Round 2 Cleared! 🌟"];
+        document.getElementById('roundDiagTitle').textContent = roundTitles[currentRound];
+        document.getElementById('roundDiagText').textContent = `Awesome! All 6 items sorted correctly. ${12 - (currentRound * 6)} more items to go!`;
+        roundCompleteWrap.classList.add('active');
+      } else {
+        // Game Finished after Round 3!
+        showFinalResults();
+      }
+    }
+
+    nextRoundBtn.addEventListener('click', () => {
+      startRound(currentRound + 1);
+    });
+
+    function showFinalResults() {
+      resultModal.classList.add('active');
+
+      const resTrophy = document.getElementById('resTrophy');
+      const resTitle = document.getElementById('resTitle');
+      const resDesc = document.getElementById('resDesc');
+      const finalScoreVal = document.getElementById('finalScoreVal');
+      const finalAccuracyVal = document.getElementById('finalAccuracyVal');
+
+      finalScoreVal.textContent = `${score} / 18`;
+      const accuracy = Math.round((score / 18) * 100);
+      finalAccuracyVal.textContent = `${accuracy}%`;
+
+      if (score >= 16) {
+        resTrophy.textContent = '🏆';
+        resTitle.textContent = 'Bin Matching Champion!';
+        resDesc.textContent = `Masterful work! You completed all 3 rounds with a phenomenal score of ${score}/18!`;
+      } else if (score >= 12) {
+        resTrophy.textContent = '⭐';
+        resTitle.textContent = 'Waste Detective Star!';
+        resDesc.textContent = `Great effort! You matched all 18 items with ${accuracy}% first-attempt accuracy!`;
+      } else {
+        resTrophy.textContent = '🌱';
+        resTitle.textContent = 'Detective in Training!';
+        resDesc.textContent = `You completed all 3 rounds! Play again to test your speed and aim for a perfect 18/18!`;
+      }
+    }
+
+    document.getElementById('playAgainBtn').addEventListener('click', initGame);
+
+    // Start game on load
+    initGame();
+  </script>
+</body>
+</html>

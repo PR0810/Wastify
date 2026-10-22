@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Compost Mixer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700;800&family=Inter:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F8F5EE;
+    --brown-dark: #3E2723;
+    --brown-mid: #6D4C41;
+    --brown-light: #A1887F;
+    --brown-tint: #EFEBE9;
+    --green-dark: #1B5E20;
+    --green-mid: #2E7D32;
+    --green-light: #81C784;
+    --green-tint: #E8F5E9;
+    --ink: #1F2937;
+    --ink-soft: #6B7280;
+    --line: #E2DBD0;
+    --card: #FFFFFF;
+    --amber: #D97706;
+    --amber-tint: #FEF3C7;
+    --good: #16A34A;
+    --good-tint: #DCFCE7;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  * { box-sizing: inherit; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow-x: hidden;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  h1, h2, h3 { font-family: 'Space Grotesk', sans-serif; }
+
+  /* Top Bar */
+  .topbar {
+    width: 100%;
+    background: var(--brown-dark);
+    color: #fff;
+    padding: 12px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+    z-index: 30;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  }
+  .brand {
+    font-weight: 800;
+    font-size: 15px;
+    letter-spacing: 0.3px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .brand small {
+    display: block;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 10.5px;
+    color: #D7CCC8;
+    margin-top: 1px;
+  }
+  .topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .chip {
+    background: rgba(255,255,255,0.12);
+    padding: 5px 11px;
+    border-radius: 8px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+  }
+  .chip span { color: #81C784; }
+  .exit-btn {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: #EFEBE9;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 12.5px;
+    padding: 6px 13px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .exit-btn:active { background: rgba(255,255,255,0.2); }
+
+  /* Stage */
+  .stage {
+    width: 100%;
+    max-width: 480px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 10px 16px 20px;
+    position: relative;
+  }
+
+  .screen {
+    display: none;
+    width: 100%;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+  }
+  .screen.active { display: flex; }
+
+  /* Start Screen */
+  #startScreen {
+    justify-content: center;
+    text-align: center;
+    padding: 20px 8px;
+    gap: 10px;
+  }
+  .tag {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    color: var(--green-dark);
+    background: var(--green-tint);
+    border: 1px solid #C8E6C9;
+    padding: 5px 12px;
+    border-radius: 20px;
+  }
+  .hero-ic {
+    font-size: 64px;
+    margin: 6px 0;
+  }
+  #startScreen h1 {
+    font-size: 28px;
+    margin: 0 0 6px;
+    color: var(--brown-dark);
+  }
+  #startScreen p {
+    font-size: 14.5px;
+    color: var(--ink-soft);
+    margin: 0 0 18px;
+    line-height: 1.5;
+    max-width: 320px;
+  }
+  .rule-card {
+    background: #fff;
+    border: 1.5px solid var(--line);
+    border-radius: 14px;
+    padding: 12px 16px;
+    max-width: 320px;
+    text-align: left;
+    margin-bottom: 22px;
+    font-size: 13px;
+    line-height: 1.5;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .rule-item { display: flex; gap: 8px; align-items: flex-start; }
+
+  .btn {
+    font-family: 'Space Grotesk', sans-serif;
+    border: none;
+    cursor: pointer;
+    border-radius: 12px;
+    font-weight: 800;
+    transition: transform 0.1s ease;
+  }
+  .btn:active { transform: scale(0.97); }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--brown-mid), var(--brown-dark));
+    color: #fff;
+    padding: 15px 36px;
+    font-size: 16px;
+    box-shadow: 0 4px 14px rgba(62,39,35,0.3);
+    width: 100%;
+    max-width: 280px;
+  }
+  .btn-ghost {
+    background: none;
+    color: var(--brown-mid);
+    font-size: 13px;
+    text-decoration: underline;
+    font-weight: 700;
+    padding: 10px;
+    margin-top: 4px;
+  }
+
+  /* Play Screen */
+  #playScreen {
+    padding-top: 4px;
+  }
+  .round-header {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .round-pill {
+    font-size: 12px;
+    font-weight: 800;
+    color: var(--brown-mid);
+    background: var(--brown-tint);
+    padding: 4px 10px;
+    border-radius: 12px;
+  }
+  .round-hint {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--ink-soft);
+  }
+
+  /* Meter / Balance Gauge at top */
+  .meter-card {
+    width: 100%;
+    background: #fff;
+    border: 1.5px solid var(--line);
+    border-radius: 16px;
+    padding: 10px 14px 12px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+  }
+  .meter-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    font-weight: 800;
+    margin-bottom: 6px;
+  }
+  .ml-green { color: var(--green-mid); }
+  .ml-sweet { color: var(--amber); }
+  .ml-brown { color: var(--brown-mid); }
+
+  .meter-track {
+    width: 100%;
+    height: 14px;
+    background: #EDE8DF;
+    border-radius: 7px;
+    position: relative;
+    overflow: hidden;
+  }
+  .meter-zone-green {
+    position: absolute; left: 0; width: 45%; height: 100%;
+    background: linear-gradient(90deg, #A5D6A7, #81C784);
+  }
+  .meter-zone-target {
+    position: absolute; left: 45%; width: 22%; height: 100%;
+    background: #4CAF50;
+    box-shadow: inset 0 0 4px rgba(0,0,0,0.2);
+  }
+  .meter-zone-brown {
+    position: absolute; left: 67%; width: 33%; height: 100%;
+    background: linear-gradient(90deg, #BCAAA4, #8D6E63);
+  }
+  .meter-needle {
+    position: absolute;
+    top: -3px;
+    left: 50%;
+    width: 4px;
+    height: 20px;
+    background: #212121;
+    border-radius: 2px;
+    transform: translateX(-50%);
+    transition: left 0.35s cubic-bezier(0.2, 0.8, 0.3, 1);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+  }
+  .meter-status {
+    text-align: center;
+    font-size: 12px;
+    font-weight: 800;
+    margin-top: 6px;
+    color: var(--ink-soft);
+  }
+  .meter-status.perfect { color: var(--good); }
+
+  /* Visual Seesaw Scale Arena */
+  .scale-arena {
+    width: 100%;
+    height: 160px;
+    background: linear-gradient(180deg, #FFFDF9 0%, #F5EFEB 100%);
+    border: 1.5px solid var(--line);
+    border-radius: 18px;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+  }
+  /* Fulcrum */
+  .fulcrum {
+    width: 0;
+    height: 0;
+    border-left: 20px solid transparent;
+    border-right: 20px solid transparent;
+    border-bottom: 34px solid #4E342E;
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 2;
+  }
+  .fulcrum-pin {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #FFD54F;
+    border: 2px solid #3E2723;
+    position: absolute;
+    top: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  /* Seesaw Beam */
+  .beam {
+    width: 86%;
+    height: 10px;
+    background: #5D4037;
+    border-radius: 5px;
+    position: absolute;
+    bottom: 30px;
+    left: 7%;
+    transform-origin: center center;
+    transition: transform 0.4s cubic-bezier(0.3, 1.3, 0.5, 1);
+    z-index: 3;
+    display: flex;
+    justify-content: space-between;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.15);
+  }
+
+  /* Pans */
+  .scale-pan {
+    position: absolute;
+    top: -68px;
+    width: 110px;
+    min-height: 70px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+  }
+  .scale-pan.left { left: -14px; }
+  .scale-pan.right { right: -14px; }
+
+  .pan-tray {
+    width: 100%;
+    min-height: 48px;
+    background: #FFFFFF;
+    border-radius: 14px;
+    border: 2px solid #5D4037;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    padding: 4px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    align-items: center;
+    justify-content: center;
+    transition: border-color 0.2s, background-color 0.2s;
+  }
+  .scale-pan.left .pan-tray { border-color: var(--green-mid); background: #F1F8E9; }
+  .scale-pan.right .pan-tray { border-color: var(--brown-mid); background: #EFEBE9; }
+
+  .pan-label {
+    font-size: 10px;
+    font-weight: 800;
+    margin-top: 3px;
+    color: var(--ink);
+  }
+  .pan-wire {
+    width: 2px;
+    height: 14px;
+    background: #8D6E63;
+  }
+
+  .in-pan-item {
+    font-size: 18px;
+    padding: 2px 4px;
+    background: #fff;
+    border-radius: 6px;
+    border: 1px solid var(--line);
+    cursor: pointer;
+    animation: dropIn 0.25s ease;
+  }
+  @keyframes dropIn {
+    0% { transform: scale(0.3); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  /* Available items bin / inventory */
+  .inventory-title {
+    font-size: 12px;
+    font-weight: 800;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+    display: flex;
+    justify-content: space-between;
+  }
+  .inventory-title small { font-size: 11px; text-transform: none; color: var(--brown-mid); font-weight: 600; }
+
+  .items-shelf {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+  .shelf-item {
+    background: #fff;
+    border: 1.5px solid var(--line);
+    border-radius: 12px;
+    padding: 8px 4px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    transition: transform 0.1s ease, border-color 0.2s, box-shadow 0.2s;
+  }
+  .shelf-item:active { transform: scale(0.95); }
+  .shelf-item.green { border-color: #C8E6C9; background: #F9FDF9; }
+  .shelf-item.brown { border-color: #D7CCC8; background: #FAF7F5; }
+  .shelf-item.used { opacity: 0.35; pointer-events: none; }
+  .si-emoji { font-size: 26px; }
+  .si-name { font-size: 10.5px; font-weight: 700; text-align: center; color: var(--ink); line-height: 1.1; }
+  .si-type {
+    font-size: 9px;
+    font-weight: 800;
+    padding: 1px 6px;
+    border-radius: 8px;
+    text-transform: uppercase;
+  }
+  .si-type.g { background: #DCFCE7; color: #166534; }
+  .si-type.b { background: #EFEBE9; color: #4E342E; }
+
+  /* Submit / Action Bar */
+  .action-wrap {
+    width: 100%;
+    display: flex;
+    gap: 10px;
+  }
+  .btn-mix {
+    flex: 1;
+    background: linear-gradient(135deg, var(--green-mid), var(--green-dark));
+    color: #fff;
+    padding: 14px 0;
+    font-size: 15px;
+    box-shadow: 0 4px 10px rgba(46,125,50,0.3);
+  }
+  .btn-reset {
+    background: #fff;
+    border: 1.5px solid var(--line);
+    color: var(--brown-dark);
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    padding: 14px 18px;
+    border-radius: 12px;
+    cursor: pointer;
+  }
+
+  /* Feedback Overlay Toast */
+  .feedback-toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: #1F2937;
+    color: #fff;
+    padding: 12px 20px;
+    border-radius: 14px;
+    font-size: 13px;
+    font-weight: 700;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+    z-index: 50;
+    transition: transform 0.3s cubic-bezier(0.3, 1.4, 0.5, 1);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    max-width: 90%;
+  }
+  .feedback-toast.show { transform: translateX(-50%) translateY(0); }
+  .feedback-toast.perfect { background: #15803D; }
+  .feedback-toast.warn { background: #B45309; }
+
+  /* Done Screen */
+  #doneScreen {
+    justify-content: center;
+    text-align: center;
+    padding: 20px 8px;
+  }
+  .done-badge {
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    background: #DCFCE7;
+    border: 4px solid #86EFAC;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 48px;
+    margin-bottom: 14px;
+  }
+  #doneScreen h2 {
+    font-size: 26px;
+    color: var(--brown-dark);
+    margin: 0 0 6px;
+  }
+  #doneScreen p {
+    font-size: 14px;
+    color: var(--ink-soft);
+    margin: 0 0 18px;
+    max-width: 310px;
+  }
+  .score-box {
+    background: #fff;
+    border: 1.5px solid var(--line);
+    border-radius: 16px;
+    padding: 16px;
+    width: 100%;
+    max-width: 320px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-around;
+  }
+  .sb-item { text-align: center; }
+  .sb-label { font-size: 11px; font-weight: 700; color: var(--ink-soft); text-transform: uppercase; }
+  .sb-val { font-family: 'Space Grotesk', sans-serif; font-size: 24px; font-weight: 800; color: var(--brown-dark); margin-top: 2px; }
+  .sb-val.green { color: var(--green-mid); }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    ⚖️ COMPOST MIXER
+    <small>The Perfect Greens : Browns Ratio</small>
+  </div>
+  <div class="topbar-right">
+    <div class="chip">ROUND <span id="roundChip">1/5</span></div>
+    <div class="chip">⭐ <span id="scoreVal">0</span></div>
+    <button class="exit-btn" id="exitTopBtn">Exit</button>
+  </div>
+</div>
+
+<div class="stage">
+
+  <!-- START SCREEN -->
+  <div class="screen active" id="startScreen">
+    <div class="tag">MODULE 3 · BALANCE CHALLENGE</div>
+    <div class="hero-ic">⚖️🍂🍌</div>
+    <h1>Master the Compost Ratio!</h1>
+    <p>Good compost isn't just throwing things in. You need the right balance of <b>Greens (wet)</b> and <b>Browns (dry)</b>!</p>
+    
+    <div class="rule-card">
+      <div class="rule-item">
+        <span>🟢</span>
+        <div><b>Greens (Nitrogen):</b> Fruit peels, wet food, tea leaves. Adds moisture & nitrogen.</div>
+      </div>
+      <div class="rule-item">
+        <span>🟤</span>
+        <div><b>Browns (Carbon):</b> Dry leaves, cardboard, twigs. Traps air & prevents foul smells!</div>
+      </div>
+      <div class="rule-item">
+        <span>🎯</span>
+        <div><b>The Golden Ratio:</b> Add <i>thoda zyada Browns than Greens</i> (aim for a slight right lean on the scale)!</div>
+      </div>
+    </div>
+
+    <button class="btn btn-primary" id="startBtn">Start Balancing (5 Rounds)</button>
+  </div>
+
+  <!-- PLAY SCREEN -->
+  <div class="screen" id="playScreen">
+    <div class="round-header">
+      <span class="round-pill" id="roundPill">ROUND 1 OF 5</span>
+      <span class="round-hint" id="roundGoal">Goal: Slight right lean!</span>
+    </div>
+
+    <!-- METER GAUGE -->
+    <div class="meter-card">
+      <div class="meter-labels">
+        <span class="ml-green">🟢 TOO WET</span>
+        <span class="ml-sweet">🎯 PERFECT MIX (SLIGHT RIGHT)</span>
+        <span class="ml-brown">🟤 TOO DRY</span>
+      </div>
+      <div class="meter-track">
+        <div class="meter-zone-green"></div>
+        <div class="meter-zone-target"></div>
+        <div class="meter-zone-brown"></div>
+        <div class="meter-needle" id="meterNeedle"></div>
+      </div>
+      <div class="meter-status" id="meterStatus">Add ingredients to start mixing...</div>
+    </div>
+
+    <!-- BALANCE SCALE ARENA -->
+    <div class="scale-arena">
+      <div class="beam" id="scaleBeam">
+        <!-- Left Pan (Greens) -->
+        <div class="scale-pan left">
+          <div class="pan-tray" id="leftPanTray"></div>
+          <div class="pan-wire"></div>
+          <div class="pan-label">🟢 GREENS (Wet)</div>
+        </div>
+
+        <!-- Right Pan (Browns) -->
+        <div class="scale-pan right">
+          <div class="pan-tray" id="rightPanTray"></div>
+          <div class="pan-wire"></div>
+          <div class="pan-label">🟤 BROWNS (Dry)</div>
+        </div>
+      </div>
+
+      <!-- Fulcrum -->
+      <div class="fulcrum">
+        <div class="fulcrum-pin"></div>
+      </div>
+    </div>
+
+    <!-- INVENTORY SHELF -->
+    <div class="inventory-title">
+      <span>Available Ingredients</span>
+      <small>Tap item to place into scale</small>
+    </div>
+    <div class="items-shelf" id="itemsShelf"></div>
+
+    <!-- ACTION BUTTONS -->
+    <div class="action-wrap">
+      <button class="btn-reset" id="resetPanBtn">↺ Clear Scale</button>
+      <button class="btn btn-mix" id="mixBtn">Test Mix & Balance</button>
+    </div>
+  </div>
+
+  <!-- DONE SCREEN -->
+  <div class="screen" id="doneScreen">
+    <div class="done-badge" id="doneBadge">🏆</div>
+    <h2 id="doneTitle">Compost Certified!</h2>
+    <p id="doneDesc">You mastered the Carbon to Nitrogen balance for odorless, nutrient-packed compost.</p>
+
+    <div class="score-box">
+      <div class="sb-item">
+        <div class="sb-label">Total Score</div>
+        <div class="sb-val green" id="finalScore">0</div>
+      </div>
+      <div class="sb-item">
+        <div class="sb-label">Perfect Mixes</div>
+        <div class="sb-val" id="finalPerfect">0/5</div>
+      </div>
+    </div>
+
+    <button class="btn btn-primary" id="replayBtn">Play Again</button>
+    <button class="btn-ghost" id="exitFromDoneBtn">Back to Learning Hub</button>
+  </div>
+
+</div>
+
+<div class="feedback-toast" id="feedbackToast">
+  <span id="toastIcon">✨</span>
+  <span id="toastMsg">Perfect balance!</span>
+</div>
+
+<script>
+  function closeGame() {
+    if (window.parent !== window) {
+      window.parent.postMessage({ type: 'close-game' }, '*');
+    } else {
+      window.location.hash = '#/app';
+    }
+  }
+  document.getElementById('exitTopBtn').addEventListener('click', closeGame);
+  document.getElementById('exitFromDoneBtn').addEventListener('click', closeGame);
+
+  // Web Audio Synthesizer
+  let audioCtx = null;
+  function getAudioContext() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    return audioCtx;
+  }
+  function beep(freq, duration, type = 'sine', volume = 0.15) {
+    try {
+      const ctx = getAudioContext();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, ctx.currentTime);
+      gain.gain.setValueAtTime(volume, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + duration);
+    } catch(e) {}
+  }
+  function playDropSound() { beep(350, 0.08, 'triangle', 0.18); }
+  function playPerfectSound() {
+    [523.25, 659.25, 783.99, 1046.5].forEach((f, i) => {
+      setTimeout(() => beep(f, 0.14, 'sine', 0.2), i * 90);
+    });
+  }
+  function playWarnSound() {
+    beep(280, 0.12, 'sawtooth', 0.18);
+    setTimeout(() => beep(200, 0.18, 'sawtooth', 0.18), 120);
+  }
+
+  // 5 Scenarios / Rounds
+  const ROUNDS = [
+    {
+      title: "Round 1: Fresh Kitchen Batch",
+      goal: "Balance 2 Greens with the right amount of Browns!",
+      preLeft: [],
+      preRight: [],
+      shelf: [
+        { id: 1, name: "Kela Chhilka", emoji: "🍌", type: "green", weight: 1 },
+        { id: 2, name: "Gila Khana", emoji: "🍛", type: "green", weight: 1 },
+        { id: 3, name: "Sukhe Patte", emoji: "🍂", type: "brown", weight: 1 },
+        { id: 4, name: "Cardboard", emoji: "📦", type: "brown", weight: 1 },
+        { id: 5, name: "Egg Carton", emoji: "🥚", type: "brown", weight: 1 },
+        { id: 6, name: "Suji Scraps", emoji: "🥣", type: "green", weight: 1 },
+        { id: 7, name: "Dry Twigs", emoji: "🪵", type: "brown", weight: 1 },
+        { id: 8, name: "Brown Paper", emoji: "📜", type: "brown", weight: 1 },
+      ]
+    },
+    {
+      title: "Round 2: Fix the Smelly Bin!",
+      goal: "This bin is soggy and wet (+3 Greens). Add Browns to fix it!",
+      preLeft: [
+        { id: 101, name: "Wet Peels", emoji: "🥦", type: "green", weight: 1 },
+        { id: 102, name: "Stale Dal", emoji: "🍲", type: "green", weight: 1 }
+      ],
+      preRight: [],
+      shelf: [
+        { id: 11, name: "Sukhe Patte", emoji: "🍂", type: "brown", weight: 1 },
+        { id: 12, name: "Cardboard Bits", emoji: "📦", type: "brown", weight: 1 },
+        { id: 13, name: "Sawdust", emoji: "🪵", type: "brown", weight: 1 },
+        { id: 14, name: "Dry Leaves", emoji: "🍁", type: "brown", weight: 1 },
+        { id: 15, name: "Chai Patti", emoji: "🍵", type: "green", weight: 1 },
+        { id: 16, name: "Newspaper Shred", emoji: "📰", type: "brown", weight: 1 },
+        { id: 17, name: "Apple Core", emoji: "🍎", type: "green", weight: 1 },
+        { id: 18, name: "Brown Box", emoji: "📦", type: "brown", weight: 1 }
+      ]
+    },
+    {
+      title: "Round 3: Morning Chai Batch",
+      goal: "Heavy tea leaves need coarse browns for aeration!",
+      preLeft: [],
+      preRight: [],
+      shelf: [
+        { id: 21, name: "Chai Patti", emoji: "🍵", type: "green", weight: 2 },
+        { id: 22, name: "Sukhe Patte", emoji: "🍂", type: "brown", weight: 1 },
+        { id: 23, name: "Cardboard", emoji: "📦", type: "brown", weight: 1 },
+        { id: 24, name: "Coconut Coir", emoji: "🥥", type: "brown", weight: 1 },
+        { id: 25, name: "Papaya Peel", emoji: "🍈", type: "green", weight: 1 },
+        { id: 26, name: "Twigs/Sticks", emoji: "🪵", type: "brown", weight: 1 },
+        { id: 27, name: "Dry Grass", emoji: "🌾", type: "brown", weight: 1 },
+        { id: 28, name: "Roti Scrap", emoji: "🫓", type: "green", weight: 1 }
+      ]
+    },
+    {
+      title: "Round 4: High Nitrogen Challenge",
+      goal: "Lush grass and veggies heat up fast. Add dry carbon!",
+      preLeft: [
+        { id: 201, name: "Cut Grass", emoji: "🌿", type: "green", weight: 1 }
+      ],
+      preRight: [],
+      shelf: [
+        { id: 31, name: "Kele ka Chhilka", emoji: "🍌", type: "green", weight: 1 },
+        { id: 32, name: "Egg Shells", emoji: "🥚", type: "green", weight: 1 },
+        { id: 33, name: "Sukhe Patte", emoji: "🍂", type: "brown", weight: 1 },
+        { id: 34, name: "Cardboard", emoji: "📦", type: "brown", weight: 1 },
+        { id: 35, name: "Dry Leaves", emoji: "🍁", type: "brown", weight: 1 },
+        { id: 36, name: "Sawdust", emoji: "🪵", type: "brown", weight: 1 },
+        { id: 37, name: "Brown Paper", emoji: "📜", type: "brown", weight: 1 },
+        { id: 38, name: "Gila Khana", emoji: "🍛", type: "green", weight: 1 }
+      ]
+    },
+    {
+      title: "Round 5: Grand Compost Batch",
+      goal: "Create a big master mix. Slight right lean on the scale!",
+      preLeft: [],
+      preRight: [],
+      shelf: [
+        { id: 41, name: "Fruit Peels", emoji: "🍉", type: "green", weight: 1 },
+        { id: 42, name: "Veg Trims", emoji: "🥦", type: "green", weight: 1 },
+        { id: 43, name: "Chai Patti", emoji: "🍵", type: "green", weight: 1 },
+        { id: 44, name: "Sukhe Patte", emoji: "🍂", type: "brown", weight: 1 },
+        { id: 45, name: "Cardboard", emoji: "📦", type: "brown", weight: 1 },
+        { id: 46, name: "Egg Carton", emoji: "🥚", type: "brown", weight: 1 },
+        { id: 47, name: "Dry Twigs", emoji: "🪵", type: "brown", weight: 1 },
+        { id: 48, name: "Coconut Coir", emoji: "🥥", type: "brown", weight: 1 }
+      ]
+    }
+  ];
+
+  let currentRoundIdx = 0;
+  let score = 0;
+  let perfectCount = 0;
+
+  // Pans items
+  let leftItems = [];
+  let rightItems = [];
+  let usedShelfIds = new Set();
+
+  function showScreen(name) {
+    document.getElementById('startScreen').classList.toggle('active', name === 'start');
+    document.getElementById('playScreen').classList.toggle('active', name === 'play');
+    document.getElementById('doneScreen').classList.toggle('active', name === 'done');
+  }
+
+  function startRound(idx) {
+    currentRoundIdx = idx;
+    const r = ROUNDS[currentRoundIdx];
+
+    document.getElementById('roundChip').textContent = `${idx + 1}/5`;
+    document.getElementById('roundPill').textContent = `ROUND ${idx + 1} OF 5`;
+    document.getElementById('roundGoal').textContent = r.goal;
+
+    leftItems = [...r.preLeft];
+    rightItems = [...r.preRight];
+    usedShelfIds.clear();
+
+    renderScale();
+    renderShelf();
+    updateMeter();
+  }
+
+  function renderScale() {
+    const leftTray = document.getElementById('leftPanTray');
+    const rightTray = document.getElementById('rightPanTray');
+
+    leftTray.innerHTML = '';
+    rightTray.innerHTML = '';
+
+    leftItems.forEach(it => {
+      const el = document.createElement('div');
+      el.className = 'in-pan-item';
+      el.textContent = it.emoji;
+      el.title = `${it.name} (Tap to remove)`;
+      el.addEventListener('click', () => removeItem(it, 'left'));
+      leftTray.appendChild(el);
+    });
+
+    rightItems.forEach(it => {
+      const el = document.createElement('div');
+      el.className = 'in-pan-item';
+      el.textContent = it.emoji;
+      el.title = `${it.name} (Tap to remove)`;
+      el.addEventListener('click', () => removeItem(it, 'right'));
+      rightTray.appendChild(el);
+    });
+  }
+
+  function renderShelf() {
+    const r = ROUNDS[currentRoundIdx];
+    const shelf = document.getElementById('itemsShelf');
+    shelf.innerHTML = '';
+
+    r.shelf.forEach(it => {
+      const el = document.createElement('div');
+      el.className = `shelf-item ${it.type} ${usedShelfIds.has(it.id) ? 'used' : ''}`;
+      el.innerHTML = `
+        <span class="si-emoji">${it.emoji}</span>
+        <span class="si-name">${it.name}</span>
+        <span class="si-type ${it.type === 'green' ? 'g' : 'b'}">${it.type === 'green' ? 'Gila' : 'Sukha'}</span>
+      `;
+      el.addEventListener('click', () => {
+        if (usedShelfIds.has(it.id)) return;
+        addItemToScale(it);
+      });
+      shelf.appendChild(el);
+    });
+  }
+
+  function addItemToScale(item) {
+    playDropSound();
+    usedShelfIds.add(item.id);
+    if (item.type === 'green') {
+      leftItems.push(item);
+    } else {
+      rightItems.push(item);
+    }
+    renderScale();
+    renderShelf();
+    updateMeter();
+  }
+
+  function removeItem(item, panSide) {
+    // Check if it's not a pre-loaded fixed item
+    const r = ROUNDS[currentRoundIdx];
+    if (r.preLeft.some(p => p.id === item.id) || r.preRight.some(p => p.id === item.id)) {
+      showToast("Cannot remove starting bin waste!", "warn");
+      return;
+    }
+
+    playDropSound();
+    if (panSide === 'left') {
+      leftItems = leftItems.filter(i => i.id !== item.id);
+    } else {
+      rightItems = rightItems.filter(i => i.id !== item.id);
+    }
+    usedShelfIds.delete(item.id);
+    renderScale();
+    renderShelf();
+    updateMeter();
+  }
+
+  function calculateRatio() {
+    const totalGreen = leftItems.reduce((acc, cur) => acc + (cur.weight || 1), 0);
+    const totalBrown = rightItems.reduce((acc, cur) => acc + (cur.weight || 1), 0);
+    return { totalGreen, totalBrown };
+  }
+
+  function updateMeter() {
+    const { totalGreen, totalBrown } = calculateRatio();
+    const beam = document.getElementById('scaleBeam');
+    const needle = document.getElementById('meterNeedle');
+    const status = document.getElementById('meterStatus');
+
+    if (totalGreen === 0 && totalBrown === 0) {
+      beam.style.transform = `rotate(0deg)`;
+      needle.style.left = '50%';
+      status.textContent = 'Add ingredients to start mixing...';
+      status.className = 'meter-status';
+      return;
+    }
+
+    // Tilt angle physics simulation
+    // Sweet spot is roughly 1.3 to 2.2 times more browns than greens (slight right lean: +5deg to +12deg)
+    const diff = totalBrown - totalGreen;
+    let angle = diff * 4.2; // positive tilts right
+    angle = Math.max(-18, Math.min(18, angle));
+    beam.style.transform = `rotate(${angle}deg)`;
+
+    // Needle position (0% = all green, 100% = all brown)
+    // Target zone is around 54% - 66% (slightly right of center)
+    const totalWeight = totalGreen + totalBrown;
+    const brownRatio = totalBrown / totalWeight; // from 0 to 1
+    const needlePercent = Math.max(8, Math.min(92, brownRatio * 100));
+    needle.style.left = `${needlePercent}%`;
+
+    // Status message
+    if (totalGreen > 0 && totalBrown === 0) {
+      status.textContent = "⚠️ Too wet! It will rot and stink. Add dry leaves or cardboard!";
+      status.className = 'meter-status';
+    } else if (totalBrown > 0 && totalGreen === 0) {
+      status.textContent = "🏜️ Too dry! The pile won't heat up. Add green waste!";
+      status.className = 'meter-status';
+    } else if (needlePercent >= 52 && needlePercent <= 68 && totalBrown > totalGreen) {
+      status.textContent = "✨ PERFECT MIX! Slight right lean achieved!";
+      status.className = 'meter-status perfect';
+    } else if (needlePercent < 52) {
+      status.textContent = "Too many greens! Add thoda zyada browns for air circulation.";
+      status.className = 'meter-status';
+    } else {
+      status.textContent = "Too many browns! Balance with more fresh kitchen peels.";
+      status.className = 'meter-status';
+    }
+  }
+
+  function showToast(msg, type = "perfect") {
+    const toast = document.getElementById('feedbackToast');
+    const toastMsg = document.getElementById('toastMsg');
+    const toastIcon = document.getElementById('toastIcon');
+
+    toastMsg.textContent = msg;
+    toastIcon.textContent = type === 'perfect' ? '✨' : '⚠️';
+    toast.className = `feedback-toast ${type} show`;
+
+    setTimeout(() => {
+      toast.classList.remove('show');
+    }, 1800);
+  }
+
+  document.getElementById('mixBtn').addEventListener('click', () => {
+    const { totalGreen, totalBrown } = calculateRatio();
+    if (totalGreen === 0 && totalBrown === 0) {
+      showToast("Pehle ingredients daalo scale pe!", "warn");
+      playWarnSound();
+      return;
+    }
+
+    const totalWeight = totalGreen + totalBrown;
+    const brownRatio = totalBrown / totalWeight;
+    const isPerfect = (brownRatio >= 0.52 && brownRatio <= 0.70 && totalBrown > totalGreen && totalGreen >= 1);
+
+    if (isPerfect) {
+      score += 100;
+      perfectCount++;
+      document.getElementById('scoreVal').textContent = score;
+      playPerfectSound();
+      showToast("✨ Perfect Mix! Compost Gold Achieved! (+100)", "perfect");
+
+      setTimeout(() => {
+        if (currentRoundIdx + 1 < ROUNDS.length) {
+          startRound(currentRoundIdx + 1);
+        } else {
+          finishGame();
+        }
+      }, 1600);
+    } else {
+      playWarnSound();
+      if (totalBrown <= totalGreen) {
+        showToast("Thoda zyada Browns chahiye! Add dry leaves or cardboard.", "warn");
+      } else {
+        showToast("Bahut zyada sukha ho gaya! Add some green peels.", "warn");
+      }
+    }
+  });
+
+  document.getElementById('resetPanBtn').addEventListener('click', () => {
+    const r = ROUNDS[currentRoundIdx];
+    leftItems = [...r.preLeft];
+    rightItems = [...r.preRight];
+    usedShelfIds.clear();
+    renderScale();
+    renderShelf();
+    updateMeter();
+    playDropSound();
+  });
+
+  function finishGame() {
+    document.getElementById('finalScore').textContent = score;
+    document.getElementById('finalPerfect').textContent = `${perfectCount}/5`;
+
+    const badge = document.getElementById('doneBadge');
+    const title = document.getElementById('doneTitle');
+    const desc = document.getElementById('doneDesc');
+
+    if (perfectCount >= 4) {
+      badge.textContent = '🌟';
+      title.textContent = 'Master Compost Blender!';
+      desc.textContent = 'Flawless ratio! You know exactly how to keep compost aerobic, moist, and odor-free.';
+      playPerfectSound();
+    } else {
+      badge.textContent = '🌱';
+      title.textContent = 'Good Effort!';
+      desc.textContent = 'You completed all 5 batches. Remember: Browns absorb moisture and prevent stink!';
+      beep(400, 0.2, 'triangle', 0.2);
+    }
+
+    showScreen('done');
+  }
+
+  document.getElementById('startBtn').addEventListener('click', () => {
+    score = 0;
+    perfectCount = 0;
+    document.getElementById('scoreVal').textContent = '0';
+    showScreen('play');
+    startRound(0);
+  });
+
+  document.getElementById('replayBtn').addEventListener('click', () => {
+    score = 0;
+    perfectCount = 0;
+    document.getElementById('scoreVal').textContent = '0';
+    showScreen('play');
+    startRound(0);
+  });
+</script>
+</body>
+</html>

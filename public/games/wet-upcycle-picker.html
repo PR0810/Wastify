@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Wet Waste Upcycle</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700;800&family=Inter:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F4F9F4;
+    --green-dark: #134E27;
+    --green-deep: #1B5E20;
+    --green-main: #2E7D32;
+    --green-bright: #4CAF50;
+    --green-tint: #E8F5E9;
+    --green-border: #C8E6C9;
+    --ink: #1F2937;
+    --ink-soft: #6B7280;
+    --card: #FFFFFF;
+    --line: #E0EADE;
+    --good: #16A34A;
+    --good-tint: #DCFCE7;
+    --bad: #DC2626;
+    --bad-tint: #FEE2E2;
+    --amber: #D97706;
+    --amber-tint: #FEF3C7;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  * { box-sizing: inherit; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow-x: hidden;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  h1, h2, h3 { font-family: 'Space Grotesk', sans-serif; }
+
+  /* Top Bar */
+  .topbar {
+    width: 100%;
+    background: var(--green-deep);
+    color: #fff;
+    padding: 12px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+    z-index: 30;
+    box-shadow: 0 2px 8px rgba(19,78,39,0.2);
+  }
+  .brand {
+    font-weight: 800;
+    font-size: 15px;
+    letter-spacing: 0.3px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .brand small {
+    display: block;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 10.5px;
+    color: #C8E6C9;
+    margin-top: 1px;
+  }
+  .topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .score-chip {
+    background: rgba(255,255,255,0.15);
+    padding: 5px 12px;
+    border-radius: 8px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 13.5px;
+    font-weight: 700;
+  }
+  .score-chip span { color: #A5D6A7; }
+  .exit-btn {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: #E8F5E9;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 12.5px;
+    padding: 6px 13px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .exit-btn:active { background: rgba(255,255,255,0.2); }
+
+  /* Stage */
+  .stage {
+    width: 100%;
+    max-width: 480px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 10px 16px 20px;
+    position: relative;
+  }
+
+  .screen {
+    display: none;
+    width: 100%;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+  }
+  .screen.active { display: flex; }
+
+  /* Start Screen */
+  #startScreen {
+    justify-content: center;
+    text-align: center;
+    padding: 20px 8px;
+    gap: 8px;
+  }
+  .pill-badge {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    color: var(--green-deep);
+    background: var(--green-tint);
+    border: 1px solid var(--green-border);
+    padding: 5px 14px;
+    border-radius: 20px;
+  }
+  .hero-art {
+    font-size: 64px;
+    margin: 8px 0;
+  }
+  #startScreen h1 {
+    font-size: 28px;
+    margin: 0 0 6px;
+    color: var(--green-dark);
+  }
+  #startScreen p {
+    font-size: 14.5px;
+    color: var(--ink-soft);
+    margin: 0 0 20px;
+    line-height: 1.5;
+    max-width: 320px;
+  }
+  .perks-card {
+    background: #fff;
+    border: 1.5px solid var(--line);
+    border-radius: 14px;
+    padding: 12px 16px;
+    max-width: 330px;
+    text-align: left;
+    margin-bottom: 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-size: 13px;
+    line-height: 1.45;
+  }
+  .perk-row { display: flex; gap: 8px; align-items: flex-start; }
+
+  .btn {
+    font-family: 'Space Grotesk', sans-serif;
+    border: none;
+    cursor: pointer;
+    border-radius: 12px;
+    font-weight: 800;
+    transition: transform 0.08s ease;
+  }
+  .btn:active { transform: scale(0.97); }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--green-deep), var(--green-main));
+    color: #fff;
+    padding: 16px 36px;
+    font-size: 16px;
+    box-shadow: 0 5px 15px rgba(27,94,32,0.3);
+    width: 100%;
+    max-width: 290px;
+  }
+  .btn-ghost {
+    background: none;
+    color: var(--green-deep);
+    font-size: 13px;
+    text-decoration: underline;
+    font-weight: 700;
+    padding: 10px;
+    margin-top: 4px;
+  }
+
+  /* Play Screen */
+  #playScreen {
+    padding-top: 6px;
+    padding-bottom: 90px; /* Room for feedback bar */
+  }
+
+  /* Progress Track */
+  .track-bar {
+    width: 100%;
+    height: 6px;
+    background: #E2E8F0;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 14px;
+  }
+  .track-fill {
+    height: 100%;
+    background: var(--green-main);
+    border-radius: 3px;
+    transition: width 0.3s ease;
+    width: 12.5%;
+  }
+
+  /* Current Item Hero Card */
+  .item-card {
+    width: 100%;
+    background: #fff;
+    border: 1.5px solid var(--green-border);
+    border-radius: 20px;
+    padding: 18px 16px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(27,94,32,0.06);
+    margin-bottom: 16px;
+    animation: fadeIn 0.3s ease;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .item-emoji {
+    font-size: 58px;
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));
+    margin-bottom: 6px;
+  }
+  .item-title {
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--green-dark);
+    margin: 0 0 4px;
+  }
+  .item-prompt {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink-soft);
+  }
+
+  /* Options Stack */
+  .options-stack {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .option-btn {
+    width: 100%;
+    background: #fff;
+    border: 1.5px solid var(--line);
+    border-radius: 14px;
+    padding: 14px 14px;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .option-btn:active { background: #F1F5F9; }
+  .opt-letter {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--green-tint);
+    color: var(--green-deep);
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 800;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .opt-text {
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--ink);
+    line-height: 1.35;
+    flex: 1;
+  }
+
+  .option-btn.selected-correct {
+    border-color: var(--good);
+    background: var(--good-tint);
+  }
+  .option-btn.selected-correct .opt-letter {
+    background: var(--good);
+    color: #fff;
+  }
+
+  .option-btn.selected-wrong {
+    border-color: var(--bad);
+    background: var(--bad-tint);
+  }
+  .option-btn.selected-wrong .opt-letter {
+    background: var(--bad);
+    color: #fff;
+  }
+
+  .option-btn.highlight-correct {
+    border-color: var(--good);
+    box-shadow: 0 0 0 1.5px var(--good);
+  }
+
+  .option-btn.locked {
+    pointer-events: none;
+  }
+
+  /* Fixed Bottom Feedback Bar */
+  .feedback-bar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: #fff;
+    border-top: 2px solid var(--line);
+    box-shadow: 0 -4px 18px rgba(0,0,0,0.1);
+    padding: 16px 20px calc(16px + env(safe-area-inset-bottom, 0px));
+    transform: translateY(110%);
+    transition: transform 0.28s cubic-bezier(0.2, 0.8, 0.3, 1);
+    z-index: 40;
+  }
+  .feedback-bar.show { transform: translateY(0); }
+  .fb-inner {
+    max-width: 460px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .fb-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .fb-status {
+    font-size: 16px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .fb-status.good { color: var(--good); }
+  .fb-status.bad { color: var(--bad); }
+
+  .fb-explanation {
+    font-size: 13px;
+    line-height: 1.45;
+    color: var(--ink-soft);
+  }
+  .fb-explanation b { color: var(--ink); }
+
+  .fb-btn {
+    align-self: flex-end;
+    padding: 10px 22px;
+    font-size: 13.5px;
+    background: var(--green-deep);
+    color: #fff;
+    border-radius: 10px;
+    margin-top: 4px;
+  }
+
+  /* Done Screen */
+  #doneScreen {
+    justify-content: center;
+    text-align: center;
+    padding: 20px 8px;
+  }
+  .award-icon {
+    font-size: 68px;
+    margin-bottom: 6px;
+  }
+  #doneScreen h2 {
+    font-size: 26px;
+    color: var(--green-dark);
+    margin: 0 0 6px;
+  }
+  #doneScreen p {
+    font-size: 14px;
+    color: var(--ink-soft);
+    margin: 0 0 18px;
+    max-width: 320px;
+  }
+
+  .stat-card {
+    background: #fff;
+    border: 1.5px solid var(--line);
+    border-radius: 16px;
+    padding: 16px 20px;
+    width: 100%;
+    max-width: 320px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 12px rgba(27,94,32,0.06);
+  }
+  .stat-col { text-align: center; }
+  .stat-col .lbl { font-size: 11px; font-weight: 700; color: var(--ink-soft); text-transform: uppercase; }
+  .stat-col .val { font-family: 'Space Grotesk', sans-serif; font-size: 24px; font-weight: 800; color: var(--green-dark); margin-top: 2px; }
+  .stat-col .val.green { color: var(--green-main); }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    🥦 WET WASTE UPCYCLE
+    <small>Smart Re-use & Disposal Hacks</small>
+  </div>
+  <div class="topbar-right">
+    <div class="score-chip">SCORE <span id="scoreVal">0</span></div>
+    <button class="exit-btn" id="exitTopBtn">Exit</button>
+  </div>
+</div>
+
+<div class="stage">
+
+  <!-- START SCREEN -->
+  <div class="screen active" id="startScreen">
+    <div class="pill-badge">MODULE 3 · WET WASTE HACKS</div>
+    <div class="hero-art">🍌🥦🥚🍵</div>
+    <h1>Wet Waste Upcycle</h1>
+    <p>Kitchen waste isn't just "garbage". Each organic item has a clever hack, plant use, or zero-waste upcycling power!</p>
+    
+    <div class="perks-card">
+      <div class="perk-row">
+        <span>🍌</span>
+        <div><b>Kela:</b> Banana peel tea for rose blooms</div>
+      </div>
+      <div class="perk-row">
+        <span>🥦</span>
+        <div><b>Sabzi:</b> Veggie scrap broth before composting</div>
+      </div>
+      <div class="perk-row">
+        <span>🥚</span>
+        <div><b>Anda:</b> Calcium barrier against plant pests</div>
+      </div>
+      <div class="perk-row">
+        <span>🍵</span>
+        <div><b>Chai:</b> Nitrogen rich soil conditioner</div>
+      </div>
+    </div>
+
+    <button class="btn btn-primary" id="startBtn">Start 8-Question Quiz</button>
+  </div>
+
+  <!-- PLAY SCREEN -->
+  <div class="screen" id="playScreen">
+    <div class="track-bar">
+      <div class="track-fill" id="trackFill"></div>
+    </div>
+
+    <div class="item-card">
+      <div class="item-emoji" id="itemEmoji">🍌</div>
+      <h2 class="item-title" id="itemName">Kele ka Chhilka</h2>
+      <div class="item-prompt">What is the most effective eco-friendly thing to do with this?</div>
+    </div>
+
+    <div class="options-stack" id="optionsStack"></div>
+  </div>
+
+  <!-- DONE SCREEN -->
+  <div class="screen" id="doneScreen">
+    <div class="award-icon" id="awardIcon">🏆</div>
+    <h2 id="doneTitle">Upcycle Champion!</h2>
+    <p id="doneDesc">You now know the best ways to turn wet kitchen scraps into garden gold and zero-waste hacks.</p>
+
+    <div class="stat-card">
+      <div class="stat-col">
+        <div class="lbl">Total Score</div>
+        <div class="val green" id="finalScoreVal">0</div>
+      </div>
+      <div class="stat-col">
+        <div class="lbl">Correct Answers</div>
+        <div class="val" id="finalCorrectVal">0 / 8</div>
+      </div>
+    </div>
+
+    <button class="btn btn-primary" id="replayBtn">Try Again</button>
+    <button class="btn-ghost" id="exitFromDoneBtn">Exit to App</button>
+  </div>
+
+</div>
+
+<!-- FEEDBACK SLIDE-UP BAR -->
+<div class="feedback-bar" id="feedbackBar">
+  <div class="fb-inner">
+    <div class="fb-top">
+      <div class="fb-status" id="fbStatus">✅ Correct Choice!</div>
+    </div>
+    <div class="fb-explanation" id="fbExplanation"></div>
+    <button class="btn fb-btn" id="fbNextBtn">Next Question &rarr;</button>
+  </div>
+</div>
+
+<script>
+  function closeGame() {
+    if (window.parent !== window) {
+      window.parent.postMessage({ type: 'close-game' }, '*');
+    } else {
+      window.location.hash = '#/app';
+    }
+  }
+  document.getElementById('exitTopBtn').addEventListener('click', closeGame);
+  document.getElementById('exitFromDoneBtn').addEventListener('click', closeGame);
+
+  // Web Audio Synth
+  let audioCtx = null;
+  function getAudioContext() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    return audioCtx;
+  }
+  function beep(freq, duration, type = 'sine', volume = 0.15) {
+    try {
+      const ctx = getAudioContext();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, ctx.currentTime);
+      gain.gain.setValueAtTime(volume, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + duration);
+    } catch(e) {}
+  }
+  function playCorrectSound() {
+    beep(523, 0.08, 'sine', 0.2);
+    setTimeout(() => beep(659, 0.08, 'sine', 0.2), 70);
+    setTimeout(() => beep(784, 0.14, 'sine', 0.2), 140);
+  }
+  function playWrongSound() {
+    beep(240, 0.12, 'sawtooth', 0.18);
+    setTimeout(() => beep(180, 0.18, 'sawtooth', 0.2), 100);
+  }
+  function playFanfare() {
+    [523, 659, 784, 1046].forEach((f, i) => {
+      setTimeout(() => beep(f, 0.15, 'triangle', 0.22), i * 90);
+    });
+  }
+
+  // 8 Specific Questions
+  const QUESTIONS = [
+    {
+      emoji: "🍌",
+      name: "Kele ka Chhilka (Banana Peel)",
+      options: [
+        { text: "Soak in water for 48 hrs to make potassium-rich liquid feed for roses & flowering plants", correct: true },
+        { text: "Throw into the dry blue bin with paper & plastic bags", correct: false },
+        { text: "Burn it to ashes on a stove to make homemade tile cleaner", correct: false }
+      ],
+      explanation: "Banana peels are loaded with potassium. Soaking peels in a jar of water makes 'banana peel tea'—an organic liquid fertilizer that encourages abundant flowers and fruit!"
+    },
+    {
+      emoji: "🥦",
+      name: "Sabzi ke Tukde (Veggie Scraps)",
+      options: [
+        { text: "Freeze clean scraps, boil into rich vegetable broth, then compost the pulp", correct: true },
+        { text: "Flush them straight down the kitchen sink drain pipe", correct: false },
+        { text: "Scatter them on street sidewalks for birds to peck at", correct: false }
+      ],
+      explanation: "Onion skins, carrot tips, and celery ends can be boiled into a zero-waste vegetable stock for soup or dal. After straining, the pulp goes right into compost!"
+    },
+    {
+      emoji: "🥚",
+      name: "Ande ke Chhilke (Eggshells)",
+      options: [
+        { text: "Crush finely into garden soil for slow-release calcium & a barrier against pests", correct: true },
+        { text: "Microwave on high heat to make pet crunchies", correct: false },
+        { text: "Put them in the blue dry recycling bin as plastic packaging", correct: false }
+      ],
+      explanation: "Eggshells are over 90% calcium carbonate. Crushed shells prevent tomato blossom rot, fortify plant stems, and sharp edges naturally deter crawling snails and slugs."
+    },
+    {
+      emoji: "🍵",
+      name: "Ubali Chai Patti (Used Tea Leaves)",
+      options: [
+        { text: "Rinse away milk/sugar, dry lightly, and mix into compost as a nitrogen booster", correct: true },
+        { text: "Wash straight down the bathroom basin drain pipe", correct: false },
+        { text: "Feed them directly to household dogs or cats", correct: false }
+      ],
+      explanation: "Used tea leaves are rich in nitrogen (Greens) and tannic acid that acid-loving plants like roses and ferns adore. Always rinse out dairy and sugar first!"
+    },
+    {
+      emoji: "☕",
+      name: "Coffee Grounds (Spent Coffee)",
+      options: [
+        { text: "Sprinkle into compost or soil to attract beneficial earthworms & enrich humus", correct: true },
+        { text: "Throw into plastic recycling bags", correct: false },
+        { text: "Dump into rivers to feed local fish", correct: false }
+      ],
+      explanation: "Earthworms love coffee grounds! They also add valuable nitrogen to compost and improve water retention without raising soil acidity excessively."
+    },
+    {
+      emoji: "🍋",
+      name: "Nimbu ke Chhilke (Citrus Peels)",
+      options: [
+        { text: "Ferment with water & jaggery for 90 days to make natural bio-enzyme floor cleaner", correct: true },
+        { text: "Put dozens into a worm vermicompost bin", correct: false },
+        { text: "Throw into dry glass recycling", correct: false }
+      ],
+      explanation: "Citrus peels fermented with jaggery and water create powerful 'Bio-Enzymes'—a completely chemical-free floor and kitchen cleaner! (Note: Don't put too much citrus in worm bins as acids irritate earthworms)."
+    },
+    {
+      emoji: "🍲",
+      name: "Extra Safe Cooked Food (Surplus Meals)",
+      options: [
+        { text: "Pack cleanly while safe & warm, and donate immediately to a local food rescue / shelter", correct: true },
+        { text: "Dump straight into the trash bin to avoid hassle", correct: false },
+        { text: "Leave uncovered on the kitchen counter for 2 days", correct: false }
+      ],
+      explanation: "The food recovery hierarchy puts feeding hungry people first! Fresh, untouched surplus meals should always be rescued and donated before composting."
+    },
+    {
+      emoji: "🥥",
+      name: "Nariyal ke Baal (Coconut Coir / Husk)",
+      options: [
+        { text: "Shred into potting soil mix or use as a coarse brown aeration layer in compost", correct: true },
+        { text: "Throw into wet sludge bins where it turns slimy", correct: false },
+        { text: "Melt down in a metal pan over high flame", correct: false }
+      ],
+      explanation: "Coconut coir is a sustainable peat moss alternative! It retains up to 10x its weight in water and provides the spongy air pockets essential for aerobic composting."
+    }
+  ];
+
+  let qIndex = 0;
+  let score = 0;
+  let correctCount = 0;
+  let answered = false;
+
+  const startScreen = document.getElementById('startScreen');
+  const playScreen = document.getElementById('playScreen');
+  const doneScreen = document.getElementById('doneScreen');
+  const trackFill = document.getElementById('trackFill');
+  const itemEmoji = document.getElementById('itemEmoji');
+  const itemName = document.getElementById('itemName');
+  const optionsStack = document.getElementById('optionsStack');
+  const feedbackBar = document.getElementById('feedbackBar');
+  const fbStatus = document.getElementById('fbStatus');
+  const fbExplanation = document.getElementById('fbExplanation');
+  const fbNextBtn = document.getElementById('fbNextBtn');
+  const scoreVal = document.getElementById('scoreVal');
+
+  function showScreen(name) {
+    startScreen.classList.toggle('active', name === 'start');
+    playScreen.classList.toggle('active', name === 'play');
+    doneScreen.classList.toggle('active', name === 'done');
+    feedbackBar.classList.remove('show');
+  }
+
+  function startQuiz() {
+    qIndex = 0;
+    score = 0;
+    correctCount = 0;
+    scoreVal.textContent = '0';
+    showScreen('play');
+    renderQuestion();
+  }
+
+  function renderQuestion() {
+    answered = false;
+    feedbackBar.classList.remove('show');
+    const q = QUESTIONS[qIndex];
+
+    trackFill.style.width = `${((qIndex + 1) / QUESTIONS.length) * 100}%`;
+    itemEmoji.textContent = q.emoji;
+    itemName.textContent = q.name;
+
+    optionsStack.innerHTML = '';
+    const letters = ['A', 'B', 'C'];
+
+    q.options.forEach((opt, idx) => {
+      const btn = document.createElement('button');
+      btn.className = 'option-btn';
+      btn.innerHTML = `
+        <span class="opt-letter">${letters[idx]}</span>
+        <span class="opt-text">${opt.text}</span>
+      `;
+      btn.addEventListener('click', () => handleOptionClick(btn, opt, q));
+      optionsStack.appendChild(btn);
+    });
+  }
+
+  function handleOptionClick(clickedBtn, selectedOpt, question) {
+    if (answered) return;
+    answered = true;
+
+    const allBtns = optionsStack.querySelectorAll('.option-btn');
+    allBtns.forEach(b => b.classList.add('locked'));
+
+    if (selectedOpt.correct) {
+      clickedBtn.classList.add('selected-correct');
+      score += 15;
+      correctCount++;
+      scoreVal.textContent = score;
+      playCorrectSound();
+      showFeedback(true, question.explanation);
+    } else {
+      clickedBtn.classList.add('selected-wrong');
+      // Highlight the correct one
+      allBtns.forEach((b, i) => {
+        if (question.options[i].correct) {
+          b.classList.add('highlight-correct');
+        }
+      });
+      playWrongSound();
+      showFeedback(false, question.explanation);
+    }
+  }
+
+  function showFeedback(isCorrect, explanation) {
+    fbStatus.textContent = isCorrect ? "✅ Brilliant Choice! (+15 pts)" : "⚠️ Not quite the best use!";
+    fbStatus.className = `fb-status ${isCorrect ? 'good' : 'bad'}`;
+    fbExplanation.innerHTML = `<b>Why:</b> ${explanation}`;
+    fbNextBtn.textContent = (qIndex + 1 >= QUESTIONS.length) ? "View Results &rarr;" : "Next Question &rarr;";
+    feedbackBar.classList.add('show');
+  }
+
+  fbNextBtn.addEventListener('click', () => {
+    feedbackBar.classList.remove('show');
+    qIndex++;
+    if (qIndex >= QUESTIONS.length) {
+      endQuiz();
+    } else {
+      renderQuestion();
+    }
+  });
+
+  function endQuiz() {
+    document.getElementById('finalScoreVal').textContent = score;
+    document.getElementById('finalCorrectVal').textContent = `${correctCount} / ${QUESTIONS.length}`;
+
+    const icon = document.getElementById('awardIcon');
+    const title = document.getElementById('doneTitle');
+    const desc = document.getElementById('doneDesc');
+
+    if (correctCount >= 7) {
+      icon.textContent = '🌟';
+      title.textContent = 'Zero-Waste Guru!';
+      desc.textContent = 'Outstanding! You know exactly how to transform kitchen scraps into valuable resources.';
+      playFanfare();
+    } else if (correctCount >= 5) {
+      icon.textContent = '🌱';
+      title.textContent = 'Great Upcycler!';
+      desc.textContent = 'Good job! A few more tweaks and you will have zero food waste at home.';
+      playFanfare();
+    } else {
+      icon.textContent = '💡';
+      title.textContent = 'Keep Learning!';
+      desc.textContent = 'Review the did-you-know tips and give it another try!';
+      beep(300, 0.2, 'triangle', 0.2);
+    }
+
+    showScreen('done');
+  }
+
+  document.getElementById('startBtn').addEventListener('click', startQuiz);
+  document.getElementById('replayBtn').addEventListener('click', startQuiz);
+</script>
+</body>
+</html>

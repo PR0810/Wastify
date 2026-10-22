@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Food Rescue</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700;800&family=Inter:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #FFFBF5;
+    --orange-dark: #9A3412;
+    --orange-main: #EA580C;
+    --orange-bright: #F97316;
+    --orange-tint: #FFEDD5;
+    --green-dark: #14532D;
+    --green-main: #16A34A;
+    --green-bright: #22C55E;
+    --green-tint: #DCFCE7;
+    --bin-dark: #334155;
+    --bin-main: #64748B;
+    --bin-tint: #F1F5F9;
+    --ink: #1E293B;
+    --ink-soft: #64748B;
+    --line: #FED7AA;
+    --card: #FFFFFF;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  * { box-sizing: inherit; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow-x: hidden;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  h1, h2, h3 { font-family: 'Space Grotesk', sans-serif; }
+
+  /* Top Bar */
+  .topbar {
+    width: 100%;
+    background: linear-gradient(90deg, var(--orange-dark), #7C2D12);
+    color: #fff;
+    padding: 12px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+    z-index: 30;
+    box-shadow: 0 2px 8px rgba(154,52,18,0.25);
+  }
+  .brand {
+    font-weight: 800;
+    font-size: 15px;
+    letter-spacing: 0.3px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .brand small {
+    display: block;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 10.5px;
+    color: #FDBA74;
+    margin-top: 1px;
+  }
+  .topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .pill-badge {
+    background: rgba(255,255,255,0.15);
+    padding: 5px 10px;
+    border-radius: 8px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 12.5px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: #fff;
+  }
+  .pill-badge span { color: #86EFAC; }
+  .exit-btn {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: #FFF7ED;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 12.5px;
+    padding: 6px 13px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .exit-btn:active { background: rgba(255,255,255,0.2); }
+
+  /* Stage */
+  .stage {
+    width: 100%;
+    max-width: 460px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 10px 16px 20px;
+    position: relative;
+  }
+
+  .screen {
+    display: none;
+    width: 100%;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+  }
+  .screen.active { display: flex; }
+
+  /* Start Screen */
+  #startScreen {
+    justify-content: center;
+    text-align: center;
+    padding: 20px 8px;
+    gap: 8px;
+  }
+  .hero-tag {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    color: var(--orange-dark);
+    background: var(--orange-tint);
+    border: 1px solid var(--line);
+    padding: 5px 14px;
+    border-radius: 20px;
+  }
+  .hero-ic {
+    font-size: 64px;
+    margin: 8px 0;
+  }
+  #startScreen h1 {
+    font-size: 28px;
+    margin: 0 0 6px;
+    color: var(--orange-dark);
+  }
+  #startScreen p {
+    font-size: 14.5px;
+    color: var(--ink-soft);
+    margin: 0 0 18px;
+    line-height: 1.5;
+    max-width: 320px;
+  }
+
+  .hierarchy-box {
+    background: #fff;
+    border: 1.5px solid var(--line);
+    border-radius: 14px;
+    padding: 12px 16px;
+    max-width: 330px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    text-align: left;
+    margin-bottom: 22px;
+    font-size: 13px;
+    box-shadow: 0 4px 12px rgba(234,88,12,0.06);
+  }
+  .hb-row { display: flex; gap: 8px; align-items: flex-start; }
+  .hb-row.d { color: var(--orange-dark); }
+  .hb-row.c { color: var(--green-dark); }
+  .hb-row.b { color: var(--bin-dark); }
+
+  .btn {
+    font-family: 'Space Grotesk', sans-serif;
+    border: none;
+    cursor: pointer;
+    border-radius: 14px;
+    font-weight: 800;
+    transition: transform 0.08s ease;
+  }
+  .btn:active { transform: scale(0.97); }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--orange-main), #C2410C);
+    color: #fff;
+    padding: 16px 36px;
+    font-size: 16px;
+    box-shadow: 0 5px 15px rgba(234,88,12,0.35);
+    width: 100%;
+    max-width: 290px;
+  }
+  .btn-ghost {
+    background: none;
+    color: var(--orange-dark);
+    font-size: 13px;
+    text-decoration: underline;
+    font-weight: 700;
+    padding: 10px;
+    margin-top: 4px;
+  }
+
+  /* Play Screen */
+  #playScreen {
+    padding-top: 4px;
+    padding-bottom: 110px; /* Room for feedback */
+  }
+  .hud-row {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  .hud-tag {
+    font-size: 12px;
+    font-weight: 800;
+    padding: 4px 10px;
+    border-radius: 12px;
+    background: #fff;
+    border: 1px solid #FED7AA;
+    color: var(--orange-dark);
+  }
+  .meals-saved-pill {
+    background: var(--green-tint);
+    border: 1px solid #BBF7D0;
+    color: var(--green-dark);
+    font-weight: 800;
+    font-size: 12px;
+    padding: 4px 12px;
+    border-radius: 12px;
+  }
+
+  .prog-track {
+    width: 100%;
+    height: 6px;
+    background: #FED7AA;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 14px;
+  }
+  .prog-fill {
+    height: 100%;
+    background: var(--orange-main);
+    border-radius: 3px;
+    width: 10%;
+    transition: width 0.3s ease;
+  }
+
+  /* Scenario Card */
+  .scenario-card {
+    width: 100%;
+    background: #fff;
+    border: 2px solid var(--line);
+    border-radius: 22px;
+    padding: 22px 18px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    box-shadow: 0 8px 20px rgba(234,88,12,0.06);
+    margin-bottom: 18px;
+    position: relative;
+    animation: popIn 0.3s ease;
+  }
+  @keyframes popIn {
+    0% { transform: scale(0.95); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  .item-status-tag {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    padding: 3px 10px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+  }
+  .item-status-tag.fresh { background: var(--orange-tint); color: var(--orange-dark); }
+  .item-status-tag.scrap { background: var(--green-tint); color: var(--green-dark); }
+  .item-status-tag.spoiled { background: #FEE2E2; color: #DC2626; }
+
+  .scenario-emoji {
+    font-size: 64px;
+    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));
+    margin-bottom: 8px;
+  }
+  .scenario-title {
+    font-size: 21px;
+    font-weight: 800;
+    color: var(--ink);
+    margin: 0 0 6px;
+  }
+  .scenario-desc {
+    font-size: 13.5px;
+    font-weight: 500;
+    color: var(--ink-soft);
+    line-height: 1.45;
+  }
+
+  /* 3 Action Buttons */
+  .decisions-stack {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .decision-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    border-radius: 16px;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 0 rgba(0,0,0,0.12);
+    transition: transform 0.08s ease, filter 0.08s ease;
+  }
+  .decision-btn:active {
+    transform: translateY(3px);
+    box-shadow: 0 1px 0 rgba(0,0,0,0.12);
+  }
+  .decision-btn.btn-donate {
+    background: linear-gradient(135deg, #EA580C, #F97316);
+    color: #fff;
+  }
+  .decision-btn.btn-compost {
+    background: linear-gradient(135deg, #15803D, #22C55E);
+    color: #fff;
+  }
+  .decision-btn.btn-bin {
+    background: linear-gradient(135deg, #475569, #64748B);
+    color: #fff;
+  }
+  .db-left { display: flex; align-items: center; gap: 12px; }
+  .db-ic { font-size: 24px; }
+  .db-info { text-align: left; }
+  .db-title { font-size: 15px; font-weight: 800; }
+  .db-sub { font-size: 11px; opacity: 0.9; font-weight: 600; margin-top: 1px; }
+  .db-arrow { font-size: 18px; font-weight: 800; opacity: 0.8; }
+
+  /* Slide-up Feedback Bar */
+  .rescue-feedback {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: #fff;
+    border-top: 2px solid var(--line);
+    padding: 16px 20px calc(16px + env(safe-area-inset-bottom, 0px));
+    box-shadow: 0 -4px 18px rgba(0,0,0,0.1);
+    transform: translateY(110%);
+    transition: transform 0.28s cubic-bezier(0.2, 0.8, 0.3, 1);
+    z-index: 40;
+  }
+  .rescue-feedback.show { transform: translateY(0); }
+  .rf-inner {
+    max-width: 460px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .rf-header {
+    font-size: 16px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .rf-header.good { color: var(--green-main); }
+  .rf-header.bad { color: #DC2626; }
+
+  .rf-body {
+    font-size: 13px;
+    color: var(--ink-soft);
+    line-height: 1.45;
+  }
+  .rf-body b { color: var(--ink); }
+
+  .rf-btn {
+    align-self: flex-end;
+    padding: 10px 22px;
+    font-size: 13.5px;
+    background: var(--orange-dark);
+    color: #fff;
+    border-radius: 10px;
+    margin-top: 4px;
+  }
+
+  /* Done Screen */
+  #doneScreen {
+    justify-content: center;
+    text-align: center;
+    padding: 20px 8px;
+  }
+  .hero-saved-banner {
+    background: var(--green-tint);
+    border: 2px solid #86EFAC;
+    border-radius: 20px;
+    padding: 16px 20px;
+    width: 100%;
+    max-width: 320px;
+    margin-bottom: 16px;
+  }
+  .hsb-ic { font-size: 44px; margin-bottom: 4px; }
+  .hsb-title { font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-weight: 800; color: var(--green-dark); }
+  .hsb-sub { font-size: 12.5px; font-weight: 600; color: var(--green-main); margin-top: 2px; }
+
+  .stats-grid {
+    background: #fff;
+    border: 1.5px solid var(--line);
+    border-radius: 16px;
+    padding: 14px 18px;
+    width: 100%;
+    max-width: 320px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .sg-item { text-align: center; }
+  .sg-lbl { font-size: 11px; font-weight: 700; color: var(--ink-soft); text-transform: uppercase; }
+  .sg-val { font-family: 'Space Grotesk', sans-serif; font-size: 24px; font-weight: 800; color: var(--orange-dark); margin-top: 2px; }
+  .sg-val.green { color: var(--green-main); }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    🤝 FOOD RESCUE
+    <small>Donate · Compost · Bin</small>
+  </div>
+  <div class="topbar-right">
+    <div class="pill-badge">🍲 <span id="topMeals">0</span> Meals</div>
+    <div class="pill-badge">⭐ <span id="topScore">0</span></div>
+    <button class="exit-btn" id="exitTopBtn">Exit</button>
+  </div>
+</div>
+
+<div class="stage">
+
+  <!-- START SCREEN -->
+  <div class="screen active" id="startScreen">
+    <div class="hero-tag">MODULE 3 · FOOD RESCUE HERO</div>
+    <div class="hero-ic">🍲🤝🌱</div>
+    <h1>Food Rescue Challenge</h1>
+    <p>Millions of meals go to waste every day. For each food item, choose the right ethical and safe action:</p>
+    
+    <div class="hierarchy-box">
+      <div class="hb-row d">
+        <span>🤝</span>
+        <div><b>DONATE:</b> Fresh, untouched surplus food. Feed people first!</div>
+      </div>
+      <div class="hb-row c">
+        <span>🌱</span>
+        <div><b>COMPOST:</b> Inedible peels, trims & scraps that can nourish soil.</div>
+      </div>
+      <div class="hb-row b">
+        <span>🗑️</span>
+        <div><b>BIN:</b> Moldy, rancid, unsafe food that harms compost & health.</div>
+      </div>
+    </div>
+
+    <button class="btn btn-primary" id="startBtn">Rescue Food (10 Scenarios)</button>
+  </div>
+
+  <!-- PLAY SCREEN -->
+  <div class="screen" id="playScreen">
+    <div class="hud-row">
+      <span class="hud-tag" id="hudIndex">SCENARIO 1 / 10</span>
+      <span class="meals-saved-pill" id="hudMealsSaved">🍲 Meals Saved: 0</span>
+    </div>
+
+    <div class="prog-track">
+      <div class="prog-fill" id="progFill"></div>
+    </div>
+
+    <div class="scenario-card" id="scenarioCard">
+      <span class="item-status-tag fresh" id="itemTag">FRESH SURPLUS</span>
+      <div class="scenario-emoji" id="scenarioEmoji">🫓</div>
+      <h2 class="scenario-title" id="scenarioTitle">30 Hot Surplus Rotis</h2>
+      <p class="scenario-desc" id="scenarioDesc">Leftover from school festival catering. Untouched, clean, warm, and packed in silver foil.</p>
+    </div>
+
+    <div class="decisions-stack">
+      <button class="decision-btn btn-donate" id="donateBtn">
+        <div class="db-left">
+          <span class="db-ic">🤝</span>
+          <div class="db-info">
+            <div class="db-title">DONATE</div>
+            <div class="db-sub">Safe & fresh · Feed people</div>
+          </div>
+        </div>
+        <span class="db-arrow">&rarr;</span>
+      </button>
+
+      <button class="decision-btn btn-compost" id="compostBtn">
+        <div class="db-left">
+          <span class="db-ic">🌱</span>
+          <div class="db-info">
+            <div class="db-title">COMPOST</div>
+            <div class="db-sub">Inedible peels & organic scraps</div>
+          </div>
+        </div>
+        <span class="db-arrow">&rarr;</span>
+      </button>
+
+      <button class="decision-btn btn-bin" id="binBtn">
+        <div class="db-left">
+          <span class="db-ic">🗑️</span>
+          <div class="db-info">
+            <div class="db-title">BIN</div>
+            <div class="db-sub">Moldy, rancid or unsafe food</div>
+          </div>
+        </div>
+        <span class="db-arrow">&rarr;</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- DONE SCREEN -->
+  <div class="screen" id="doneScreen">
+    <div class="hero-saved-banner">
+      <div class="hsb-ic">🍲🦸</div>
+      <div class="hsb-title" id="finalMealsMsg">You saved 4 meals!</div>
+      <div class="hsb-sub">Zero food waste champion</div>
+    </div>
+
+    <h2>Food Rescue Complete!</h2>
+    <p id="finalDesc">You applied the food waste hierarchy: Feed people first, compost scraps, and bin only hazardous spoils.</p>
+
+    <div class="stats-grid">
+      <div class="sg-item">
+        <div class="sg-lbl">Total Score</div>
+        <div class="sg-val" id="finalScoreVal">0</div>
+      </div>
+      <div class="sg-item">
+        <div class="sg-lbl">Accuracy</div>
+        <div class="sg-val green" id="finalAccuracyVal">0%</div>
+      </div>
+    </div>
+
+    <button class="btn btn-primary" id="replayBtn">Rescue Again</button>
+    <button class="btn-ghost" id="exitFromDoneBtn">Exit to App</button>
+  </div>
+
+</div>
+
+<!-- FEEDBACK BAR -->
+<div class="rescue-feedback" id="rescueFeedback">
+  <div class="rf-inner">
+    <div class="rf-header" id="rfHeader">✅ Perfect Decision! (+100 pts)</div>
+    <div class="rf-body" id="rfBody"></div>
+    <button class="btn rf-btn" id="rfNextBtn">Next Scenario &rarr;</button>
+  </div>
+</div>
+
+<script>
+  function closeGame() {
+    if (window.parent !== window) {
+      window.parent.postMessage({ type: 'close-game' }, '*');
+    } else {
+      window.location.hash = '#/app';
+    }
+  }
+  document.getElementById('exitTopBtn').addEventListener('click', closeGame);
+  document.getElementById('exitFromDoneBtn').addEventListener('click', closeGame);
+
+  // Web Audio Synth
+  let audioCtx = null;
+  function getAudioContext() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    return audioCtx;
+  }
+  function beep(freq, duration, type = 'sine', volume = 0.15) {
+    try {
+      const ctx = getAudioContext();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, ctx.currentTime);
+      gain.gain.setValueAtTime(volume, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + duration);
+    } catch(e) {}
+  }
+  function playCorrectSound() {
+    beep(523, 0.08, 'sine', 0.2);
+    setTimeout(() => beep(659, 0.08, 'sine', 0.2), 70);
+    setTimeout(() => beep(784, 0.14, 'sine', 0.2), 140);
+  }
+  function playWrongSound() {
+    beep(240, 0.12, 'sawtooth', 0.18);
+    setTimeout(() => beep(180, 0.18, 'sawtooth', 0.2), 100);
+  }
+  function playFanfare() {
+    [523, 659, 784, 1046].forEach((f, i) => {
+      setTimeout(() => beep(f, 0.16, 'triangle', 0.24), i * 95);
+    });
+  }
+
+  // 10 Scenario Items
+  const SCENARIOS = [
+    {
+      title: "30 Hot Surplus Rotis",
+      emoji: "🫓",
+      tag: "Fresh Surplus",
+      tagType: "fresh",
+      desc: "Freshly made rotis from a school festival catering order. Untouched, clean, warm, and packed in foil.",
+      correct: "DONATE",
+      explanation: "Safe, untouched warm food should always be donated immediately! Food rescue groups can feed hungry families with this."
+    },
+    {
+      title: "Overripe Soft Bananas",
+      emoji: "🍌",
+      tag: "Kitchen Peels",
+      tagType: "scrap",
+      desc: "Brown-spotted bananas that got too soft to eat as fresh fruit, but are not moldy.",
+      correct: "COMPOST",
+      explanation: "Overripe fruits and peels are compost superstars—packed with potassium and organic moisture to supercharge microbes!"
+    },
+    {
+      title: "Fuzzy Moldy Veggie Curry",
+      emoji: "🍲",
+      tag: "Spoiled & Toxic",
+      tagType: "spoiled",
+      desc: "A bowl of leftover curry left uncovered in a warm kitchen corner for 4 days with green fuzzy mold on top.",
+      correct: "BIN",
+      explanation: "Greasy cooked food with toxic mold spores poses health risks and creates foul anaerobic rot in home compost. It must go to the bin."
+    },
+    {
+      title: "20 Fresh Whole Apples",
+      emoji: "🍎",
+      tag: "Fresh Surplus",
+      tagType: "fresh",
+      desc: "Leftover fresh uncut apples from the sports day fruit station. Completely fresh and untouched.",
+      correct: "DONATE",
+      explanation: "Whole fresh fruit is gold for community shelters and children's homes! Never throw good fruit away."
+    },
+    {
+      title: "Carrot & Potato Peels",
+      emoji: "🥕",
+      tag: "Kitchen Scraps",
+      tagType: "scrap",
+      desc: "Inedible carrot ends, potato skins, and cauliflower stems trimmed off during dinner cooking prep.",
+      correct: "COMPOST",
+      explanation: "Raw vegetable trimmings are clean organic matter (Greens) that break down quickly into rich garden humus."
+    },
+    {
+      title: "Black Moldy Bread Loaf",
+      emoji: "🍞",
+      tag: "Spoiled Mold",
+      tagType: "spoiled",
+      desc: "Bread loaf expired two weeks ago with black mycotoxin mold spots all over and a sour, pungent smell.",
+      correct: "BIN",
+      explanation: "Severe bread mold contains harmful mycotoxins that can harm soil bacteria and cause respiratory issues. Bin it safely."
+    },
+    {
+      title: "Boxed Veg Biryani Boxes",
+      emoji: "🍚",
+      tag: "Fresh Surplus",
+      tagType: "fresh",
+      desc: "5 unopened catered boxes of vegetarian biryani from a wedding reception, kept chilled and sealed.",
+      correct: "DONATE",
+      explanation: "Sealed, refrigerated catering surplus is 100% safe to eat! Feeding people is always priority #1."
+    },
+    {
+      title: "Used Tea Leaves & Lemon Rinds",
+      emoji: "🍵",
+      tag: "Kitchen Scraps",
+      tagType: "scrap",
+      desc: "Morning tea strainer grounds and lemon halves squeezed for lemonade.",
+      correct: "COMPOST",
+      explanation: "Used tea leaves add nitrogen, and lemon rinds add fresh fragrance and bio-matter to your compost heap!"
+    },
+    {
+      title: "Rotten Chicken Curry",
+      emoji: "🍗",
+      tag: "Rancid Meat",
+      tagType: "spoiled",
+      desc: "Cooked chicken curry left out in the hot sun for 3 days. Smells rancid and has flies buzzing around.",
+      correct: "BIN",
+      explanation: "Rotting meat harbors salmonella, breeds maggots, and attracts rodents. Never put rotting meat in basic compost!"
+    },
+    {
+      title: "Fresh Morning Bakery Buns",
+      emoji: "🥯",
+      tag: "Fresh Surplus",
+      tagType: "fresh",
+      desc: "15 freshly baked bread rolls unsold at 8 PM when the local bakery is shutting down for the night.",
+      correct: "DONATE",
+      explanation: "Fresh bakery leftovers can be picked up by food rescue volunteers for evening distribution at night shelters!"
+    }
+  ];
+
+  let qIndex = 0;
+  let score = 0;
+  let mealsSaved = 0;
+  let correctCount = 0;
+  let answered = false;
+
+  const startScreen = document.getElementById('startScreen');
+  const playScreen = document.getElementById('playScreen');
+  const doneScreen = document.getElementById('doneScreen');
+  const progFill = document.getElementById('progFill');
+  const hudIndex = document.getElementById('hudIndex');
+  const hudMealsSaved = document.getElementById('hudMealsSaved');
+  const itemTag = document.getElementById('itemTag');
+  const scenarioEmoji = document.getElementById('scenarioEmoji');
+  const scenarioTitle = document.getElementById('scenarioTitle');
+  const scenarioDesc = document.getElementById('scenarioDesc');
+  const rescueFeedback = document.getElementById('rescueFeedback');
+  const rfHeader = document.getElementById('rfHeader');
+  const rfBody = document.getElementById('rfBody');
+  const rfNextBtn = document.getElementById('rfNextBtn');
+  const topMeals = document.getElementById('topMeals');
+  const topScore = document.getElementById('topScore');
+
+  function showScreen(name) {
+    startScreen.classList.toggle('active', name === 'start');
+    playScreen.classList.toggle('active', name === 'play');
+    doneScreen.classList.toggle('active', name === 'done');
+    rescueFeedback.classList.remove('show');
+  }
+
+  function startGame() {
+    qIndex = 0;
+    score = 0;
+    mealsSaved = 0;
+    correctCount = 0;
+    topMeals.textContent = '0';
+    topScore.textContent = '0';
+    showScreen('play');
+    renderScenario();
+  }
+
+  function renderScenario() {
+    answered = false;
+    rescueFeedback.classList.remove('show');
+    const s = SCENARIOS[qIndex];
+
+    hudIndex.textContent = `SCENARIO ${qIndex + 1} / ${SCENARIOS.length}`;
+    hudMealsSaved.textContent = `🍲 Meals Saved: ${mealsSaved}`;
+    progFill.style.width = `${((qIndex + 1) / SCENARIOS.length) * 100}%`;
+
+    itemTag.textContent = s.tag;
+    itemTag.className = `item-status-tag ${s.tagType}`;
+    scenarioEmoji.textContent = s.emoji;
+    scenarioTitle.textContent = s.title;
+    scenarioDesc.textContent = s.desc;
+  }
+
+  function handleDecision(userChoice) {
+    if (answered) return;
+    answered = true;
+
+    const s = SCENARIOS[qIndex];
+    const isCorrect = (userChoice === s.correct);
+
+    if (isCorrect) {
+      score += 100;
+      correctCount++;
+      if (s.correct === 'DONATE') {
+        mealsSaved++;
+        topMeals.textContent = mealsSaved;
+        hudMealsSaved.textContent = `🍲 Meals Saved: ${mealsSaved}`;
+      }
+      topScore.textContent = score;
+
+      playCorrectSound();
+      showFeedback(true, s.correct, s.explanation);
+    } else {
+      playWrongSound();
+      showFeedback(false, s.correct, s.explanation);
+    }
+  }
+
+  function showFeedback(isCorrect, rightAction, explanation) {
+    rfHeader.textContent = isCorrect
+      ? "✅ Perfect Decision! (+100 pts)"
+      : `⚠️ Better Choice: ${rightAction}`;
+    rfHeader.className = `rf-header ${isCorrect ? 'good' : 'bad'}`;
+    rfBody.innerHTML = `<b>Why:</b> ${explanation}`;
+    rfNextBtn.textContent = (qIndex + 1 >= SCENARIOS.length) ? "View Results &rarr;" : "Next Scenario &rarr;";
+    rescueFeedback.classList.add('show');
+  }
+
+  rfNextBtn.addEventListener('click', () => {
+    rescueFeedback.classList.remove('show');
+    qIndex++;
+    if (qIndex >= SCENARIOS.length) {
+      endGame();
+    } else {
+      renderScenario();
+    }
+  });
+
+  function endGame() {
+    const accuracy = Math.round((correctCount / SCENARIOS.length) * 100);
+    document.getElementById('finalScoreVal').textContent = score;
+    document.getElementById('finalAccuracyVal').textContent = `${accuracy}%`;
+    document.getElementById('finalMealsMsg').textContent = `You saved ${mealsSaved} meals!`;
+
+    const desc = document.getElementById('finalDesc');
+    if (mealsSaved >= 3 && accuracy >= 80) {
+      desc.textContent = `Heroic effort! You prevented edible food waste and ensured scraps got composted properly.`;
+      playFanfare();
+    } else {
+      desc.textContent = `Good effort! Remember: Fresh untouched food -> DONATE, Peels & scraps -> COMPOST, Moldy spoils -> BIN.`;
+      playCorrectSound();
+    }
+
+    showScreen('done');
+  }
+
+  document.getElementById('donateBtn').addEventListener('click', () => handleDecision('DONATE'));
+  document.getElementById('compostBtn').addEventListener('click', () => handleDecision('COMPOST'));
+  document.getElementById('binBtn').addEventListener('click', () => handleDecision('BIN'));
+  document.getElementById('startBtn').addEventListener('click', startGame);
+  document.getElementById('replayBtn').addEventListener('click', startGame);
+</script>
+</body>
+</html>

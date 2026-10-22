@@ -1,0 +1,1056 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>⭐ Safety Star - Wastify Learning Module</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --theme-color: #b45309;
+      --theme-light: #fef3c7;
+      --theme-dark: #78350f;
+      --navy: #1e3a5f;
+      --text-main: #334155;
+      --text-dark: #0f172a;
+      --bg-page: #e8f4f8;
+      --card-bg: #ffffff;
+      --border-color: #e2e8f0;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: var(--bg-page);
+      color: var(--text-main);
+      line-height: 1.65;
+      padding: 24px 12px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .container {
+      max-width: 750px;
+      margin: 0 auto;
+      background: var(--card-bg);
+      padding: 32px;
+      border-radius: 8px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    }
+
+    /* Top Navigation Bar */
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border-color);
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    #google_translate_element {
+      display: inline-block;
+      min-height: 32px;
+    }
+
+    .goog-te-gadget {
+      font-family: 'Inter', sans-serif !important;
+      font-size: 12px !important;
+      color: #64748b !important;
+    }
+
+    .goog-te-gadget .goog-te-combo {
+      padding: 6px 10px !important;
+      border-radius: 6px !important;
+      border: 1px solid #cbd5e1 !important;
+      font-family: 'Inter', sans-serif !important;
+      font-size: 12px !important;
+      background: #ffffff !important;
+      color: #1e293b !important;
+      outline: none !important;
+    }
+
+    .back-btn {
+      background: #334155;
+      color: #ffffff;
+      border: none;
+      border-radius: 9999px;
+      padding: 8px 18px;
+      font-weight: 600;
+      font-size: 13px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.2s, transform 0.15s;
+      text-decoration: none;
+    }
+
+    .back-btn:hover {
+      background: #1e293b;
+      transform: translateY(-1px);
+    }
+
+    /* Caution Tape Accent Banner */
+    .caution-tape-banner {
+      width: 100%;
+      height: 14px;
+      background: repeating-linear-gradient(
+        -45deg,
+        #facc15,
+        #facc15 14px,
+        #18181b 14px,
+        #18181b 28px
+      );
+      border-radius: 6px;
+      margin: 16px 0 20px 0;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+    }
+
+    /* Header Section */
+    .module-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--theme-light);
+      color: var(--theme-color);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      border: 1px solid rgba(180, 83, 9, 0.25);
+    }
+
+    .module-title {
+      font-size: 30px;
+      font-weight: 900;
+      color: var(--navy);
+      margin: 12px 0 6px 0;
+      line-height: 1.25;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .module-desc {
+      font-size: 15px;
+      color: #475569;
+      margin-bottom: 24px;
+      line-height: 1.6;
+    }
+
+    /* Section Headings */
+    .section-heading {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--text-dark);
+      margin: 36px 0 16px 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .section-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--theme-color);
+      color: #ffffff;
+      font-size: 14px;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+
+    p {
+      margin-bottom: 14px;
+      font-size: 15px;
+      color: var(--text-main);
+    }
+
+    /* 2-Column Hazard Grid */
+    .hazard-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+      margin: 20px 0;
+    }
+
+    .hazard-card {
+      background: #fafaf9;
+      border: 1px solid #e7e5e4;
+      border-left: 4px solid var(--theme-color);
+      border-radius: 8px;
+      padding: 14px 16px;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+
+    .hazard-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(180, 83, 9, 0.1);
+    }
+
+    .hazard-card-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--navy);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+
+    .hazard-card-desc {
+      font-size: 13px;
+      color: #57534e;
+      line-height: 1.45;
+    }
+
+    /* Warning & Safe Boxes */
+    .alert-box {
+      border-radius: 8px;
+      padding: 18px 20px;
+      margin: 20px 0;
+      border-left: 5px solid;
+    }
+
+    .warning-box {
+      background: #fef2f2;
+      border-color: #ef4444;
+      color: #991b1b;
+    }
+
+    .warning-box h4 {
+      font-size: 16px;
+      font-weight: 800;
+      color: #b91c1c;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .safe-box {
+      background: #f0fdf4;
+      border-color: #22c55e;
+      color: #166534;
+    }
+
+    .safe-box h4 {
+      font-size: 16px;
+      font-weight: 800;
+      color: #15803d;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .bullet-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .bullet-list li {
+      font-size: 14px;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      line-height: 1.5;
+    }
+
+    /* Styled Location Cards */
+    .locations-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin: 20px 0;
+    }
+
+    .location-card {
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 16px 14px;
+      text-align: center;
+    }
+
+    .location-icon {
+      font-size: 32px;
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    .location-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--navy);
+      margin-bottom: 4px;
+    }
+
+    .location-desc {
+      font-size: 12px;
+      color: #64748b;
+      line-height: 1.4;
+    }
+
+    /* Safety ke 3 NAHI (Big Visual Boxes) */
+    .three-no-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin: 20px 0 24px 0;
+    }
+
+    .no-box {
+      background: #fff1f2;
+      border: 2px dashed #f43f5e;
+      border-radius: 10px;
+      padding: 18px 12px;
+      text-align: center;
+    }
+
+    .no-box-icon {
+      font-size: 32px;
+      margin-bottom: 6px;
+      display: block;
+    }
+
+    .no-box-title {
+      font-size: 16px;
+      font-weight: 900;
+      color: #be123c;
+      letter-spacing: 0.05em;
+    }
+
+    .no-box-sub {
+      font-size: 12px;
+      color: #881337;
+      margin-top: 4px;
+      font-weight: 500;
+    }
+
+    /* YouTube Video Container */
+    .video-wrapper {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      border-radius: 10px;
+      overflow: hidden;
+      margin: 24px 0 12px 0;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+      border: 1px solid #cbd5e1;
+      background: #000000;
+    }
+
+    .video-wrapper iframe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border: 0;
+    }
+
+    .video-caption {
+      text-align: center;
+      font-size: 12px;
+      color: #64748b;
+      margin-bottom: 24px;
+    }
+
+    /* Tables */
+    .table-container {
+      width: 100%;
+      overflow-x: auto;
+      margin: 20px 0;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 14px;
+    }
+
+    th {
+      background-color: var(--theme-color);
+      color: #ffffff;
+      font-weight: 700;
+      padding: 12px 16px;
+      letter-spacing: 0.02em;
+    }
+
+    td {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border-color);
+      color: #334155;
+      vertical-align: top;
+      line-height: 1.5;
+    }
+
+    tbody tr:nth-child(even) {
+      background-color: #f8fafc;
+    }
+
+    tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    .myth-tag {
+      color: #dc2626;
+      font-weight: 700;
+    }
+
+    .fact-tag {
+      color: #16a34a;
+      font-weight: 700;
+    }
+
+    /* Teacher Note */
+    .teacher-note {
+      background-color: #ecfdf5;
+      border-left: 5px solid #10b981;
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin: 28px 0;
+      color: #065f46;
+    }
+
+    .teacher-note-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 15px;
+      font-weight: 800;
+      color: #047857;
+      margin-bottom: 6px;
+    }
+
+    .teacher-note p {
+      margin-bottom: 0;
+      font-size: 14px;
+      color: #065f46;
+      line-height: 1.55;
+    }
+
+    /* Quiz Card */
+    .quiz-card {
+      background-color: #fffbeb;
+      border: 1px solid #fde68a;
+      border-radius: 10px;
+      padding: 28px;
+      margin-top: 36px;
+    }
+
+    .quiz-header {
+      margin-bottom: 20px;
+    }
+
+    .quiz-title {
+      font-size: 22px;
+      font-weight: 900;
+      color: #92400e;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .quiz-subtitle {
+      font-size: 14px;
+      color: #b45309;
+      margin-top: 4px;
+    }
+
+    .quiz-q-block {
+      background: #ffffff;
+      border: 1px solid #fef3c7;
+      border-radius: 8px;
+      padding: 18px;
+      margin-bottom: 18px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+
+    .quiz-q-text {
+      font-size: 15px;
+      font-weight: 700;
+      color: #1e293b;
+      margin-bottom: 12px;
+    }
+
+    .quiz-options {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .quiz-option-label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      color: #334155;
+      background: #ffffff;
+      transition: all 0.15s ease;
+    }
+
+    .quiz-option-label:hover {
+      background: #f8fafc;
+      border-color: #cbd5e1;
+    }
+
+    .quiz-option-label input[type="radio"] {
+      accent-color: var(--theme-color);
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+    }
+
+    .quiz-option-label.correct {
+      border-color: #10b981;
+      background-color: #ecfdf5;
+      color: #065f46;
+      font-weight: 600;
+    }
+
+    .quiz-option-label.incorrect {
+      border-color: #ef4444;
+      background-color: #fef2f2;
+      color: #991b1b;
+    }
+
+    .explanation {
+      margin-top: 10px;
+      padding: 10px 12px;
+      border-radius: 6px;
+      background: #f1f5f9;
+      font-size: 13px;
+      color: #334155;
+      display: none;
+    }
+
+    .submit-btn {
+      background-color: var(--theme-color);
+      color: #ffffff;
+      border: none;
+      padding: 12px 30px;
+      font-size: 15px;
+      font-weight: 700;
+      border-radius: 8px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 2px 8px rgba(180, 83, 9, 0.25);
+      transition: background 0.2s, transform 0.15s;
+    }
+
+    .submit-btn:hover {
+      background-color: var(--theme-dark);
+      transform: translateY(-1px);
+    }
+
+    .quiz-result-box {
+      display: none;
+      margin-top: 24px;
+      padding: 20px;
+      border-radius: 8px;
+      text-align: center;
+    }
+
+    .quiz-result-box.passed {
+      background: #ecfdf5;
+      border: 2px solid #10b981;
+      color: #065f46;
+    }
+
+    .quiz-result-box.failed {
+      background: #fef2f2;
+      border: 2px solid #ef4444;
+      color: #991b1b;
+    }
+
+    .score-title {
+      font-size: 22px;
+      font-weight: 900;
+      margin-bottom: 6px;
+    }
+
+    .score-sub {
+      font-size: 14px;
+    }
+
+    /* Responsive */
+    @media (max-width: 640px) {
+      .container {
+        padding: 20px 16px;
+      }
+      .hazard-grid,
+      .locations-grid,
+      .three-no-grid {
+        grid-template-columns: 1fr;
+      }
+      .module-title {
+        font-size: 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+
+    <!-- Top Navigation Bar -->
+    <div class="top-bar">
+      <div id="google_translate_element"></div>
+      <button class="back-btn" onclick="if(window.parent!==window){window.parent.postMessage({type:'close-game'},'*')}else{history.back()}">
+        ← Back
+      </button>
+    </div>
+
+    <!-- Caution Tape Banner -->
+    <div class="caution-tape-banner"></div>
+
+    <!-- Module Header -->
+    <header>
+      <span class="module-badge">Module 4 · Safety Guide</span>
+      <h1 class="module-title">⭐ Safety Star</h1>
+      <p class="module-desc">
+        Hazardous kachre ko pehchano aur jaano ki ise kyun hamesha alag aur surakshit tarike se handle karna zaroori hai. Hamari safety sabse pehle aati hai!
+      </p>
+    </header>
+
+    <!-- Section 1 -->
+    <h2 class="section-heading">
+      <span class="section-num">1</span>
+      Hazardous Waste Kya Hai? ⚠️
+    </h2>
+    <p>
+      <strong>Hazardous Waste (Khatarnaak Kachra)</strong> woh kachra hai jo zehreela (toxic), aag pakadne wala (flammable), chot pahunchane wala (sharp/cutting), ya bimari failane wala (infectious/biohazardous) hota hai.
+    </p>
+    <p>
+      Yeh normal sukhe ya geele kachre jaisa nahi hota. Agar yeh normal dustbin mein chala jaye, toh safai karmchariyon ki jaan ko khatra hota hai, aur yeh mitti tatha bhoomi-gat paani (groundwater) ko saalon tak ke liye zehreela kar deta hai.
+    </p>
+
+    <!-- Section 2 -->
+    <h2 class="section-heading">
+      <span class="section-num">2</span>
+      Examples of Hazardous Waste
+    </h2>
+    <p>
+      Humare gharon aur aas-paas aamtaur par milne wale hazardous items ko pehchano:
+    </p>
+    <div class="hazard-grid">
+      <div class="hazard-card">
+        <div class="hazard-card-title">🔋 Battery / Cell</div>
+        <div class="hazard-card-desc">Isme acid, lead aur cadmium jaise toxic metals hote hain jo sadte nahi hain.</div>
+      </div>
+      <div class="hazard-card">
+        <div class="hazard-card-title">💊 Expired Dawai</div>
+        <div class="hazard-card-desc">Expired antibiotics aur syrups pani mein ghul kar poisonous ban jaate hain.</div>
+      </div>
+      <div class="hazard-card">
+        <div class="hazard-card-title">💉 Syringe & Needles</div>
+        <div class="hazard-card-desc">Used needles se chot lagne par hepatitis ya tetanus ka serious risk hota hai.</div>
+      </div>
+      <div class="hazard-card">
+        <div class="hazard-card-title">🌡️ Thermometer (Paara)</div>
+        <div class="hazard-card-desc">Isme liquid Mercury (paara) hota hai jo thoda sa bhi touch hone par zehreela hai.</div>
+      </div>
+      <div class="hazard-card">
+        <div class="hazard-card-title">🎨 Paint / Chemical</div>
+        <div class="hazard-card-desc">Paints, thinners, pesticides aur floor cleaners aag aur toxic gas chhodte hain.</div>
+      </div>
+      <div class="hazard-card">
+        <div class="hazard-card-title">💡 Bulb / Tubelight</div>
+        <div class="hazard-card-desc">Tubelight aur CFL mein mercury vapor aur kaanch ke tez pieces hote hain.</div>
+      </div>
+      <div class="hazard-card">
+        <div class="hazard-card-title">🔌 Charger / E-waste</div>
+        <div class="hazard-card-desc">Purani wiring, chargers aur electronics mein heavy metals maujood rehte hain.</div>
+      </div>
+      <div class="hazard-card">
+        <div class="hazard-card-title">🩺 Sanitary / Medical</div>
+        <div class="hazard-card-desc">Bandages aur medical cotton infectious bacteria aur virus failaate hain.</div>
+      </div>
+    </div>
+
+    <!-- Section 3 -->
+    <h2 class="section-heading">
+      <span class="section-num">3</span>
+      Ye Ghar Pe Recycle NAHI Karte ❌
+    </h2>
+    <div class="alert-box warning-box">
+      <h4>⚠️ DANGER: In 3 Cheezon Ka Sakht Parhez Karein</h4>
+      <ul class="bullet-list">
+        <li><strong>🚫 KABHI JALAO NAHI:</strong> Hazardous kachre ko jalane se jaanleva dioxin aur poisonous fumes nikalti hain jo phephadon ko damage karti hain.</li>
+        <li><strong>🚫 KABHI NALE / MITTI MEIN MAT DAALO:</strong> Nale ya mitti mein daalne par yeh bhoomi-gat jal mein mil jaata hai aur peene ke paani ko zehreela kar deta hai.</li>
+        <li><strong>🚫 NORMAL DUSTBIN MEIN NAHI:</strong> Neele ya hare dabbe mein daalne par safai karne wale safai-mitron ko deep cuts lagte hain aur infection ho jaata hai.</li>
+      </ul>
+    </div>
+
+    <!-- Section 4 -->
+    <h2 class="section-heading">
+      <span class="section-num">4</span>
+      Safe Rules ✅
+    </h2>
+    <div class="alert-box safe-box">
+      <h4>🛡️ Suraksha Ke Golden Rules: Inka Paalan Karein</h4>
+      <ul class="bullet-list">
+        <li><strong>👉 Haath se mat uthao:</strong> Kisi bhi tuti hui glass, battery ya syringe ko nange haathon se kabhi mat chhuo.</li>
+        <li><strong>👉 Bade ko batao:</strong> Aisa koi bhi khatarnaak kachra dikhe toh seedha mummy-papa ya teacher ko inform karo.</li>
+        <li><strong>👉 Alag dabbe/bag mein rakho:</strong> Purani batteries aur dawaiyon ko ek alag safe container ya card-box mein isolate karke rakho.</li>
+        <li><strong>👉 Laal dabba use karo:</strong> Hazardous waste ke liye hamesha Laal Dabba (Red Bin) ya safe drop-off istemal karo.</li>
+      </ul>
+    </div>
+
+    <!-- Section 5 -->
+    <h2 class="section-heading">
+      <span class="section-num">5</span>
+      Kahan Do? 📍
+    </h2>
+    <p>
+      Hazardous waste ko kahan submit karna chahiye taaki yeh safe tarike se treat ho sake?
+    </p>
+    <div class="locations-grid">
+      <div class="location-card">
+        <span class="location-icon">🏭</span>
+        <div class="location-title">E-waste Collection</div>
+        <div class="location-desc">Purane phones, batteries, bulbs aur chargers authorized e-waste kendra par dein.</div>
+      </div>
+      <div class="location-card">
+        <span class="location-icon">🏥</span>
+        <div class="location-title">Medical Waste Bin</div>
+        <div class="location-desc">Clinics aur pharmacy ke bahar lage yellow/red biohazard bins mein dawai aur syringe dein.</div>
+      </div>
+      <div class="location-card">
+        <span class="location-icon">🏛️</span>
+        <div class="location-title">Nagar Nigam Facility</div>
+        <div class="location-desc">Municipality ki hazardous waste pickup drives aur safai kendra par dispose karein.</div>
+      </div>
+    </div>
+
+    <!-- Section 6 -->
+    <h2 class="section-heading">
+      <span class="section-num">6</span>
+      Safety ke 3 NAHI ❌
+    </h2>
+    <p>
+      Khatarnaak kachre ke samne aane par yeh teen mukhya niyam hamesha yaad rakhein:
+    </p>
+
+    <div class="three-no-grid">
+      <div class="no-box">
+        <span class="no-box-icon">🛑</span>
+        <div class="no-box-title">CHHUO NAHI</div>
+        <div class="no-box-sub">Never touch directly</div>
+      </div>
+      <div class="no-box">
+        <span class="no-box-icon">🔨</span>
+        <div class="no-box-title">TODO NAHI</div>
+        <div class="no-box-sub">Do not break or crush</div>
+      </div>
+      <div class="no-box">
+        <span class="no-box-icon">🔥</span>
+        <div class="no-box-title">JALAO NAHI</div>
+        <div class="no-box-sub">Never burn or ignite</div>
+      </div>
+    </div>
+
+    <!-- YouTube Video Embed -->
+    <div class="video-wrapper">
+      <iframe 
+        src="https://www.youtube.com/embed/t7kGASMBzK4" 
+        title="Hazardous Waste Management Video"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+        allowfullscreen>
+      </iframe>
+    </div>
+    <div class="video-caption">
+      📺 Video: Dekhiye hazardous waste ki surakshit handling aur disposal ka tarika.
+    </div>
+
+    <!-- Myths vs Facts Table -->
+    <h2 class="section-heading">
+      <span class="section-num">7</span>
+      Myths vs Facts 💡
+    </h2>
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 45%;">Myth (Galat Fahami) ❌</th>
+            <th style="width: 55%;">Fact (Sacchai) ✅</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="myth-tag">Myth:</span> "Purani battery dustbin mein fekna theek hai."</td>
+            <td><span class="fact-tag">Fact:</span> Battery mein cadmium, acid aur lead hota hai jo mitti aur groundwater mein milkar cancer aur bimariyan failata hai.</td>
+          </tr>
+          <tr>
+            <td><span class="myth-tag">Myth:</span> "Bachi hui dawai ko toilet mein flush kar do."</td>
+            <td><span class="fact-tag">Fact:</span> Dawai flush karne se city water supply contaminate hoti hai aur jal-jeev (aquatic life) khatam ho jaate hain.</td>
+          </tr>
+          <tr>
+            <td><span class="myth-tag">Myth:</span> "Toota CFL bulb raddi wale ko de sakte hain."</td>
+            <td><span class="fact-tag">Fact:</span> CFL aur tubelight mein zehreela Mercury vapor hota hai; ise special hazardous collection mein hi dena chahiye.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Teacher Note -->
+    <div class="teacher-note">
+      <div class="teacher-note-header">
+        🧑‍🏫 Teacher & Parent Note
+      </div>
+      <p>
+        Ghar mein purani battery aur expired dawaiyon ke liye ek alag cardboard dabba banayein. Bachon ko sikhayein ki road ya ghar par koi bhi battery, syringe ya toota kaanch dikhe toh use chhue bina turant kisi bade ko inform karein.
+      </p>
+    </div>
+
+    <!-- Quiz Section -->
+    <div class="quiz-card">
+      <div class="quiz-header">
+        <h3 class="quiz-title">📝 Safety Star Quiz</h3>
+        <p class="quiz-subtitle">5 sawaalon ke sahi uttar de kar apna Safety Star badge unlock karein!</p>
+      </div>
+
+      <form id="quizForm" onsubmit="event.preventDefault(); submitQuiz();">
+        <!-- Q1 -->
+        <div class="quiz-q-block">
+          <div class="quiz-q-text">1. Inme se hazardous waste kaun sa hai?</div>
+          <div class="quiz-options">
+            <label class="quiz-option-label" id="q1-opt0">
+              <input type="radio" name="q1" value="0">
+              <span>A) Newspaper (Akhbaar)</span>
+            </label>
+            <label class="quiz-option-label" id="q1-opt1">
+              <input type="radio" name="q1" value="1">
+              <span>B) Expired dawai</span>
+            </label>
+            <label class="quiz-option-label" id="q1-opt2">
+              <input type="radio" name="q1" value="2">
+              <span>C) Banana peel (Kele ka chhilka)</span>
+            </label>
+          </div>
+          <div class="explanation" id="q1-exp">
+            💡 <strong>Explanation:</strong> Expired dawai chemical zeher hai aur hazardous waste category mein aati hai.
+          </div>
+        </div>
+
+        <!-- Q2 -->
+        <div class="quiz-q-block">
+          <div class="quiz-q-text">2. Agar road pe used syringe dikhi, toh kya karna chahiye?</div>
+          <div class="quiz-options">
+            <label class="quiz-option-label" id="q2-opt0">
+              <input type="radio" name="q2" value="0">
+              <span>A) Haath se uthao aur dustbin mein daalo</span>
+            </label>
+            <label class="quiz-option-label" id="q2-opt1">
+              <input type="radio" name="q2" value="1">
+              <span>B) Ignore karke aage badh jao</span>
+            </label>
+            <label class="quiz-option-label" id="q2-opt2">
+              <input type="radio" name="q2" value="2">
+              <span>C) Bade ko batao, khud haath mat lagao</span>
+            </label>
+          </div>
+          <div class="explanation" id="q2-exp">
+            💡 <strong>Explanation:</strong> Syringe se fatal infections ho sakte hain. Hamesha bade ko batao, nange haath kabhi mat lagao.
+          </div>
+        </div>
+
+        <!-- Q3 -->
+        <div class="quiz-q-block">
+          <div class="quiz-q-text">3. E-waste (jaise purana charger/battery) kahan dena chahiye?</div>
+          <div class="quiz-options">
+            <label class="quiz-option-label" id="q3-opt0">
+              <input type="radio" name="q3" value="0">
+              <span>A) Authorized E-waste collection point par</span>
+            </label>
+            <label class="quiz-option-label" id="q3-opt1">
+              <input type="radio" name="q3" value="1">
+              <span>B) Normal dustbin mein</span>
+            </label>
+            <label class="quiz-option-label" id="q3-opt2">
+              <input type="radio" name="q3" value="2">
+              <span>C) Nale ya mitti mein</span>
+            </label>
+          </div>
+          <div class="explanation" id="q3-exp">
+            💡 <strong>Explanation:</strong> E-waste ko certified e-waste collection centre par safely dismantle kiya jaata hai.
+          </div>
+        </div>
+
+        <!-- Q4 -->
+        <div class="quiz-q-block">
+          <div class="quiz-q-text">4. Hazardous waste ke sath kya KABHI nahi karna chahiye?</div>
+          <div class="quiz-options">
+            <label class="quiz-option-label" id="q4-opt0">
+              <input type="radio" name="q4" value="0">
+              <span>A) Recycle ghar pe</span>
+            </label>
+            <label class="quiz-option-label" id="q4-opt1">
+              <input type="radio" name="q4" value="1">
+              <span>B) Dustbin mein</span>
+            </label>
+            <label class="quiz-option-label" id="q4-opt2">
+              <input type="radio" name="q4" value="2">
+              <span>C) Jalao nahi (Never burn it)</span>
+            </label>
+          </div>
+          <div class="explanation" id="q4-exp">
+            💡 <strong>Explanation:</strong> Hazardous kachre ko KABHI nahi jalana chahiye kyunki isse deadly toxic gas nikalti hai.
+          </div>
+        </div>
+
+        <!-- Q5 -->
+        <div class="quiz-q-block">
+          <div class="quiz-q-text">5. Laal dabba (Red Bin) kis tarah ke kachre ke liye hota hai?</div>
+          <div class="quiz-options">
+            <label class="quiz-option-label" id="q5-opt0">
+              <input type="radio" name="q5" value="0">
+              <span>A) Dry waste (Sukha kachra)</span>
+            </label>
+            <label class="quiz-option-label" id="q5-opt1">
+              <input type="radio" name="q5" value="1">
+              <span>B) Hazardous waste (Khatarnaak kachra)</span>
+            </label>
+            <label class="quiz-option-label" id="q5-opt2">
+              <input type="radio" name="q5" value="2">
+              <span>C) Wet waste (Geela kachra)</span>
+            </label>
+          </div>
+          <div class="explanation" id="q5-exp">
+            💡 <strong>Explanation:</strong> Laal dabba hazardous/biomedical kachre ke liye alag se nirdharit hota hai.
+          </div>
+        </div>
+
+        <button type="submit" class="submit-btn" id="submitBtn">
+          Submit Answers 🚀
+        </button>
+      </form>
+
+      <!-- Quiz Result Box -->
+      <div class="quiz-result-box" id="resultBox">
+        <div class="score-title" id="scoreTitle">Score: 0/5</div>
+        <div class="score-sub" id="scoreSub">You need 4/5 (80%) to pass!</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Google Translate Script -->
+  <script type="text/javascript">
+    function googleTranslateElementInit() {
+      new google.translate.TranslateElement({
+        pageLanguage: 'en',
+        includedLanguages: 'en,hi,bn,te,mr,ta,gu,kn,ml,pa',
+        layout: google.translate.TranslateElement.InlineLayout.SIMPLE
+      }, 'google_translate_element');
+    }
+  </script>
+  <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+  <!-- Quiz Logic Script -->
+  <script>
+    const correctAnswers = [1, 2, 0, 2, 1]; // Module 4 correct answers
+    const moduleId = 'module-4';
+    let quizSubmitted = false;
+
+    function submitQuiz() {
+      if (quizSubmitted) return;
+
+      let score = 0;
+      let allAnswered = true;
+
+      for (let i = 1; i <= 5; i++) {
+        const selected = document.querySelector(`input[name="q${i}"]:checked`);
+        if (!selected) {
+          allAnswered = false;
+        }
+      }
+
+      if (!allAnswered) {
+        alert("Kripya sabhi 5 sawaalon ke uttar chunein!");
+        return;
+      }
+
+      quizSubmitted = true;
+      document.getElementById('submitBtn').disabled = true;
+      document.getElementById('submitBtn').style.opacity = '0.6';
+      document.getElementById('submitBtn').style.cursor = 'not-allowed';
+
+      for (let i = 1; i <= 5; i++) {
+        const selected = document.querySelector(`input[name="q${i}"]:checked`);
+        const userAns = parseInt(selected.value);
+        const correctAns = correctAnswers[i - 1];
+
+        const selectedLabel = document.getElementById(`q${i}-opt${userAns}`);
+        const correctLabel = document.getElementById(`q${i}-opt${correctAns}`);
+
+        if (userAns === correctAns) {
+          score++;
+          selectedLabel.classList.add('correct');
+        } else {
+          selectedLabel.classList.add('incorrect');
+          correctLabel.classList.add('correct');
+        }
+
+        // Show explanation
+        const expEl = document.getElementById(`q${i}-exp`);
+        if (expEl) expEl.style.display = 'block';
+      }
+
+      const passed = score >= 4;
+      const resultBox = document.getElementById('resultBox');
+      const scoreTitle = document.getElementById('scoreTitle');
+      const scoreSub = document.getElementById('scoreSub');
+
+      resultBox.style.display = 'block';
+      if (passed) {
+        resultBox.className = 'quiz-result-box passed';
+        scoreTitle.innerHTML = `🎉 Badhai Ho! Aapka Score: ${score}/5`;
+        scoreSub.innerHTML = `Aapne Safety Star module safalta-purvak complete kar liya hai! ⭐`;
+      } else {
+        resultBox.className = 'quiz-result-box failed';
+        scoreTitle.innerHTML = `Aapka Score: ${score}/5`;
+        scoreSub.innerHTML = `Pass hone ke liye kam se kam 4/5 chahiye. Revision karein aur dubara koshish karein!`;
+      }
+
+      // postMessage to parent window
+      window.parent.postMessage({
+        type: 'quiz-complete',
+        moduleId: moduleId,
+        score: score,
+        total: 5,
+        passed: passed
+      }, '*');
+
+      resultBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  </script>
+</body>
+</html>
