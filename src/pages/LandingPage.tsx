@@ -100,10 +100,10 @@ export function LandingPage() {
   }
 
   const navLinks = [
-    { label: 'Home', href: '#home' },
-    { label: 'How It Works', href: '#how-it-works' },
-    { label: 'Features', href: '#features' },
     { label: 'Learn', href: '#learn' },
+    { label: 'Features', href: '#features' },
+    { label: 'Marketplace', href: '#marketplace' },
+    { label: 'About Us', href: '#about' },
     { label: 'Contact', href: '#contact' },
   ];
 
@@ -262,6 +262,30 @@ export function LandingPage() {
         </div>
       </section>
 
+{/* ==================== 4. MARKETPLACE ==================== */}
+<section id="marketplace" className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
+  <div className="text-center" data-reveal>
+    <h2 className="text-3xl font-bold text-slate-900">Marketplace</h2>
+    <p className="mt-2 text-slate-500">Connect waste generators with recyclers and donors.</p>
+    <div className="mt-8 flex flex-col items-center gap-4 md:flex-row md:justify-center">
+      <button className="rounded-xl bg-emerald-600 px-6 py-3 text-white font-semibold hover:bg-emerald-700">Sell Your Waste</button>
+      <button className="rounded-xl bg-amber-600 px-6 py-3 text-white font-semibold hover:bg-amber-700">Donate Food</button>
+    </div>
+  </div>
+</section>
+
+{/* ==================== 5. ABOUT US ==================== */}
+<section id="about" className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
+  <div className="text-center" data-reveal>
+    <h2 className="text-3xl font-bold text-slate-900">About Us</h2>
+    <p className="mt-2 text-slate-500">Our mission is to create a cleaner, greener future by empowering communities to manage waste responsibly.</p>
+    <div className="mt-8">
+      <h3 className="text-2xl font-bold text-slate-800">Meet the Team</h3>
+      <p className="mt-2 text-slate-500">A dedicated group of environmental enthusiasts, developers, and community leaders.</p>
+    </div>
+  </div>
+</section>
+
       {/* ==================== 3. PROBLEM → SOLUTION ==================== */}
       <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
         <div className="grid gap-8 lg:grid-cols-2">
@@ -295,6 +319,30 @@ export function LandingPage() {
         </div>
       </section>
 
+{/* ==================== 4. MARKETPLACE ==================== */}
+<section id="marketplace" className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
+  <div className="text-center" data-reveal>
+    <h2 className="text-3xl font-bold text-slate-900">Marketplace</h2>
+    <p className="mt-2 text-slate-500">Connect waste generators with recyclers and donors.</p>
+    <div className="mt-8 flex flex-col items-center gap-4 md:flex-row md:justify-center">
+      <button className="rounded-xl bg-emerald-600 px-6 py-3 text-white font-semibold hover:bg-emerald-700">Sell Your Waste</button>
+      <button className="rounded-xl bg-amber-600 px-6 py-3 text-white font-semibold hover:bg-amber-700">Donate Food</button>
+    </div>
+  </div>
+</section>
+
+{/* ==================== 5. ABOUT US ==================== */}
+<section id="about" className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
+  <div className="text-center" data-reveal>
+    <h2 className="text-3xl font-bold text-slate-900">About Us</h2>
+    <p className="mt-2 text-slate-500">Our mission is to create a cleaner, greener future by empowering communities to manage waste responsibly.</p>
+    <div className="mt-8">
+      <h3 className="text-2xl font-bold text-slate-800">Meet the Team</h3>
+      <p className="mt-2 text-slate-500">A dedicated group of environmental enthusiasts, developers, and community leaders.</p>
+    </div>
+  </div>
+</section>
+
       {/* ==================== 4. HOW IT WORKS ==================== */}
       <section id="how-it-works" className="bg-slate-50 py-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
@@ -319,6 +367,30 @@ export function LandingPage() {
         </div>
       </section>
 
+{/* ==================== 4. MARKETPLACE ==================== */}
+<section id="marketplace" className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
+  <div className="text-center" data-reveal>
+    <h2 className="text-3xl font-bold text-slate-900">Marketplace</h2>
+    <p className="mt-2 text-slate-500">Connect waste generators with recyclers and donors.</p>
+    <div className="mt-8 flex flex-col items-center gap-4 md:flex-row md:justify-center">
+      <button className="rounded-xl bg-emerald-600 px-6 py-3 text-white font-semibold hover:bg-emerald-700">Sell Your Waste</button>
+      <button className="rounded-xl bg-amber-600 px-6 py-3 text-white font-semibold hover:bg-amber-700">Donate Food</button>
+    </div>
+  </div>
+</section>
+
+{/* ==================== 5. ABOUT US ==================== */}
+<section id="about" className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
+  <div className="text-center" data-reveal>
+    <h2 className="text-3xl font-bold text-slate-900">About Us</h2>
+    <p className="mt-2 text-slate-500">Our mission is to create a cleaner, greener future by empowering communities to manage waste responsibly.</p>
+    <div className="mt-8">
+      <h3 className="text-2xl font-bold text-slate-800">Meet the Team</h3>
+      <p className="mt-2 text-slate-500">A dedicated group of environmental enthusiasts, developers, and community leaders.</p>
+    </div>
+  </div>
+</section>
+
       {/* ==================== 5. FEATURES ==================== */}
       <section id="features" className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
         <div className="text-center" data-reveal>
@@ -337,6 +409,30 @@ export function LandingPage() {
           ))}
         </div>
       </section>
+
+{/* ==================== 4. MARKETPLACE ==================== */}
+<section id="marketplace" className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
+  <div className="text-center" data-reveal>
+    <h2 className="text-3xl font-bold text-slate-900">Marketplace</h2>
+    <p className="mt-2 text-slate-500">Connect waste generators with recyclers and donors.</p>
+    <div className="mt-8 flex flex-col items-center gap-4 md:flex-row md:justify-center">
+      <button className="rounded-xl bg-emerald-600 px-6 py-3 text-white font-semibold hover:bg-emerald-700">Sell Your Waste</button>
+      <button className="rounded-xl bg-amber-600 px-6 py-3 text-white font-semibold hover:bg-amber-700">Donate Food</button>
+    </div>
+  </div>
+</section>
+
+{/* ==================== 5. ABOUT US ==================== */}
+<section id="about" className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
+  <div className="text-center" data-reveal>
+    <h2 className="text-3xl font-bold text-slate-900">About Us</h2>
+    <p className="mt-2 text-slate-500">Our mission is to create a cleaner, greener future by empowering communities to manage waste responsibly.</p>
+    <div className="mt-8">
+      <h3 className="text-2xl font-bold text-slate-800">Meet the Team</h3>
+      <p className="mt-2 text-slate-500">A dedicated group of environmental enthusiasts, developers, and community leaders.</p>
+    </div>
+  </div>
+</section>
 
       {/* ==================== 6. LEARN ==================== */}
       <section id="learn" className="bg-gradient-to-b from-slate-50 to-emerald-50/30 py-16">
@@ -385,6 +481,30 @@ export function LandingPage() {
         </div>
       </section>
 
+{/* ==================== 4. MARKETPLACE ==================== */}
+<section id="marketplace" className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
+  <div className="text-center" data-reveal>
+    <h2 className="text-3xl font-bold text-slate-900">Marketplace</h2>
+    <p className="mt-2 text-slate-500">Connect waste generators with recyclers and donors.</p>
+    <div className="mt-8 flex flex-col items-center gap-4 md:flex-row md:justify-center">
+      <button className="rounded-xl bg-emerald-600 px-6 py-3 text-white font-semibold hover:bg-emerald-700">Sell Your Waste</button>
+      <button className="rounded-xl bg-amber-600 px-6 py-3 text-white font-semibold hover:bg-amber-700">Donate Food</button>
+    </div>
+  </div>
+</section>
+
+{/* ==================== 5. ABOUT US ==================== */}
+<section id="about" className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
+  <div className="text-center" data-reveal>
+    <h2 className="text-3xl font-bold text-slate-900">About Us</h2>
+    <p className="mt-2 text-slate-500">Our mission is to create a cleaner, greener future by empowering communities to manage waste responsibly.</p>
+    <div className="mt-8">
+      <h3 className="text-2xl font-bold text-slate-800">Meet the Team</h3>
+      <p className="mt-2 text-slate-500">A dedicated group of environmental enthusiasts, developers, and community leaders.</p>
+    </div>
+  </div>
+</section>
+
       {/* ==================== 7. ROLES ==================== */}
       <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
         <div className="text-center" data-reveal>
@@ -416,6 +536,30 @@ export function LandingPage() {
         </div>
       </section>
 
+{/* ==================== 4. MARKETPLACE ==================== */}
+<section id="marketplace" className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
+  <div className="text-center" data-reveal>
+    <h2 className="text-3xl font-bold text-slate-900">Marketplace</h2>
+    <p className="mt-2 text-slate-500">Connect waste generators with recyclers and donors.</p>
+    <div className="mt-8 flex flex-col items-center gap-4 md:flex-row md:justify-center">
+      <button className="rounded-xl bg-emerald-600 px-6 py-3 text-white font-semibold hover:bg-emerald-700">Sell Your Waste</button>
+      <button className="rounded-xl bg-amber-600 px-6 py-3 text-white font-semibold hover:bg-amber-700">Donate Food</button>
+    </div>
+  </div>
+</section>
+
+{/* ==================== 5. ABOUT US ==================== */}
+<section id="about" className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
+  <div className="text-center" data-reveal>
+    <h2 className="text-3xl font-bold text-slate-900">About Us</h2>
+    <p className="mt-2 text-slate-500">Our mission is to create a cleaner, greener future by empowering communities to manage waste responsibly.</p>
+    <div className="mt-8">
+      <h3 className="text-2xl font-bold text-slate-800">Meet the Team</h3>
+      <p className="mt-2 text-slate-500">A dedicated group of environmental enthusiasts, developers, and community leaders.</p>
+    </div>
+  </div>
+</section>
+
       {/* ==================== 8. IMPACT COUNTERS ==================== */}
       <section ref={countersRef} className="bg-gradient-to-br from-emerald-700 to-teal-800 py-16">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
@@ -441,6 +585,30 @@ export function LandingPage() {
           </div>
         </div>
       </section>
+
+{/* ==================== 4. MARKETPLACE ==================== */}
+<section id="marketplace" className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
+  <div className="text-center" data-reveal>
+    <h2 className="text-3xl font-bold text-slate-900">Marketplace</h2>
+    <p className="mt-2 text-slate-500">Connect waste generators with recyclers and donors.</p>
+    <div className="mt-8 flex flex-col items-center gap-4 md:flex-row md:justify-center">
+      <button className="rounded-xl bg-emerald-600 px-6 py-3 text-white font-semibold hover:bg-emerald-700">Sell Your Waste</button>
+      <button className="rounded-xl bg-amber-600 px-6 py-3 text-white font-semibold hover:bg-amber-700">Donate Food</button>
+    </div>
+  </div>
+</section>
+
+{/* ==================== 5. ABOUT US ==================== */}
+<section id="about" className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
+  <div className="text-center" data-reveal>
+    <h2 className="text-3xl font-bold text-slate-900">About Us</h2>
+    <p className="mt-2 text-slate-500">Our mission is to create a cleaner, greener future by empowering communities to manage waste responsibly.</p>
+    <div className="mt-8">
+      <h3 className="text-2xl font-bold text-slate-800">Meet the Team</h3>
+      <p className="mt-2 text-slate-500">A dedicated group of environmental enthusiasts, developers, and community leaders.</p>
+    </div>
+  </div>
+</section>
 
       {/* ==================== 9. CONTACT ==================== */}
       <section id="contact" className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
@@ -531,6 +699,30 @@ export function LandingPage() {
           </div>
         </div>
       </section>
+
+{/* ==================== 4. MARKETPLACE ==================== */}
+<section id="marketplace" className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
+  <div className="text-center" data-reveal>
+    <h2 className="text-3xl font-bold text-slate-900">Marketplace</h2>
+    <p className="mt-2 text-slate-500">Connect waste generators with recyclers and donors.</p>
+    <div className="mt-8 flex flex-col items-center gap-4 md:flex-row md:justify-center">
+      <button className="rounded-xl bg-emerald-600 px-6 py-3 text-white font-semibold hover:bg-emerald-700">Sell Your Waste</button>
+      <button className="rounded-xl bg-amber-600 px-6 py-3 text-white font-semibold hover:bg-amber-700">Donate Food</button>
+    </div>
+  </div>
+</section>
+
+{/* ==================== 5. ABOUT US ==================== */}
+<section id="about" className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
+  <div className="text-center" data-reveal>
+    <h2 className="text-3xl font-bold text-slate-900">About Us</h2>
+    <p className="mt-2 text-slate-500">Our mission is to create a cleaner, greener future by empowering communities to manage waste responsibly.</p>
+    <div className="mt-8">
+      <h3 className="text-2xl font-bold text-slate-800">Meet the Team</h3>
+      <p className="mt-2 text-slate-500">A dedicated group of environmental enthusiasts, developers, and community leaders.</p>
+    </div>
+  </div>
+</section>
 
       {/* ==================== 10. FOOTER ==================== */}
       <footer className="border-t border-slate-200 bg-slate-900 py-10">
