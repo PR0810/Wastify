@@ -8,8 +8,9 @@ import { CitizenDashboard } from '@/pages/dashboards/CitizenDashboard';
 import { DriverDashboard } from '@/pages/dashboards/DriverDashboard';
 import { AdminDashboard } from '@/pages/dashboards/AdminDashboard';
 import { NgoDashboard } from '@/pages/dashboards/NgoDashboard';
-import { LearningHub } from '@/pages/LearningHub';
+
 import { AiScanner } from '@/pages/AiScanner';
+import { LearningHub } from '@/pages/LearningHub';
 import type { Profile } from '@/lib/supabase';
 
 function ProtectedRoute({ children, allowedRoles }: { children: React.ReactNode; allowedRoles?: Profile['role'][] }) {

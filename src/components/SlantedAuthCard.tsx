@@ -130,14 +130,7 @@ export function SlantedAuthCard({ initialMode = 'signin' }: SlantedAuthCardProps
           Back to Home
         </Link>
 
-        {/* Real Official Wastify Logo */}
-        <Link to="/" className="inline-block">
-          <img
-            src="/wastify-logo.png"
-            alt="Wastify Logo"
-            className="h-8 w-auto object-contain brightness-0 invert opacity-95 transition-opacity hover:opacity-100"
-          />
-        </Link>
+
       </div>
 
       {/* ============================================================ */}
@@ -243,28 +236,7 @@ export function SlantedAuthCard({ initialMode = 'signin' }: SlantedAuthCardProps
               </button>
             </p>
 
-            {/* Quick Demo Accounts Helper */}
-            <div className="mt-4 pt-3 border-t border-slate-100">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1 mb-1.5">
-                <Sparkles className="h-3 w-3 text-emerald-600" /> Demo 1-Click
-              </span>
-              <div className="grid grid-cols-2 gap-1.5 text-[11px]">
-                <button
-                  type="button"
-                  onClick={() => fillDemo('citizen@wastify.com')}
-                  className="rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 text-slate-700 hover:bg-emerald-50 hover:text-emerald-800 truncate text-left cursor-pointer"
-                >
-                  Citizen Demo
-                </button>
-                <button
-                  type="button"
-                  onClick={() => fillDemo('driver@wastify.com')}
-                  className="rounded-lg border border-slate-200 bg-slate-50 px-2 py-1 text-slate-700 hover:bg-amber-50 hover:text-amber-800 truncate text-left cursor-pointer"
-                >
-                  Driver Demo
-                </button>
-              </div>
-            </div>
+
           </div>
         </div>
 
@@ -321,31 +293,7 @@ export function SlantedAuthCard({ initialMode = 'signin' }: SlantedAuthCardProps
             )}
 
             <form onSubmit={handleSignUpSubmit} className="space-y-3">
-              {/* Role Picker Pills */}
-              <div>
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-600 mb-1">
-                  Choose Role
-                </label>
-                <div className="grid grid-cols-4 gap-1.5 text-xs">
-                  {ROLES.map((r) => {
-                    const isSelected = role === r.id;
-                    return (
-                      <button
-                        key={r.id}
-                        type="button"
-                        onClick={() => setRole(r.id)}
-                        className={`rounded-lg border px-1.5 py-1 text-center transition-all cursor-pointer ${
-                          isSelected
-                            ? 'border-emerald-600 bg-emerald-600 text-white font-bold'
-                            : 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100'
-                        }`}
-                      >
-                        <span className="truncate block text-[11px]">{r.label.split(' ')[0]}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
+
 
               {/* Age field for Citizen */}
               {role === 'citizen' && (

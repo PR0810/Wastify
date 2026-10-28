@@ -608,24 +608,24 @@ function getModuleVideoUrl(title: string, customVideoUrl?: string): string {
   }
   const t = title.toLowerCase();
   if (t.includes('journey')) {
-    return 'https://www.youtube.com/embed/w5pXJoFKhT8';
+    return 'https://www.youtube.com/embed/40OKRIyOrYI';
   }
   if (t.includes('3r') || t.includes('master')) {
     return 'https://www.youtube.com/embed/zVBkjMbF4Z4';
   }
   if (t.includes('safety')) {
-    return 'https://www.youtube.com/embed/t7kGASMBzK4';
+    return 'https://www.youtube.com/embed/7cublLZ0BH0';
   }
   if (t.includes('compost')) {
-    return 'https://www.youtube.com/embed/amy8Za_HNNY';
+    return 'https://www.youtube.com/embed/26IO95Xt5WU';
   }
   if (t.includes('recycl')) {
     return 'https://www.youtube.com/embed/OasbYWF4_S8';
   }
   if (t.includes('detective') || t.includes('waste')) {
-    return 'https://www.youtube.com/embed/QFrBn6bHx6s';
+    return 'https://www.youtube.com/embed/7cublLZ0BH0';
   }
-  return 'https://www.youtube.com/embed/QFrBn6bHx6s';
+  return 'https://www.youtube.com/embed/7cublLZ0BH0';
 }
 
 // ===== Lesson View Component (Book-Style Digital Textbook) =====
