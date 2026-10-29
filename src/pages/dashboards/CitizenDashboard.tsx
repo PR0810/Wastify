@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Trash2, Recycle, Utensils, Camera, MapPin, Trophy, BookOpen, ScanLine, Clock, CheckCircle2, AlertCircle, Plus, Award } from 'lucide-react';
+import { Trash2, Recycle, Utensils, Camera, MapPin, Trophy, BookOpen, Clock, CheckCircle2, AlertCircle, Plus, Award, Loader2, Navigation } from 'lucide-react';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { Modal } from '@/components/ui/Modal';
 import { StatCard, PageHeader, Section } from '@/components/ui/StatCard';
@@ -433,9 +433,60 @@ function ReportWasteModal({ open, onClose, userId, onCreated }: { open: boolean;
   const [type, setType] = useState<WasteReport['type']>('road_waste');
   const [description, setDescription] = useState('');
   const [address, setAddress] = useState('');
+  const [latitude, setLatitude] = useState<number | null>(null);
+  const [longitude, setLongitude] = useState<number | null>(null);
+  const [detectingLocation, setDetectingLocation] = useState(false);
+  const [locationSuccess, setLocationSuccess] = useState(false);
   const [photoUrl, setPhotoUrl] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const fetchLiveLocation = useCallback(() => {
+    if (!navigator.geolocation) {
+      setAddress('GPS not supported on this device');
+      return;
+    }
+    setDetectingLocation(true);
+    setLocationSuccess(false);
+
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        setLatitude(lat);
+        setLongitude(lng);
+
+        try {
+          const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`, {
+            headers: { 'Accept-Language': 'en' },
+          });
+          if (res.ok) {
+            const data = await res.json();
+            const addr = data.display_name || `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+            setAddress(addr);
+          } else {
+            setAddress(`Live GPS: ${lat.toFixed(5)}, ${lng.toFixed(5)}`);
+          }
+        } catch {
+          setAddress(`Live GPS: ${lat.toFixed(5)}, ${lng.toFixed(5)}`);
+        }
+        setDetectingLocation(false);
+        setLocationSuccess(true);
+      },
+      (err) => {
+        console.warn('Geolocation error:', err);
+        setDetectingLocation(false);
+        setAddress('GPS location unavailable - please enable device location');
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  }, []);
+
+  useEffect(() => {
+    if (open) {
+      fetchLiveLocation();
+    }
+  }, [open, fetchLiveLocation]);
 
   async function handleUpload(file: File) {
     setLoading(true);
@@ -443,7 +494,6 @@ function ReportWasteModal({ open, onClose, userId, onCreated }: { open: boolean;
     const path = `reports/${userId}/${Date.now()}.${ext}`;
     const { error: upErr } = await supabase.storage.from('waste-photos').upload(path, file);
     if (upErr) {
-      // Bucket might not exist — fallback to empty
       setPhotoUrl('');
     } else {
       const { data } = supabase.storage.from('waste-photos').getPublicUrl(path);
@@ -460,7 +510,9 @@ function ReportWasteModal({ open, onClose, userId, onCreated }: { open: boolean;
       reporter_id: userId,
       type,
       description,
-      address,
+      address: address || 'Auto-detected Citizen Location',
+      latitude,
+      longitude,
       photo_url: photoUrl,
       status: 'pending',
     });
@@ -471,7 +523,7 @@ function ReportWasteModal({ open, onClose, userId, onCreated }: { open: boolean;
   }
 
   return (
-    <Modal open={open} onClose={onClose} title="Report Waste">
+    <Modal open={open} onClose={onClose} title="Report Waste (कचरे की रिपोर्ट करें)">
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"><AlertCircle className="h-4 w-4" />{error}</div>}
         <div>
@@ -485,8 +537,40 @@ function ReportWasteModal({ open, onClose, userId, onCreated }: { open: boolean;
           <textarea value={description} onChange={(e) => setDescription(e.target.value)} className="input min-h-[80px] resize-none" placeholder="Describe the waste situation..." />
         </div>
         <div>
-          <label className="label">Address / Location</label>
-          <input value={address} onChange={(e) => setAddress(e.target.value)} className="input" placeholder="Street, area, landmark..." />
+          <div className="flex items-center justify-between mb-1">
+            <label className="label mb-0">Automatic Location (आपकी लोकेशन)</label>
+            <button
+              type="button"
+              onClick={fetchLiveLocation}
+              disabled={detectingLocation}
+              className="text-xs font-semibold text-emerald-700 hover:text-emerald-800 flex items-center gap-1 cursor-pointer"
+            >
+              {detectingLocation ? <Loader2 className="h-3 w-3 animate-spin" /> : <Navigation className="h-3 w-3" />}
+              {detectingLocation ? 'Detecting GPS...' : 'Refresh Location'}
+            </button>
+          </div>
+          <div className="relative">
+            <input
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+              className="input pr-10 bg-slate-50 border-emerald-300 font-medium text-slate-800"
+              placeholder={detectingLocation ? "Detecting location automatically via GPS..." : "Auto-detected Location"}
+            />
+            <div className="absolute right-3 top-1/2 -translate-y-1/2">
+              {detectingLocation ? (
+                <Loader2 className="h-4 w-4 animate-spin text-emerald-600" />
+              ) : locationSuccess ? (
+                <CheckCircle2 className="h-4 w-4 text-emerald-600" title="GPS Verified" />
+              ) : (
+                <MapPin className="h-4 w-4 text-slate-400" />
+              )}
+            </div>
+          </div>
+          {locationSuccess && (
+            <p className="mt-1 text-[11px] text-emerald-700 font-medium flex items-center gap-1">
+              <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" /> Location detected automatically via GPS (आपको टाइप करने की जरूरत नहीं)
+            </p>
+          )}
         </div>
         <div>
           <label className="label">Photo (optional)</label>
@@ -498,7 +582,7 @@ function ReportWasteModal({ open, onClose, userId, onCreated }: { open: boolean;
             {photoUrl && <CheckCircle2 className="h-5 w-5 text-green-600" />}
           </div>
         </div>
-        <button type="submit" disabled={loading} className="btn-primary w-full">{loading ? 'Submitting...' : 'Submit Report'}</button>
+        <button type="submit" disabled={loading} className="btn-primary w-full">{loading ? 'Submitting...' : 'Submit Report (Admin को भेजें)'}</button>
       </form>
     </Modal>
   );
@@ -510,8 +594,46 @@ function RecyclableModal({ open, onClose, userId, onCreated }: { open: boolean; 
   const [quantity, setQuantity] = useState('');
   const [description, setDescription] = useState('');
   const [address, setAddress] = useState('');
+  const [latitude, setLatitude] = useState<number | null>(null);
+  const [longitude, setLongitude] = useState<number | null>(null);
+  const [detectingLocation, setDetectingLocation] = useState(false);
+  const [locationSuccess, setLocationSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const fetchLiveLocation = useCallback(() => {
+    if (!navigator.geolocation) return;
+    setDetectingLocation(true);
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        setLatitude(lat);
+        setLongitude(lng);
+        try {
+          const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`, {
+            headers: { 'Accept-Language': 'en' },
+          });
+          if (res.ok) {
+            const data = await res.json();
+            setAddress(data.display_name || `${lat.toFixed(5)}, ${lng.toFixed(5)}`);
+          } else {
+            setAddress(`GPS: ${lat.toFixed(5)}, ${lng.toFixed(5)}`);
+          }
+        } catch {
+          setAddress(`GPS: ${lat.toFixed(5)}, ${lng.toFixed(5)}`);
+        }
+        setDetectingLocation(false);
+        setLocationSuccess(true);
+      },
+      () => setDetectingLocation(false),
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  }, []);
+
+  useEffect(() => {
+    if (open) fetchLiveLocation();
+  }, [open, fetchLiveLocation]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -522,7 +644,9 @@ function RecyclableModal({ open, onClose, userId, onCreated }: { open: boolean; 
       waste_type: wasteType,
       quantity_kg: parseFloat(quantity) || 0,
       description,
-      address,
+      address: address || 'Auto-detected Citizen Location',
+      latitude,
+      longitude,
       status: 'available',
     });
     setLoading(false);
@@ -539,7 +663,7 @@ function RecyclableModal({ open, onClose, userId, onCreated }: { open: boolean; 
           <label className="label">Waste Type</label>
           <div className="grid grid-cols-4 gap-2">
             {WASTE_TYPES.map((t) => (
-              <button key={t.id} type="button" onClick={() => setWasteType(t.id)}
+              <button key={t.id} type="button" onClick={() => setWasteType(t.id as any)}
                 className={`flex flex-col items-center gap-1 rounded-xl border p-2.5 text-xs font-medium transition-all ${
                   wasteType === t.id ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : 'border-slate-200 text-slate-600 hover:border-slate-300'
                 }`}>
@@ -558,8 +682,13 @@ function RecyclableModal({ open, onClose, userId, onCreated }: { open: boolean; 
           <textarea value={description} onChange={(e) => setDescription(e.target.value)} className="input min-h-[60px] resize-none" placeholder="Describe the recyclable waste..." />
         </div>
         <div>
-          <label className="label">Pickup Address</label>
-          <input value={address} onChange={(e) => setAddress(e.target.value)} className="input" placeholder="Your address..." />
+          <div className="flex items-center justify-between mb-1">
+            <label className="label mb-0">Pickup Address (Automatic)</label>
+            <button type="button" onClick={fetchLiveLocation} className="text-xs font-semibold text-emerald-700 hover:underline">
+              {detectingLocation ? 'Detecting...' : 'Auto-Detect Location'}
+            </button>
+          </div>
+          <input value={address} onChange={(e) => setAddress(e.target.value)} className="input bg-slate-50" placeholder="Auto-detected Location" />
         </div>
         <button type="submit" disabled={loading} className="btn-primary w-full">{loading ? 'Submitting...' : 'List for Pickup'}</button>
       </form>
@@ -574,9 +703,60 @@ function SurplusFoodModal({ open, onClose, userId, onCreated }: { open: boolean;
   const [prepTime, setPrepTime] = useState('');
   const [description, setDescription] = useState('');
   const [address, setAddress] = useState('');
+  const [latitude, setLatitude] = useState<number | null>(null);
+  const [longitude, setLongitude] = useState<number | null>(null);
+  const [detectingLocation, setDetectingLocation] = useState(false);
+  const [locationSuccess, setLocationSuccess] = useState(false);
   const [isFresh, setIsFresh] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const fetchLiveLocation = useCallback(() => {
+    if (!navigator.geolocation) {
+      setAddress('GPS not supported on this device');
+      return;
+    }
+    setDetectingLocation(true);
+    setLocationSuccess(false);
+
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        setLatitude(lat);
+        setLongitude(lng);
+
+        try {
+          const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`, {
+            headers: { 'Accept-Language': 'en' },
+          });
+          if (res.ok) {
+            const data = await res.json();
+            const addr = data.display_name || `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+            setAddress(addr);
+          } else {
+            setAddress(`Live GPS: ${lat.toFixed(5)}, ${lng.toFixed(5)}`);
+          }
+        } catch {
+          setAddress(`Live GPS: ${lat.toFixed(5)}, ${lng.toFixed(5)}`);
+        }
+        setDetectingLocation(false);
+        setLocationSuccess(true);
+      },
+      (err) => {
+        console.warn('Geolocation error:', err);
+        setDetectingLocation(false);
+        setAddress('GPS location unavailable - please enable device location');
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  }, []);
+
+  useEffect(() => {
+    if (open) {
+      fetchLiveLocation();
+    }
+  }, [open, fetchLiveLocation]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -588,7 +768,9 @@ function SurplusFoodModal({ open, onClose, userId, onCreated }: { open: boolean;
       quantity,
       preparation_time: prepTime ? new Date(prepTime).toISOString() : null,
       description,
-      address,
+      address: address || 'Auto-detected Citizen Location',
+      latitude,
+      longitude,
       is_fresh: isFresh,
       status: 'available',
     });
@@ -599,7 +781,7 @@ function SurplusFoodModal({ open, onClose, userId, onCreated }: { open: boolean;
   }
 
   return (
-    <Modal open={open} onClose={onClose} title="Donate Surplus Food">
+    <Modal open={open} onClose={onClose} title="Donate Surplus Food (भोजन दान करें)">
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"><AlertCircle className="h-4 w-4" />{error}</div>}
         <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
@@ -622,14 +804,46 @@ function SurplusFoodModal({ open, onClose, userId, onCreated }: { open: boolean;
           <textarea value={description} onChange={(e) => setDescription(e.target.value)} className="input min-h-[60px] resize-none" placeholder="Describe the food..." />
         </div>
         <div>
-          <label className="label">Pickup Address</label>
-          <input value={address} onChange={(e) => setAddress(e.target.value)} className="input" placeholder="Your address..." />
+          <div className="flex items-center justify-between mb-1">
+            <label className="label mb-0">Automatic Pickup Location (आपकी लोकेशन)</label>
+            <button
+              type="button"
+              onClick={fetchLiveLocation}
+              disabled={detectingLocation}
+              className="text-xs font-semibold text-emerald-700 hover:text-emerald-800 flex items-center gap-1 cursor-pointer"
+            >
+              {detectingLocation ? <Loader2 className="h-3 w-3 animate-spin" /> : <Navigation className="h-3 w-3" />}
+              {detectingLocation ? 'Detecting GPS...' : 'Refresh Location'}
+            </button>
+          </div>
+          <div className="relative">
+            <input
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+              className="input pr-10 bg-slate-50 border-emerald-300 font-medium text-slate-800"
+              placeholder={detectingLocation ? "Detecting location automatically via GPS..." : "Auto-detected Location"}
+            />
+            <div className="absolute right-3 top-1/2 -translate-y-1/2">
+              {detectingLocation ? (
+                <Loader2 className="h-4 w-4 animate-spin text-emerald-600" />
+              ) : locationSuccess ? (
+                <CheckCircle2 className="h-4 w-4 text-emerald-600" title="GPS Verified" />
+              ) : (
+                <MapPin className="h-4 w-4 text-slate-400" />
+              )}
+            </div>
+          </div>
+          {locationSuccess && (
+            <p className="mt-1 text-[11px] text-emerald-700 font-medium flex items-center gap-1">
+              <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" /> Location detected automatically via GPS (लोकेशन खुद ले ली गई है)
+            </p>
+          )}
         </div>
         <label className="flex items-center gap-2 text-sm text-slate-700">
           <input type="checkbox" checked={isFresh} onChange={(e) => setIsFresh(e.target.checked)} className="h-4 w-4 rounded border-slate-300 text-emerald-600" />
           I confirm this food is fresh and safe for consumption
         </label>
-        <button type="submit" disabled={loading} className="btn-primary w-full">{loading ? 'Submitting...' : 'List for Donation'}</button>
+        <button type="submit" disabled={loading} className="btn-primary w-full">{loading ? 'Submitting...' : 'List for Donation (Admin को सूचित करें)'}</button>
       </form>
     </Modal>
   );

@@ -1,18 +1,19 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Shield, MapPin, Trash2, Truck, Trophy, AlertCircle, CheckCircle2, Clock, Navigation, Award, Plus } from 'lucide-react';
+import { Shield, MapPin, Trash2, Truck, Trophy, AlertCircle, CheckCircle2, Clock, Navigation, Award, Plus, Utensils, Bell } from 'lucide-react';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { Modal } from '@/components/ui/Modal';
 import { StatCard, PageHeader, Section } from '@/components/ui/StatCard';
 import { Spinner, EmptyState } from '@/components/ui/Spinner';
 import { useAuth } from '@/context/AuthContext';
-import { supabase, type WasteReport, type Profile, type Area, type DriverAssignment, type VehicleLocation, type Reward } from '@/lib/supabase';
+import { supabase, type WasteReport, type Profile, type Area, type DriverAssignment, type VehicleLocation, type Reward, type SurplusFood } from '@/lib/supabase';
 import { REPORT_TYPES, STATUS_COLORS, formatTimeAgo } from '@/lib/constants';
 import { VehicleMap, type VehiclePos, MapPlaceholder } from '@/components/VehicleMap';
 
 export function AdminDashboard() {
   const { profile } = useAuth();
-  const [activeTab, setActiveTab] = useState<'overview' | 'reports' | 'drivers' | 'vehicles' | 'rewards' | 'learning'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'reports' | 'food' | 'drivers' | 'vehicles' | 'rewards' | 'learning'>('overview');
   const [reports, setReports] = useState<WasteReport[]>([]);
+  const [foodListings, setFoodListings] = useState<(SurplusFood & { citizen?: Profile })[]>([]);
   const [drivers, setDrivers] = useState<Profile[]>([]);
   const [allProfiles, setAllProfiles] = useState<Profile[]>([]);
   const [areas, setAreas] = useState<Area[]>([]);
@@ -28,8 +29,9 @@ export function AdminDashboard() {
   const [assignReport, setAssignReport] = useState<WasteReport | null>(null);
 
   const loadData = useCallback(async () => {
-    const [reportsRes, profilesRes, areasRes, assignRes, vehiclesRes, rewardsRes] = await Promise.all([
+    const [reportsRes, foodRes, profilesRes, areasRes, assignRes, vehiclesRes, rewardsRes] = await Promise.all([
       supabase.from('waste_reports').select('*').order('created_at', { ascending: false }),
+      supabase.from('surplus_food').select('*, citizen:profiles!surplus_food_citizen_id_fkey(*)').order('created_at', { ascending: false }),
       supabase.from('profiles').select('*'),
       supabase.from('areas').select('*'),
       supabase.from('driver_assignments').select('*, driver:profiles!driver_assignments_driver_id_fkey(*), area:areas(*)').order('created_at', { ascending: false }),
@@ -37,6 +39,7 @@ export function AdminDashboard() {
       supabase.from('rewards').select('*, user:profiles!rewards_user_id_fkey(*)').order('created_at', { ascending: false }),
     ]);
     setReports((reportsRes.data as WasteReport[]) ?? []);
+    setFoodListings((foodRes.data as (SurplusFood & { citizen?: Profile })[]) ?? []);
     const profiles = (profilesRes.data as Profile[]) ?? [];
     setAllProfiles(profiles);
     setDrivers(profiles.filter(p => p.role === 'driver'));
@@ -78,6 +81,7 @@ export function AdminDashboard() {
   const inProgressReports = reports.filter(r => r.status === 'in_progress').length;
   const resolvedReports = reports.filter(r => r.status === 'resolved').length;
   const activeDrivers = assignments.filter(a => a.status === 'active').length;
+  const availableFood = foodListings.filter(f => f.status === 'available').length;
 
   const vehiclePositions: VehiclePos[] = vehicles.map((v) => ({
     driver_id: v.driver_id,
@@ -89,11 +93,16 @@ export function AdminDashboard() {
     updated_at: v.updated_at,
   }));
 
+  async function updateFoodStatus(id: string, status: SurplusFood['status']) {
+    await supabase.from('surplus_food').update({ status }).eq('id', id);
+    loadData();
+  }
+
   return (
     <DashboardLayout>
       <PageHeader
         title="City Operations & Oversight"
-        subtitle="Manage fleet telemetry, assign drivers to complaints, and oversee municipal waste zones."
+        subtitle="Manage fleet telemetry, assign drivers to complaints, review food donations, and oversee municipal waste zones."
         action={
           <button onClick={() => setShowAreaModal(true)} className="btn-secondary">
             <Plus className="h-4 w-4" /> Add Area
@@ -101,11 +110,41 @@ export function AdminDashboard() {
         }
       />
 
+      {/* Admin Notification Alert Banner */}
+      {(pendingReports > 0 || availableFood > 0) && (
+        <div className="mb-6 rounded-2xl border-2 border-emerald-500 bg-gradient-to-r from-emerald-50 via-teal-50 to-white p-4 text-emerald-950 shadow-sm animate-slide-up flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="rounded-xl bg-emerald-600 p-2.5 text-white shadow-xs">
+              <Bell className="h-5 w-5 animate-bounce" />
+            </div>
+            <div>
+              <h4 className="text-sm font-bold text-slate-900">🔔 Admin Operations Center (नया अलर्ट)</h4>
+              <p className="text-xs text-slate-600">
+                You have received <strong>{pendingReports} new Waste Reports</strong> and <strong>{availableFood} Food Donations</strong> from citizens with live GPS coordinates.
+              </p>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            {pendingReports > 0 && (
+              <button onClick={() => setActiveTab('reports')} className="rounded-xl bg-emerald-600 px-3.5 py-1.5 text-xs font-bold text-white hover:bg-emerald-700 shadow-xs cursor-pointer">
+                View Reports ({pendingReports})
+              </button>
+            )}
+            {availableFood > 0 && (
+              <button onClick={() => setActiveTab('food')} className="rounded-xl bg-amber-600 px-3.5 py-1.5 text-xs font-bold text-white hover:bg-amber-700 shadow-xs cursor-pointer">
+                View Food ({availableFood})
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Stats */}
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
         <StatCard icon={AlertCircle} label="Pending Reports" value={pendingReports} color="amber" />
         <StatCard icon={Clock} label="In Progress" value={inProgressReports} color="blue" />
-        <StatCard icon={CheckCircle2} label="Resolved" value={resolvedReports} color="green" />
+        <StatCard icon={CheckCircle2} label="Resolved Reports" value={resolvedReports} color="green" />
+        <StatCard icon={Utensils} label="Food Donations" value={availableFood} color="amber" />
         <StatCard icon={Truck} label="Active Drivers" value={activeDrivers} color="teal" />
       </div>
 
@@ -113,7 +152,8 @@ export function AdminDashboard() {
       <div className="mt-8 flex gap-1 overflow-x-auto border-b border-slate-200">
         {[
           { id: 'overview', label: 'Overview' },
-          { id: 'reports', label: 'Waste Reports' },
+          { id: 'reports', label: `Waste Reports (${pendingReports})` },
+          { id: 'food', label: `Food Donations (${availableFood})` },
           { id: 'drivers', label: 'Drivers & Areas' },
           { id: 'vehicles', label: 'Vehicle Tracking' },
           { id: 'rewards', label: 'Rewards' },
@@ -163,6 +203,81 @@ export function AdminDashboard() {
               ) : (
                 <div className="grid gap-3 sm:grid-cols-2">
                   {reports.map((report) => <AdminReportCard key={report.id} report={report} onAssign={(r) => { setAssignReport(r); setShowAssignModal(true); }} onUpdate={updateReportStatus} />)}
+                </div>
+              )}
+            </div>
+          )}
+
+          {activeTab === 'food' && (
+            <div>
+              {foodListings.length === 0 ? (
+                <EmptyState icon={<Utensils className="h-10 w-10" />} title="No food donations" message="No citizen has donated food yet." />
+              ) : (
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {foodListings.map((food) => (
+                    <div key={food.id} className="card-hover rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-center gap-3">
+                          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-50 text-amber-600 text-xl font-bold">
+                            🍱
+                          </div>
+                          <div>
+                            <h4 className="font-bold text-slate-900 text-base">{food.food_type}</h4>
+                            <p className="text-xs text-slate-500 font-medium">Quantity: {food.quantity || 'N/A'}</p>
+                          </div>
+                        </div>
+                        <span className={`badge ${STATUS_COLORS[food.status] || 'bg-slate-100 text-slate-700'}`}>
+                          {food.status}
+                        </span>
+                      </div>
+
+                      <div className="mt-4 space-y-2 text-xs text-slate-600">
+                        {food.description && <p className="italic bg-slate-50 p-2 rounded-lg text-slate-700">"{food.description}"</p>}
+                        <div className="flex items-center gap-2 text-emerald-800 font-medium">
+                          <MapPin className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
+                          <span className="truncate">{food.address}</span>
+                        </div>
+                        {food.latitude && food.longitude && (
+                          <p className="text-[11px] text-slate-400 pl-5">GPS: {food.latitude.toFixed(5)}, {food.longitude.toFixed(5)}</p>
+                        )}
+                        <p className="text-slate-500 pt-1 border-t border-slate-100">
+                          Donor: <strong className="text-slate-800">{food.citizen?.full_name || 'Citizen'}</strong> • {formatTimeAgo(food.created_at)}
+                        </p>
+                      </div>
+
+                      <div className="mt-4 flex gap-2 pt-3 border-t border-slate-100">
+                        {food.status === 'available' && (
+                          <>
+                            <button
+                              onClick={() => updateFoodStatus(food.id, 'accepted')}
+                              className="btn-primary text-xs py-1.5 px-3 flex-1 justify-center"
+                            >
+                              Approve Donation
+                            </button>
+                            <button
+                              onClick={() => updateFoodStatus(food.id, 'rejected')}
+                              className="btn-secondary text-xs py-1.5 px-3 text-red-600 hover:bg-red-50 justify-center"
+                            >
+                              Reject
+                            </button>
+                          </>
+                        )}
+                        {food.status === 'accepted' && (
+                          <button
+                            onClick={() => updateFoodStatus(food.id, 'collected')}
+                            className="btn-secondary text-xs py-1.5 px-3 w-full text-emerald-700 hover:bg-emerald-50 justify-center"
+                          >
+                            Mark as Collected by Shelter
+                          </button>
+                        )}
+                        {food.status === 'collected' && (
+                          <span className="text-xs text-emerald-600 font-bold flex items-center gap-1">
+                            <CheckCircle2 className="h-3.5 w-3.5" /> Successfully Distributed
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>

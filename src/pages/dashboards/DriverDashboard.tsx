@@ -64,7 +64,7 @@ export function DriverDashboard() {
       supabase
         .from('waste_reports')
         .select('*')
-        .or(`assigned_to.eq.${profile.id},status.eq.pending`)
+        .eq('assigned_to', profile.id)
         .order('created_at', { ascending: false }),
       supabase
         .from('collection_trips')
