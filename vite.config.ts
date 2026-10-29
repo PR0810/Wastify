@@ -13,4 +13,14 @@ export default defineConfig({
   optimizeDeps: {
     include: ['leaflet', 'react-leaflet'],
   },
+  build: {
+    chunkSizeWarningLimit: 3000,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          tensorflow: ['@tensorflow/tfjs', '@tensorflow-models/mobilenet'],
+        },
+      },
+    },
+  },
 });
