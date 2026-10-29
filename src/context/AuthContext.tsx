@@ -1,13 +1,23 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import { supabase, type Profile } from '@/lib/supabase';
+import { formatNgoAddress } from '@/lib/ngoCategories';
 
 type AuthContextType = {
   session: Session | null;
   profile: Profile | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
-  signUp: (email: string, password: string, fullName: string, role: Profile['role'], age?: number) => Promise<{ error: string | null }>;
+  signUp: (
+    email: string,
+    password: string,
+    fullName: string,
+    role: Profile['role'],
+    age?: number,
+    categories?: string[],
+    address?: string,
+    phone?: string
+  ) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 };
@@ -51,18 +61,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .eq('id', userId)
       .maybeSingle();
 
-    if (error) {
+    let userProfile = data as Profile | null;
+
+    if (error || !userProfile) {
       // Profile might not exist yet (trigger hasn't fired). Retry once.
-      await new Promise((r) => setTimeout(r, 500));
+      await new Promise((r) => setTimeout(r, 600));
       const { data: retry } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
         .maybeSingle();
-      setProfile(retry as Profile | null);
-    } else {
-      setProfile(data as Profile | null);
+      userProfile = retry as Profile | null;
     }
+
+    if (userProfile) {
+      // Sync address/phone from auth metadata if profile has them blank
+      const { data: sessionData } = await supabase.auth.getSession();
+      const meta = sessionData.session?.user?.user_metadata;
+      if (meta && (!userProfile.address || userProfile.address === '') && meta.address) {
+        await supabase.from('profiles').update({ address: meta.address, phone: meta.phone || userProfile.phone }).eq('id', userId);
+        userProfile.address = meta.address;
+        if (meta.phone) userProfile.phone = meta.phone;
+      }
+    }
+
+    setProfile(userProfile);
     setLoading(false);
   }
 
@@ -71,13 +94,52 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error: error?.message ?? null };
   }
 
-  async function signUp(email: string, password: string, fullName: string, role: Profile['role'], age?: number) {
-    const { error } = await supabase.auth.signUp({
+  async function signUp(
+    email: string,
+    password: string,
+    fullName: string,
+    role: Profile['role'],
+    age?: number,
+    categories?: string[],
+    address?: string,
+    phone?: string
+  ) {
+    const formattedAddress = role === 'ngo' && categories && categories.length > 0
+      ? formatNgoAddress(categories, address || '')
+      : (address || '');
+
+    const { data: signUpData, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { full_name: fullName, role, age: age?.toString() } },
+      options: {
+        data: {
+          full_name: fullName,
+          role,
+          age: age?.toString(),
+          categories: categories ?? [],
+          address: formattedAddress,
+          phone: phone || '',
+        },
+      },
     });
-    return { error: error?.message ?? null };
+
+    if (error) return { error: error.message };
+
+    if (signUpData.user) {
+      try {
+        await supabase
+          .from('profiles')
+          .update({
+            address: formattedAddress,
+            phone: phone || '',
+          })
+          .eq('id', signUpData.user.id);
+      } catch (err) {
+        console.warn('Initial profile update error:', err);
+      }
+    }
+
+    return { error: null };
   }
 
   async function signOut() {

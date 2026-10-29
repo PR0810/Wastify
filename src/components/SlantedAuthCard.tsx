@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { ROLES } from '@/lib/constants';
+import { NGO_CATEGORIES } from '@/lib/ngoCategories';
 import type { Profile } from '@/lib/supabase';
 
 interface SlantedAuthCardProps {
@@ -44,6 +45,9 @@ export function SlantedAuthCard({ initialMode = 'signin' }: SlantedAuthCardProps
   const [showSignupPassword, setShowSignupPassword] = useState(false);
   const [role, setRole] = useState<Profile['role']>('citizen');
   const [age, setAge] = useState('');
+  const [ngoCategories, setNgoCategories] = useState<string[]>(['plastic', 'paper', 'scrap shop and dealer']);
+  const [ngoAddress, setNgoAddress] = useState('');
+  const [ngoPhone, setNgoPhone] = useState('');
   const [signupLoading, setSignupLoading] = useState(false);
   const [signupError, setSignupError] = useState<string | null>(null);
 
@@ -91,7 +95,22 @@ export function SlantedAuthCard({ initialMode = 'signin' }: SlantedAuthCardProps
     }
 
     setSignupLoading(true);
-    const { error } = await signUp(signupEmail, signupPassword, fullName, role, ageNum);
+    if (role === 'ngo' && ngoCategories.length === 0) {
+      setSignupError('Please select at least one waste category that your NGO or Scrap Shop collects/purchases.');
+      return;
+    }
+
+    setSignupLoading(true);
+    const { error } = await signUp(
+      signupEmail,
+      signupPassword,
+      fullName,
+      role,
+      ageNum,
+      role === 'ngo' ? ngoCategories : undefined,
+      role === 'ngo' ? ngoAddress : undefined,
+      role === 'ngo' ? ngoPhone : undefined
+    );
     setSignupLoading(false);
     if (error) {
       setSignupError(error);
@@ -293,6 +312,117 @@ export function SlantedAuthCard({ initialMode = 'signin' }: SlantedAuthCardProps
             )}
 
             <form onSubmit={handleSignUpSubmit} className="space-y-3">
+              {/* Account Type Selection */}
+              <div>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-600 mb-1">
+                  Account Type
+                </label>
+                <div className="grid grid-cols-3 gap-1.5">
+                  {[
+                    { id: 'citizen', label: 'Citizen', icon: '👤' },
+                    { id: 'ngo', label: 'NGO / Scrap Dealer', icon: '🏪' },
+                    { id: 'driver', label: 'Driver', icon: '🚛' },
+                  ].map((r) => (
+                    <button
+                      key={r.id}
+                      type="button"
+                      onClick={() => setRole(r.id as Profile['role'])}
+                      className={`rounded-xl border py-1.5 px-2 text-[10px] font-bold transition-all flex items-center justify-center gap-1 cursor-pointer ${
+                        role === r.id
+                          ? 'border-emerald-600 bg-emerald-50 text-emerald-800 shadow-xs ring-1 ring-emerald-500'
+                          : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'
+                      }`}
+                    >
+                      <span>{r.icon}</span>
+                      <span className="truncate">{r.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* NGO / Scrap Dealer Categories Selection */}
+              {role === 'ngo' && (
+                <div className="rounded-xl border border-emerald-400 bg-emerald-50/60 p-2.5 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-[10px] font-bold uppercase tracking-wider text-emerald-950">
+                      NGO / Scrap Dealer Categories ({ngoCategories.length})
+                    </label>
+                    <div className="flex gap-1.5 text-[10px]">
+                      <button
+                        type="button"
+                        onClick={() => setNgoCategories(NGO_CATEGORIES.map(c => c.id))}
+                        className="text-emerald-700 font-bold hover:underline cursor-pointer"
+                      >
+                        Select All
+                      </button>
+                      <span className="text-slate-300">•</span>
+                      <button
+                        type="button"
+                        onClick={() => setNgoCategories([])}
+                        className="text-slate-500 font-medium hover:underline cursor-pointer"
+                      >
+                        Clear
+                      </button>
+                    </div>
+                  </div>
+                  <p className="text-[10px] text-emerald-800 leading-tight">
+                    Select the categories of waste your NGO or scrap shop collects/purchases:
+                  </p>
+                  <div className="grid grid-cols-2 gap-1 max-h-36 overflow-y-auto pr-1">
+                    {NGO_CATEGORIES.map((cat) => {
+                      const isSelected = ngoCategories.includes(cat.id);
+                      return (
+                        <button
+                          key={cat.id}
+                          type="button"
+                          onClick={() => {
+                            if (isSelected) {
+                              setNgoCategories(ngoCategories.filter(c => c !== cat.id));
+                            } else {
+                              setNgoCategories([...ngoCategories, cat.id]);
+                            }
+                          }}
+                          className={`flex items-center gap-1.5 rounded-lg border px-2 py-1 text-left text-[10px] font-medium transition-all cursor-pointer ${
+                            isSelected
+                              ? 'border-emerald-600 bg-emerald-600 text-white font-bold shadow-xs'
+                              : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
+                          }`}
+                        >
+                          <span className="text-xs">{cat.icon}</span>
+                          <span className="truncate">{cat.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 pt-1">
+                    <div>
+                      <label className="block text-[9px] font-bold uppercase tracking-wider text-slate-600 mb-0.5">
+                        Shop / Organization Address
+                      </label>
+                      <input
+                        type="text"
+                        value={ngoAddress}
+                        onChange={(e) => setNgoAddress(e.target.value)}
+                        className="w-full rounded-lg border border-slate-300 bg-white px-2 py-1 text-[11px] text-slate-900 placeholder:text-slate-400 focus:border-emerald-600 focus:outline-none"
+                        placeholder="e.g. Shop 12, Market Rd"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[9px] font-bold uppercase tracking-wider text-slate-600 mb-0.5">
+                        Contact Phone
+                      </label>
+                      <input
+                        type="tel"
+                        value={ngoPhone}
+                        onChange={(e) => setNgoPhone(e.target.value)}
+                        className="w-full rounded-lg border border-slate-300 bg-white px-2 py-1 text-[11px] text-slate-900 placeholder:text-slate-400 focus:border-emerald-600 focus:outline-none"
+                        placeholder="e.g. +91 9876543210"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
 
 
               {/* Age field for Citizen */}

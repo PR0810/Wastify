@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Trash2, Recycle, Utensils, Camera, MapPin, Trophy, BookOpen, Clock, CheckCircle2, AlertCircle, Plus, Award, Loader2, Navigation, X, Eye, Truck, Radio, KeyRound, ShieldCheck, HeartHandshake } from 'lucide-react';
+import { Trash2, Recycle, Utensils, Camera, MapPin, Trophy, BookOpen, Clock, CheckCircle2, AlertCircle, Plus, Award, Loader2, Navigation, X, Eye, Truck, Radio, KeyRound, ShieldCheck, HeartHandshake, Coins } from 'lucide-react';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { Modal } from '@/components/ui/Modal';
 import { StatCard, PageHeader, Section } from '@/components/ui/StatCard';
@@ -10,6 +10,14 @@ import { supabase, type WasteReport, type RecyclableListing, type SurplusFood, t
 import { WASTE_TYPES, REPORT_TYPES, STATUS_COLORS, formatTimeAgo } from '@/lib/constants';
 import { VehicleMap, type VehiclePos, MapPlaceholder } from '@/components/VehicleMap';
 import { generateOtp, extractFoodOtp, cleanFoodDescription } from '@/lib/foodOtp';
+import {
+  NGO_CATEGORIES,
+  extractListingCategory,
+  extractListingPoints,
+  formatListingDescription,
+  cleanListingDescription,
+  mapCategoryToWasteType,
+} from '@/lib/ngoCategories';
 
 export function CitizenDashboard() {
   const { profile } = useAuth();
@@ -98,6 +106,10 @@ export function CitizenDashboard() {
   const resolvedReports = reports.filter(r => r.status === 'resolved').length;
   const availableRecyc = recyclables.filter(r => r.status === 'available').length;
   const availableFood = foodListings.filter(f => f.status === 'available').length;
+  const soldWastePoints = recyclables
+    .filter((r) => r.status === 'collected')
+    .reduce((sum, r) => sum + extractListingPoints(r.description), 0);
+  const totalCitizenPoints = (profile.points || 0) + soldWastePoints;
 
   const vehiclePositions: VehiclePos[] = vehicles.map((v) => ({
     driver_id: v.driver_id,
@@ -119,6 +131,13 @@ export function CitizenDashboard() {
       isAction: true,
       actionType: 'open-report-modal',
       variant: 'danger' as const,
+    },
+    {
+      label: 'Sell Waste',
+      path: '#sell',
+      icon: <Coins className="h-5 w-5 text-teal-500" />,
+      isAction: true,
+      actionType: 'open-recyclable-modal',
     },
     {
       label: 'Donate Food',
@@ -228,13 +247,13 @@ export function CitizenDashboard() {
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
         <StatCard icon={AlertCircle} label="Pending Reports" value={pendingReports} color="amber" />
         <StatCard icon={CheckCircle2} label="Resolved Reports" value={resolvedReports} color="green" />
-        <StatCard icon={Recycle} label="Recyclables Listed" value={recyclables.length} color="teal" />
+        <StatCard icon={Coins} label="Waste Sold / Listed" value={recyclables.length} color="teal" />
         <StatCard icon={Truck} label="Active Trucks" value={vehicles.length} color="blue" />
-        <StatCard icon={Trophy} label="Reward Points" value={profile.points} color="amber" />
+        <StatCard icon={Trophy} label="Reward Points" value={totalCitizenPoints} color="amber" />
       </div>
 
       {/* Quick Actions */}
-      <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
         <button onClick={() => setShowReportModal(true)} className="card-hover flex items-center gap-3 p-4 text-left">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
             <Trash2 className="h-5 w-5" />
@@ -242,6 +261,18 @@ export function CitizenDashboard() {
           <div>
             <p className="text-sm font-semibold text-slate-900">Report Waste</p>
             <p className="text-xs text-slate-500">Auto GPS geo-tagged</p>
+          </div>
+        </button>
+        <button onClick={() => setShowRecyclableModal(true)} className="card-hover flex items-center gap-3 p-4 text-left border-teal-200 bg-teal-50/40 shadow-xs">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-100 text-teal-700">
+            <Coins className="h-5 w-5" />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-slate-900 flex items-center gap-1.5">
+              <span>Sell Waste</span>
+              <span className="badge bg-emerald-100 text-emerald-800 text-[9px] font-black">Earn Points</span>
+            </p>
+            <p className="text-xs text-slate-500">Sell to NGOs & scrap shops</p>
           </div>
         </button>
         <button onClick={() => setActiveTab('tracking')} className="card-hover flex items-center gap-3 p-4 text-left border-blue-100 bg-blue-50/20">
@@ -259,22 +290,22 @@ export function CitizenDashboard() {
             <p className="text-xs text-slate-500">Live garbage trucks</p>
           </div>
         </button>
+        <button onClick={() => setShowFoodModal(true)} className="card-hover flex items-center gap-3 p-4 text-left">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-50 text-orange-600">
+            <Utensils className="h-5 w-5" />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-slate-900">Donate Food</p>
+            <p className="text-xs text-slate-500">Help those in need</p>
+          </div>
+        </button>
         <button onClick={() => navigate('/app/learning')} className="card-hover flex items-center gap-3 p-4 text-left">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
             <BookOpen className="h-5 w-5" />
           </div>
           <div>
             <p className="text-sm font-semibold text-slate-900">Learning Hub</p>
-            <p className="text-xs text-slate-500">Lessons, quizzes & certificates</p>
-          </div>
-        </button>
-        <button onClick={() => setShowFoodModal(true)} className="card-hover flex items-center gap-3 p-4 text-left">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-50 text-orange-600">
-            <Utensils className="h-5 w-5" />
-          </div>
-          <div>
-            <p className="text-sm font-semibold text-slate-900">Donate Surplus Food</p>
-            <p className="text-xs text-slate-500">Help those in need</p>
+            <p className="text-xs text-slate-500">Lessons & certificates</p>
           </div>
         </button>
       </div>
@@ -327,7 +358,7 @@ export function CitizenDashboard() {
           { id: 'overview', label: 'Overview' },
           { id: 'tracking', label: '🚚 Track Driver (Live Tracking)' },
           { id: 'reports', label: 'My Reports' },
-          { id: 'recyclable', label: 'Recyclables' },
+          { id: 'recyclable', label: '💰 Sell Waste (Recyclables)' },
           { id: 'food', label: 'Surplus Food' },
         ].map((tab) => (
           <button
@@ -512,15 +543,32 @@ export function CitizenDashboard() {
 
           {activeTab === 'recyclable' && (
             <div>
-              <div className="mb-4 flex justify-end">
-                <button onClick={() => setShowRecyclableModal(true)} className="btn-secondary">
-                  <Plus className="h-4 w-4" /> List Recyclable
+              <div className="mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-gradient-to-r from-teal-50 to-emerald-50/50 p-4 rounded-2xl border border-teal-200">
+                <div>
+                  <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                    <Coins className="h-5 w-5 text-teal-600" />
+                    <span>Sell Waste for Reward Points</span>
+                  </h3>
+                  <p className="text-xs text-slate-600 mt-0.5">
+                    Sell plastic, metal, paper, e-waste & scrap materials directly to specialized NGOs and scrap dealers.
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowRecyclableModal(true)}
+                  className="btn-primary flex items-center gap-1.5 self-start sm:self-auto shadow-xs"
+                >
+                  <Coins className="h-4 w-4" />
+                  <span>Sell Waste</span>
                 </button>
               </div>
               {recyclables.length === 0 ? (
-                <EmptyState icon={<Recycle className="h-10 w-10" />} title="No recyclables listed" message="List your recyclable waste for NGO/recycler pickup." />
+                <EmptyState
+                  icon={<Coins className="h-10 w-10 text-teal-600" />}
+                  title="No waste listed for sale yet"
+                  message="Click 'Sell Waste' to list your recyclable items. NGOs and scrap dealers will collect it and award you points!"
+                />
               ) : (
-                <div className="grid gap-3 sm:grid-cols-2">
+                <div className="grid gap-3.5 sm:grid-cols-2">
                   {recyclables.map((item) => <RecyclableCard key={item.id} item={item} />)}
                 </div>
               )}
@@ -658,28 +706,80 @@ function ReportCard({ report }: { report: WasteReport }) {
   );
 }
 
-// ============ Recyclable Card ============
+// ============ Recyclable Card (Sell Waste Item) ============
 function RecyclableCard({ item }: { item: RecyclableListing }) {
-  const wasteType = WASTE_TYPES.find(t => t.id === item.waste_type);
+  const categoryId = extractListingCategory(item);
+  const category = NGO_CATEGORIES.find((c) => c.id === categoryId) || {
+    id: categoryId,
+    label: categoryId.toUpperCase(),
+    icon: '♻️',
+    suggestedRate: 10,
+    description: '',
+  };
+  const cleanDesc = cleanListingDescription(item.description);
+  const earnedPoints = extractListingPoints(item.description);
+
+  let statusBadgeLabel = item.status;
+  let statusBadgeColor = STATUS_COLORS[item.status] || 'bg-slate-100 text-slate-700';
+  if (item.status === 'available') {
+    statusBadgeLabel = 'Broadcasted to NGOs & Dealers';
+    statusBadgeColor = 'bg-teal-100 text-teal-800 border-teal-300';
+  } else if (item.status === 'accepted') {
+    statusBadgeLabel = 'Accepted by NGO / Dealer';
+    statusBadgeColor = 'bg-blue-100 text-blue-800 border-blue-300';
+  } else if (item.status === 'collected') {
+    statusBadgeLabel = 'Collected & Points Credited';
+    statusBadgeColor = 'bg-emerald-100 text-emerald-800 border-emerald-300';
+  }
+
   return (
-    <div className="card-hover p-4">
-      <div className="flex items-start justify-between">
-        <div className="flex items-center gap-2">
-          <span className="text-lg">{wasteType?.icon}</span>
+    <div className="card-hover p-4.5 rounded-2xl border border-slate-200 bg-white shadow-xs">
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex items-center gap-2.5">
+          <span className="text-2xl">{category.icon}</span>
           <div>
-            <p className="text-sm font-semibold text-slate-900">{wasteType?.label ?? item.waste_type}</p>
-            <p className="text-xs text-slate-400">{formatTimeAgo(item.created_at)}</p>
+            <p className="text-sm font-bold text-slate-900">{category.label}</p>
+            <p className="text-xs text-slate-400">Listed {formatTimeAgo(item.created_at)}</p>
           </div>
         </div>
-        <span className={`badge ${STATUS_COLORS[item.status]}`}>
-          {item.status}
+        <span className={`badge font-semibold ${statusBadgeColor}`}>
+          {statusBadgeLabel}
         </span>
       </div>
-      {item.quantity_kg > 0 && <p className="mt-2 text-sm text-slate-600">{item.quantity_kg} kg</p>}
-      {item.description && <p className="mt-1 text-sm text-slate-500">{item.description}</p>}
+
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        <span className="badge bg-slate-100 text-slate-800 font-bold text-xs py-1 px-2.5">
+          ⚖️ {item.quantity_kg > 0 ? `${item.quantity_kg} kg` : 'Quantity not specified'}
+        </span>
+        <span className="badge bg-amber-50 text-amber-800 border border-amber-200 text-xs font-semibold py-1 px-2.5">
+          💰 Rate: ~{category.suggestedRate} pts/kg
+        </span>
+      </div>
+
+      {cleanDesc && (
+        <p className="mt-2.5 text-xs text-slate-600 bg-slate-50 p-2.5 rounded-xl italic">
+          "{cleanDesc}"
+        </p>
+      )}
+
       {item.address && (
-        <div className="mt-2 flex items-center gap-1 text-xs text-slate-400">
-          <MapPin className="h-3 w-3" /> {item.address}
+        <div className="mt-2.5 flex items-center gap-1.5 text-xs text-slate-500">
+          <MapPin className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
+          <span className="truncate">{item.address}</span>
+        </div>
+      )}
+
+      {item.status === 'collected' && (
+        <div className="mt-3 rounded-xl border border-emerald-300 bg-gradient-to-r from-emerald-50 to-teal-50 px-3.5 py-2.5 flex items-center justify-between">
+          <div className="flex items-center gap-2 text-xs font-bold text-emerald-900">
+            <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
+            <span>Waste Collected by NGO / Scrap Dealer</span>
+          </div>
+          {earnedPoints > 0 && (
+            <span className="font-mono font-black text-xs text-emerald-800 bg-white px-2.5 py-1 rounded-lg border border-emerald-300 shadow-xs">
+              +{earnedPoints} POINTS EARNED
+            </span>
+          )}
         </div>
       )}
     </div>
@@ -1040,9 +1140,9 @@ function ReportWasteModal({ open, onClose, userId, onCreated }: { open: boolean;
   );
 }
 
-// ============ Recyclable Modal ============
+// ============ Recyclable Modal (Sell Waste) ============
 function RecyclableModal({ open, onClose, userId, onCreated }: { open: boolean; onClose: () => void; userId: string; onCreated: () => void }) {
-  const [wasteType, setWasteType] = useState<RecyclableListing['waste_type']>('plastic');
+  const [selectedCategory, setSelectedCategory] = useState<string>('plastic');
   const [quantity, setQuantity] = useState('');
   const [description, setDescription] = useState('');
   const [address, setAddress] = useState('');
@@ -1052,6 +1152,11 @@ function RecyclableModal({ open, onClose, userId, onCreated }: { open: boolean; 
   const [locationSuccess, setLocationSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [submittedInfo, setSubmittedInfo] = useState<{ category: string; quantity: string; points: number } | null>(null);
+
+  const activeCategory = NGO_CATEGORIES.find(c => c.id === selectedCategory) || NGO_CATEGORIES[1];
+  const qtyNumber = parseFloat(quantity) || 0;
+  const estimatedPoints = Math.round(qtyNumber * activeCategory.suggestedRate);
 
   const fetchLiveLocation = useCallback(() => {
     if (!navigator.geolocation) return;
@@ -1091,84 +1196,198 @@ function RecyclableModal({ open, onClose, userId, onCreated }: { open: boolean; 
     e.preventDefault();
     setLoading(true);
     setError(null);
+
+    const mappedType = mapCategoryToWasteType(selectedCategory);
+    const formattedDesc = formatListingDescription(selectedCategory, description);
+
     const { error } = await supabase.from('recyclable_listings').insert({
       citizen_id: userId,
-      waste_type: wasteType,
-      quantity_kg: parseFloat(quantity) || 0,
-      description,
+      waste_type: mappedType,
+      quantity_kg: qtyNumber,
+      description: formattedDesc,
       address: address || 'Auto-detected Citizen Location',
       latitude,
       longitude,
       status: 'available',
     });
+
     setLoading(false);
     if (error) { setError(error.message); return; }
-    setWasteType('plastic'); setQuantity(''); setDescription(''); setAddress('');
-    onCreated(); onClose();
+
+    onCreated();
+    setSubmittedInfo({
+      category: activeCategory.label,
+      quantity: quantity || '0',
+      points: estimatedPoints,
+    });
+  }
+
+  function handleCloseModal() {
+    setSubmittedInfo(null);
+    setSelectedCategory('plastic');
+    setQuantity('');
+    setDescription('');
+    setAddress('');
+    onClose();
   }
 
   return (
-    <Modal open={open} onClose={onClose} title="List Recyclable Waste">
-      <form onSubmit={handleSubmit} className="space-y-4">
-        {error && <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"><AlertCircle className="h-4 w-4" />{error}</div>}
-        <div>
-          <label className="label">Waste Type</label>
-          <div className="grid grid-cols-4 gap-2">
-            {WASTE_TYPES.map((t) => (
-              <button key={t.id} type="button" onClick={() => setWasteType(t.id as any)}
-                className={`flex flex-col items-center gap-1 rounded-xl border p-2.5 text-xs font-medium transition-all ${
-                  wasteType === t.id ? 'border-emerald-500 bg-emerald-50 text-emerald-700' : 'border-slate-200 text-slate-600 hover:border-slate-300'
-                }`}>
-                <span className="text-xl">{t.icon}</span>
-                {t.label}
-              </button>
-            ))}
+    <Modal
+      open={open}
+      onClose={handleCloseModal}
+      title={submittedInfo ? 'Waste Sell Request Published!' : 'Sell Recyclable Waste for Points'}
+    >
+      {submittedInfo ? (
+        <div className="py-2 text-center space-y-4">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-teal-100 text-teal-700 shadow-xs">
+            <Coins className="h-8 w-8" />
           </div>
-        </div>
-        <div>
-          <label className="label">Quantity (kg)</label>
-          <input type="number" step="0.1" value={quantity} onChange={(e) => setQuantity(e.target.value)} className="input" placeholder="0.0" />
-        </div>
-        <div>
-          <label className="label">Description</label>
-          <textarea value={description} onChange={(e) => setDescription(e.target.value)} className="input min-h-[60px] resize-none" placeholder="Describe the recyclable waste..." />
-        </div>
-        {/* 100% Automated Live GPS Geo-Tag (No manual entry) */}
-        <div className="rounded-2xl border-2 border-emerald-500/40 bg-gradient-to-br from-emerald-50/90 to-teal-50/50 p-4 shadow-xs">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-bold text-emerald-950 flex items-center gap-2">
-              <span className="relative flex h-2.5 w-2.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-600"></span>
-              </span>
-              🛰️ Automatic Pickup GPS Location
-            </span>
-            <button
-              type="button"
-              onClick={fetchLiveLocation}
-              disabled={detectingLocation}
-              className="text-xs font-semibold text-emerald-700 hover:text-emerald-900 flex items-center gap-1 cursor-pointer"
-            >
-              {detectingLocation ? <Loader2 className="h-3 w-3 animate-spin" /> : <Navigation className="h-3 w-3" />}
-              <span>{detectingLocation ? 'Locating...' : 'Re-sync GPS'}</span>
-            </button>
+          <div>
+            <h3 className="text-lg font-bold text-slate-900">Broadcasted to Verified NGOs & Scrap Dealers!</h3>
+            <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
+              Your request to sell <strong>{submittedInfo.quantity} kg of {submittedInfo.category}</strong> waste has been dispatched.
+            </p>
           </div>
-          <p className="text-xs font-bold text-slate-900 leading-snug">
-            📍 {address || 'Live Satellite GPS Pickup Point'}
-          </p>
-          {latitude && longitude && (
-            <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px] font-mono text-emerald-900 bg-white/90 rounded-lg px-2.5 py-1 border border-emerald-200">
-              <span>GPS Lat: {latitude.toFixed(6)}°</span>
-              <span>•</span>
-              <span>Lng: {longitude.toFixed(6)}°</span>
-              <span className="ml-auto text-emerald-700 font-sans font-bold flex items-center gap-1">
-                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" /> Geo-Verified
+
+          <div className="rounded-2xl border-2 border-emerald-300 bg-emerald-50/90 p-4 max-w-xs mx-auto shadow-xs">
+            <p className="text-xs font-bold uppercase tracking-wider text-emerald-900 mb-1">
+              Estimated Reward Points
+            </p>
+            <div className="my-2 inline-block rounded-xl bg-white px-6 py-2 border-2 border-emerald-300 shadow-xs">
+              <span className="font-mono text-3xl font-black tracking-widest text-emerald-950">
+                +{submittedInfo.points} PTS
               </span>
             </div>
-          )}
+            <p className="text-[11px] text-emerald-800 leading-relaxed font-medium">
+              When an NGO or scrap dealer collects your waste from your pickup location, they will credit reward points to your account!
+            </p>
+          </div>
+
+          <div className="rounded-xl bg-slate-50 border border-slate-200 p-3 text-xs text-slate-600">
+            📡 Specialized scrap shops & NGOs registered under <strong>"{submittedInfo.category}"</strong> can now view your listing and contact you for pickup.
+          </div>
+
+          <button
+            type="button"
+            onClick={handleCloseModal}
+            className="btn-primary w-full py-3 text-sm font-bold shadow-xs cursor-pointer"
+          >
+            Got it! View in My Dashboard
+          </button>
         </div>
-        <button type="submit" disabled={loading} className="btn-primary w-full">{loading ? 'Submitting...' : 'List for Pickup'}</button>
-      </form>
+      ) : (
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {error && <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"><AlertCircle className="h-4 w-4" />{error}</div>}
+
+          {/* Select Category */}
+          <div>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="label mb-0">Select Waste Category to Sell</label>
+              <span className="text-xs font-semibold text-emerald-700">
+                Rate: ~{activeCategory.suggestedRate} pts/kg
+              </span>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 max-h-48 overflow-y-auto pr-1">
+              {NGO_CATEGORIES.map((cat) => {
+                const isSelected = selectedCategory === cat.id;
+                return (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => setSelectedCategory(cat.id)}
+                    className={`flex items-center gap-1.5 rounded-xl border p-2 text-left transition-all cursor-pointer ${
+                      isSelected
+                        ? 'border-emerald-600 bg-emerald-50 text-emerald-900 font-bold shadow-xs ring-1 ring-emerald-500'
+                        : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300'
+                    }`}
+                  >
+                    <span className="text-lg">{cat.icon}</span>
+                    <span className="text-xs truncate">{cat.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Quantity & Estimated Points */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="label">Quantity (kg / count)</label>
+              <input
+                type="number"
+                step="0.1"
+                min="0.1"
+                required
+                value={quantity}
+                onChange={(e) => setQuantity(e.target.value)}
+                className="input font-semibold"
+                placeholder="e.g. 10.5"
+              />
+            </div>
+            <div className="rounded-xl border border-amber-200 bg-amber-50/70 p-3 flex flex-col justify-center">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-amber-800">
+                Estimated Reward
+              </span>
+              <span className="font-mono text-xl font-black text-amber-950">
+                +{estimatedPoints} Points
+              </span>
+            </div>
+          </div>
+
+          <div>
+            <label className="label">Description / Condition</label>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="input min-h-[60px] resize-none"
+              placeholder="e.g. Clean segregated plastic bottles, packed in bags..."
+            />
+          </div>
+
+          {/* 100% Automated Live GPS Geo-Tag (No manual entry) */}
+          <div className="rounded-2xl border-2 border-emerald-500/40 bg-gradient-to-br from-emerald-50/90 to-teal-50/50 p-4 shadow-xs">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-bold text-emerald-950 flex items-center gap-2">
+                <span className="relative flex h-2.5 w-2.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-600"></span>
+                </span>
+                🛰️ Automatic Pickup GPS Location
+              </span>
+              <button
+                type="button"
+                onClick={fetchLiveLocation}
+                disabled={detectingLocation}
+                className="text-xs font-semibold text-emerald-700 hover:text-emerald-900 flex items-center gap-1 cursor-pointer"
+              >
+                {detectingLocation ? <Loader2 className="h-3 w-3 animate-spin" /> : <Navigation className="h-3 w-3" />}
+                <span>{detectingLocation ? 'Locating...' : 'Re-sync GPS'}</span>
+              </button>
+            </div>
+            <p className="text-xs font-bold text-slate-900 leading-snug">
+              📍 {address || 'Live Satellite GPS Pickup Point'}
+            </p>
+            {latitude && longitude && (
+              <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px] font-mono text-emerald-900 bg-white/90 rounded-lg px-2.5 py-1 border border-emerald-200">
+                <span>GPS Lat: {latitude.toFixed(6)}°</span>
+                <span>•</span>
+                <span>Lng: {longitude.toFixed(6)}°</span>
+                <span className="ml-auto text-emerald-700 font-sans font-bold flex items-center gap-1">
+                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" /> Geo-Verified
+                </span>
+              </div>
+            )}
+          </div>
+
+          <div className="rounded-xl border border-blue-200 bg-blue-50/70 p-3 text-xs text-blue-900 leading-relaxed">
+            📢 <strong>Targeted Dispatch:</strong> This sell request will be automatically dispatched to verified NGOs and Scrap Dealers registered under <strong>"{activeCategory.label}"</strong>.
+          </div>
+
+          <button type="submit" disabled={loading} className="btn-primary w-full py-3 text-sm font-bold shadow-xs">
+            {loading ? 'Publishing Request...' : 'Publish Sell Offer to NGOs & Dealers'}
+          </button>
+        </form>
+      )}
     </Modal>
   );
 }
