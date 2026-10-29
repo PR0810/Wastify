@@ -536,40 +536,50 @@ function ReportWasteModal({ open, onClose, userId, onCreated }: { open: boolean;
           <label className="label">Description</label>
           <textarea value={description} onChange={(e) => setDescription(e.target.value)} className="input min-h-[80px] resize-none" placeholder="Describe the waste situation..." />
         </div>
-        <div>
-          <div className="flex items-center justify-between mb-1">
-            <label className="label mb-0">Automatic Location (आपकी लोकेशन)</label>
+        {/* 100% Automated Live GPS Geo-Tag (No manual entry) */}
+        <div className="rounded-2xl border-2 border-emerald-500/40 bg-gradient-to-br from-emerald-50/90 to-teal-50/50 p-4 shadow-xs">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-bold text-emerald-950 flex items-center gap-2">
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-600"></span>
+              </span>
+              🛰️ Automatic Geo-Tag (स्वचालित जियो-टैग)
+            </span>
             <button
               type="button"
               onClick={fetchLiveLocation}
               disabled={detectingLocation}
-              className="text-xs font-semibold text-emerald-700 hover:text-emerald-800 flex items-center gap-1 cursor-pointer"
+              className="text-xs font-semibold text-emerald-700 hover:text-emerald-900 flex items-center gap-1 cursor-pointer"
             >
               {detectingLocation ? <Loader2 className="h-3 w-3 animate-spin" /> : <Navigation className="h-3 w-3" />}
-              {detectingLocation ? 'Detecting GPS...' : 'Refresh Location'}
+              <span>{detectingLocation ? 'Locating...' : 'Re-sync GPS'}</span>
             </button>
           </div>
-          <div className="relative">
-            <input
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
-              className="input pr-10 bg-slate-50 border-emerald-300 font-medium text-slate-800"
-              placeholder={detectingLocation ? "Detecting location automatically via GPS..." : "Auto-detected Location"}
-            />
-            <div className="absolute right-3 top-1/2 -translate-y-1/2">
-              {detectingLocation ? (
-                <Loader2 className="h-4 w-4 animate-spin text-emerald-600" />
-              ) : locationSuccess ? (
-                <CheckCircle2 className="h-4 w-4 text-emerald-600" title="GPS Verified" />
+
+          {detectingLocation ? (
+            <div className="py-2 flex items-center gap-2 text-xs font-medium text-emerald-800">
+              <Loader2 className="h-4 w-4 animate-spin text-emerald-600 shrink-0" />
+              <span>Fetching live GPS satellite coordinates for geo-tagging...</span>
+            </div>
+          ) : (
+            <div>
+              <p className="text-xs font-bold text-slate-900 leading-snug">
+                📍 {address || 'Live Satellite GPS Location'}
+              </p>
+              {latitude && longitude ? (
+                <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px] font-mono text-emerald-900 bg-white/90 rounded-lg px-2.5 py-1 border border-emerald-200">
+                  <span>GPS Lat: {latitude.toFixed(6)}°</span>
+                  <span>•</span>
+                  <span>Lng: {longitude.toFixed(6)}°</span>
+                  <span className="ml-auto text-emerald-700 font-sans font-bold flex items-center gap-1">
+                    <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" /> Geo-Tagged Complaint
+                  </span>
+                </div>
               ) : (
-                <MapPin className="h-4 w-4 text-slate-400" />
+                <p className="mt-1 text-[11px] text-amber-700">Please enable device GPS for precise geo-tagging.</p>
               )}
             </div>
-          </div>
-          {locationSuccess && (
-            <p className="mt-1 text-[11px] text-emerald-700 font-medium flex items-center gap-1">
-              <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" /> Location detected automatically via GPS (आपको टाइप करने की जरूरत नहीं)
-            </p>
           )}
         </div>
         <div>
@@ -681,14 +691,39 @@ function RecyclableModal({ open, onClose, userId, onCreated }: { open: boolean; 
           <label className="label">Description</label>
           <textarea value={description} onChange={(e) => setDescription(e.target.value)} className="input min-h-[60px] resize-none" placeholder="Describe the recyclable waste..." />
         </div>
-        <div>
-          <div className="flex items-center justify-between mb-1">
-            <label className="label mb-0">Pickup Address (Automatic)</label>
-            <button type="button" onClick={fetchLiveLocation} className="text-xs font-semibold text-emerald-700 hover:underline">
-              {detectingLocation ? 'Detecting...' : 'Auto-Detect Location'}
+        {/* 100% Automated Live GPS Geo-Tag (No manual entry) */}
+        <div className="rounded-2xl border-2 border-emerald-500/40 bg-gradient-to-br from-emerald-50/90 to-teal-50/50 p-4 shadow-xs">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-bold text-emerald-950 flex items-center gap-2">
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-600"></span>
+              </span>
+              🛰️ Automatic Pickup Geo-Tag (स्वचालित पिकअप लोकेशन)
+            </span>
+            <button
+              type="button"
+              onClick={fetchLiveLocation}
+              disabled={detectingLocation}
+              className="text-xs font-semibold text-emerald-700 hover:text-emerald-900 flex items-center gap-1 cursor-pointer"
+            >
+              {detectingLocation ? <Loader2 className="h-3 w-3 animate-spin" /> : <Navigation className="h-3 w-3" />}
+              <span>{detectingLocation ? 'Locating...' : 'Re-sync GPS'}</span>
             </button>
           </div>
-          <input value={address} onChange={(e) => setAddress(e.target.value)} className="input bg-slate-50" placeholder="Auto-detected Location" />
+          <p className="text-xs font-bold text-slate-900 leading-snug">
+            📍 {address || 'Live Satellite GPS Pickup Point'}
+          </p>
+          {latitude && longitude && (
+            <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px] font-mono text-emerald-900 bg-white/90 rounded-lg px-2.5 py-1 border border-emerald-200">
+              <span>GPS Lat: {latitude.toFixed(6)}°</span>
+              <span>•</span>
+              <span>Lng: {longitude.toFixed(6)}°</span>
+              <span className="ml-auto text-emerald-700 font-sans font-bold flex items-center gap-1">
+                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" /> Geo-Verified
+              </span>
+            </div>
+          )}
         </div>
         <button type="submit" disabled={loading} className="btn-primary w-full">{loading ? 'Submitting...' : 'List for Pickup'}</button>
       </form>
@@ -803,40 +838,50 @@ function SurplusFoodModal({ open, onClose, userId, onCreated }: { open: boolean;
           <label className="label">Description</label>
           <textarea value={description} onChange={(e) => setDescription(e.target.value)} className="input min-h-[60px] resize-none" placeholder="Describe the food..." />
         </div>
-        <div>
-          <div className="flex items-center justify-between mb-1">
-            <label className="label mb-0">Automatic Pickup Location (आपकी लोकेशन)</label>
+        {/* 100% Automated Live GPS Geo-Tag (No manual entry) */}
+        <div className="rounded-2xl border-2 border-emerald-500/40 bg-gradient-to-br from-emerald-50/90 to-teal-50/50 p-4 shadow-xs">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-bold text-emerald-950 flex items-center gap-2">
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-600"></span>
+              </span>
+              🛰️ Automatic Pickup Geo-Tag (स्वचालित पिकअप लोकेशन)
+            </span>
             <button
               type="button"
               onClick={fetchLiveLocation}
               disabled={detectingLocation}
-              className="text-xs font-semibold text-emerald-700 hover:text-emerald-800 flex items-center gap-1 cursor-pointer"
+              className="text-xs font-semibold text-emerald-700 hover:text-emerald-900 flex items-center gap-1 cursor-pointer"
             >
               {detectingLocation ? <Loader2 className="h-3 w-3 animate-spin" /> : <Navigation className="h-3 w-3" />}
-              {detectingLocation ? 'Detecting GPS...' : 'Refresh Location'}
+              <span>{detectingLocation ? 'Locating...' : 'Re-sync GPS'}</span>
             </button>
           </div>
-          <div className="relative">
-            <input
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
-              className="input pr-10 bg-slate-50 border-emerald-300 font-medium text-slate-800"
-              placeholder={detectingLocation ? "Detecting location automatically via GPS..." : "Auto-detected Location"}
-            />
-            <div className="absolute right-3 top-1/2 -translate-y-1/2">
-              {detectingLocation ? (
-                <Loader2 className="h-4 w-4 animate-spin text-emerald-600" />
-              ) : locationSuccess ? (
-                <CheckCircle2 className="h-4 w-4 text-emerald-600" title="GPS Verified" />
+
+          {detectingLocation ? (
+            <div className="py-2 flex items-center gap-2 text-xs font-medium text-emerald-800">
+              <Loader2 className="h-4 w-4 animate-spin text-emerald-600 shrink-0" />
+              <span>Fetching live GPS satellite coordinates for food donation pickup...</span>
+            </div>
+          ) : (
+            <div>
+              <p className="text-xs font-bold text-slate-900 leading-snug">
+                📍 {address || 'Live Satellite GPS Pickup Point'}
+              </p>
+              {latitude && longitude ? (
+                <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px] font-mono text-emerald-900 bg-white/90 rounded-lg px-2.5 py-1 border border-emerald-200">
+                  <span>GPS Lat: {latitude.toFixed(6)}°</span>
+                  <span>•</span>
+                  <span>Lng: {longitude.toFixed(6)}°</span>
+                  <span className="ml-auto text-emerald-700 font-sans font-bold flex items-center gap-1">
+                    <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" /> Geo-Tagged Pickup
+                  </span>
+                </div>
               ) : (
-                <MapPin className="h-4 w-4 text-slate-400" />
+                <p className="mt-1 text-[11px] text-amber-700">Please enable device GPS for pickup point geo-tagging.</p>
               )}
             </div>
-          </div>
-          {locationSuccess && (
-            <p className="mt-1 text-[11px] text-emerald-700 font-medium flex items-center gap-1">
-              <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" /> Location detected automatically via GPS (लोकेशन खुद ले ली गई है)
-            </p>
           )}
         </div>
         <label className="flex items-center gap-2 text-sm text-slate-700">

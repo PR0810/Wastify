@@ -434,27 +434,56 @@ export function AdminDashboard() {
 function AdminReportCard({ report, onAssign, onUpdate }: { report: WasteReport; onAssign: (r: WasteReport) => void; onUpdate: (id: string, status: WasteReport['status']) => void }) {
   const reportType = REPORT_TYPES.find(t => t.id === report.type);
   return (
-    <div className="card-hover p-4">
+    <div className="card-hover rounded-2xl border border-slate-200 bg-white p-4 shadow-xs">
       <div className="flex items-start justify-between">
-        <div className="flex items-center gap-2">
-          <span className="text-lg">{reportType?.icon}</span>
+        <div className="flex items-center gap-2.5">
+          <span className="text-2xl">{reportType?.icon}</span>
           <div>
-            <p className="text-sm font-semibold text-slate-900">{reportType?.label}</p>
+            <p className="text-sm font-bold text-slate-900">{reportType?.label}</p>
             <p className="text-xs text-slate-400">{formatTimeAgo(report.created_at)}</p>
           </div>
         </div>
         <span className={`badge ${STATUS_COLORS[report.status]}`}>{report.status.replace('_', ' ')}</span>
       </div>
-      {report.description && <p className="mt-2 text-sm text-slate-600">{report.description}</p>}
-      {report.address && <div className="mt-2 flex items-center gap-1 text-xs text-slate-400"><MapPin className="h-3 w-3" /> {report.address}</div>}
+      {report.description && <p className="mt-2 text-xs text-slate-600 bg-slate-50 p-2 rounded-lg italic">"{report.description}"</p>}
+
+      {/* Live Geo-Tag Badge Card */}
+      <div className="mt-3 rounded-xl bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 p-2.5 text-xs">
+        <div className="flex items-center justify-between text-emerald-900 font-bold mb-1">
+          <span className="flex items-center gap-1.5 text-[11px] uppercase tracking-wide">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-600"></span>
+            </span>
+            📍 Live Geo-Tagged Location
+          </span>
+          {report.latitude && report.longitude && (
+            <a
+              href={`https://www.google.com/maps?q=${report.latitude},${report.longitude}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[11px] text-blue-700 hover:text-blue-900 font-bold underline flex items-center gap-0.5"
+            >
+              🗺️ Open in Google Maps
+            </a>
+          )}
+        </div>
+        <p className="text-slate-700 font-medium leading-snug">{report.address}</p>
+        {report.latitude && report.longitude && (
+          <p className="text-[10px] text-emerald-800 font-mono mt-1 pt-1 border-t border-emerald-200/60">
+            GPS: {report.latitude.toFixed(6)}°, {report.longitude.toFixed(6)}°
+          </p>
+        )}
+      </div>
+
       <div className="mt-3 flex gap-2">
         {report.status === 'pending' && (
-          <button onClick={() => onAssign(report)} className="btn-primary text-xs">
+          <button onClick={() => onAssign(report)} className="btn-primary text-xs py-1.5 px-3">
             Assign to Driver
           </button>
         )}
         {report.status === 'in_progress' && (
-          <button onClick={() => onUpdate(report.id, 'resolved')} className="btn-secondary text-xs">
+          <button onClick={() => onUpdate(report.id, 'resolved')} className="btn-secondary text-xs py-1.5 px-3">
             Mark Resolved
           </button>
         )}
