@@ -15,6 +15,8 @@ import {
   Power,
   TrendingUp,
   ShieldCheck,
+  KeyRound,
+  Lock,
 } from 'lucide-react';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { StatCard, PageHeader, Section } from '@/components/ui/StatCard';
@@ -28,14 +30,16 @@ import {
   type Area,
   type CollectionTrip,
   type VehicleLocation,
+  type Profile,
 } from '@/lib/supabase';
 import { REPORT_TYPES, STATUS_COLORS, formatTimeAgo } from '@/lib/constants';
 import { VehicleMap, type VehiclePos, MapPlaceholder } from '@/components/VehicleMap';
+import { cleanFoodDescription, extractFoodOtp } from '@/lib/foodOtp';
 
 export function DriverDashboard() {
   const { profile } = useAuth();
   const [assignments, setAssignments] = useState<(DriverAssignment & { area: Area })[]>([]);
-  const [assignedReports, setAssignedReports] = useState<WasteReport[]>([]);
+  const [assignedReports, setAssignedReports] = useState<(WasteReport & { reporter?: Profile })[]>([]);
   const [activeTrip, setActiveTrip] = useState<CollectionTrip | null>(null);
   const [completedTrips, setCompletedTrips] = useState<CollectionTrip[]>([]);
   const [vehicleLoc, setVehicleLoc] = useState<VehicleLocation | null>(null);
@@ -53,6 +57,12 @@ export function DriverDashboard() {
   const [tripDropoff, setTripDropoff] = useState('');
   const [tripNotes, setTripNotes] = useState('');
 
+  // Report completion OTP verification modal
+  const [otpModalReport, setOtpModalReport] = useState<(WasteReport & { reporter?: Profile }) | null>(null);
+  const [enteredOtp, setEnteredOtp] = useState('');
+  const [otpError, setOtpError] = useState<string | null>(null);
+  const [verifying, setVerifying] = useState(false);
+
   const loadData = useCallback(async () => {
     if (!profile) return;
     const [assignRes, reportsRes, tripRes, completedRes, locRes] = await Promise.all([
@@ -63,7 +73,7 @@ export function DriverDashboard() {
         .eq('status', 'active'),
       supabase
         .from('waste_reports')
-        .select('*')
+        .select('*, reporter:profiles!waste_reports_reporter_id_fkey(*)')
         .eq('assigned_to', profile.id)
         .order('created_at', { ascending: false }),
       supabase
@@ -86,7 +96,7 @@ export function DriverDashboard() {
         .maybeSingle(),
     ]);
     setAssignments((assignRes.data as (DriverAssignment & { area: Area })[]) ?? []);
-    setAssignedReports((reportsRes.data as WasteReport[]) ?? []);
+    setAssignedReports((reportsRes.data as (WasteReport & { reporter?: Profile })[]) ?? []);
     setActiveTrip((tripRes.data as CollectionTrip) ?? null);
     setCompletedTrips((completedRes.data as CollectionTrip[]) ?? []);
     setVehicleLoc((locRes.data as VehicleLocation) ?? null);
@@ -221,6 +231,25 @@ export function DriverDashboard() {
   async function updateStatus(reportId: string, status: WasteReport['status']) {
     await supabase.from('waste_reports').update({ status }).eq('id', reportId);
     loadData();
+  }
+
+  async function handleVerifyReportOtp(e: React.FormEvent) {
+    e.preventDefault();
+    if (!otpModalReport) return;
+    setOtpError(null);
+
+    const expectedOtp = extractFoodOtp(otpModalReport.description, otpModalReport.id);
+    if (enteredOtp.trim() !== expectedOtp.trim()) {
+      setOtpError('Invalid OTP! Please ask the reporting citizen for their 4-digit code shown on their dashboard.');
+      return;
+    }
+
+    setVerifying(true);
+    await updateStatus(otpModalReport.id, 'resolved');
+    setVerifying(false);
+    setOtpModalReport(null);
+    setEnteredOtp('');
+    setOtpError(null);
   }
 
   if (!profile) return <Spinner label="Loading..." />;
@@ -468,56 +497,90 @@ export function DriverDashboard() {
               />
             ) : (
               <div className="grid gap-3.5 sm:grid-cols-2">
-                {assignedReports.map((report) => (
-                  <div key={report.id} className="card-hover p-5 border border-slate-200/80 rounded-2xl bg-white shadow-xs">
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center gap-2.5">
-                        <span className="text-2xl">{REPORT_TYPES.find((t) => t.id === report.type)?.icon}</span>
-                        <div>
-                          <p className="text-sm font-bold text-slate-900">
-                            {REPORT_TYPES.find((t) => t.id === report.type)?.label}
-                          </p>
-                          <p className="text-xs text-slate-400">{formatTimeAgo(report.created_at)}</p>
+                {assignedReports.map((report) => {
+                  const cleanDesc = cleanFoodDescription(report.description);
+                  let statusBadgeClass = STATUS_COLORS[report.status] || 'bg-slate-100 text-slate-700';
+                  let statusBadgeText = report.status.replace('_', ' ');
+                  if (report.status === 'in_progress') {
+                    statusBadgeClass = 'bg-blue-100 text-blue-800 border border-blue-300';
+                    statusBadgeText = 'In Progress (Pickup)';
+                  } else if (report.status === 'resolved') {
+                    statusBadgeClass = 'bg-emerald-100 text-emerald-800 border border-emerald-300';
+                    statusBadgeText = 'Resolved / Done';
+                  }
+
+                  return (
+                    <div key={report.id} className="card-hover p-5 border border-slate-200/80 rounded-2xl bg-white shadow-xs">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-center gap-2.5">
+                          <span className="text-2xl">{REPORT_TYPES.find((t) => t.id === report.type)?.icon}</span>
+                          <div>
+                            <p className="text-sm font-bold text-slate-900">
+                              {REPORT_TYPES.find((t) => t.id === report.type)?.label}
+                            </p>
+                            <p className="text-xs text-slate-400">{formatTimeAgo(report.created_at)}</p>
+                          </div>
                         </div>
+                        <span className={`badge font-semibold ${statusBadgeClass}`}>
+                          {statusBadgeText}
+                        </span>
                       </div>
-                      <span className={`badge ${STATUS_COLORS[report.status]}`}>
-                        {report.status.replace('_', ' ')}
-                      </span>
+
+                      {cleanDesc && (
+                        <p className="mt-3 text-sm text-slate-600 line-clamp-2 bg-slate-50 p-2.5 rounded-lg italic">"{cleanDesc}"</p>
+                      )}
+
+                      <p className="mt-2 text-xs text-slate-500">
+                        Reporting Citizen: <strong className="text-slate-800">{report.reporter?.full_name || 'Citizen'}</strong>
+                      </p>
+
+                      {report.address && (
+                        <div className="mt-2 flex items-center gap-1.5 text-xs text-emerald-800 font-medium">
+                          <MapPin className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
+                          <span className="truncate">{report.address}</span>
+                        </div>
+                      )}
+
+                      {report.status !== 'resolved' && (
+                        <div className="mt-4 pt-3 border-t border-slate-100">
+                          {report.status === 'pending' && (
+                            <button
+                              onClick={() => updateStatus(report.id, 'in_progress')}
+                              className="btn-secondary text-xs w-full py-2"
+                            >
+                              Accept & Start Route
+                            </button>
+                          )}
+                          {report.status === 'in_progress' && (
+                            <div>
+                              <button
+                                onClick={() => {
+                                  setOtpModalReport(report);
+                                  setEnteredOtp('');
+                                  setOtpError(null);
+                                }}
+                                className="btn-primary text-xs w-full py-2.5 flex items-center justify-center gap-1.5 shadow-sm"
+                              >
+                                <KeyRound className="h-4 w-4" />
+                                <span>Mark Done (Enter Citizen OTP)</span>
+                              </button>
+                              <p className="text-[11px] text-slate-400 text-center mt-1.5">
+                                Enter the 4-digit OTP provided by the reporting citizen
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {report.status === 'resolved' && (
+                        <div className="mt-3 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 flex items-center gap-2 text-xs font-semibold text-emerald-800">
+                          <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
+                          <span>Collection verified via Citizen OTP & marked Done</span>
+                        </div>
+                      )}
                     </div>
-
-                    {report.description && (
-                      <p className="mt-3 text-sm text-slate-600 line-clamp-2">{report.description}</p>
-                    )}
-
-                    {report.address && (
-                      <div className="mt-2.5 flex items-center gap-1.5 text-xs text-slate-500 font-medium">
-                        <MapPin className="h-3.5 w-3.5 text-slate-400 shrink-0" />
-                        <span className="truncate">{report.address}</span>
-                      </div>
-                    )}
-
-                    {report.status !== 'resolved' && (
-                      <div className="mt-4 flex gap-2 pt-3 border-t border-slate-100">
-                        {report.status === 'pending' && (
-                          <button
-                            onClick={() => updateStatus(report.id, 'in_progress')}
-                            className="btn-secondary text-xs w-full py-2"
-                          >
-                            Accept & Start Route
-                          </button>
-                        )}
-                        {report.status === 'in_progress' && (
-                          <button
-                            onClick={() => updateStatus(report.id, 'resolved')}
-                            className="btn-primary text-xs w-full py-2 flex items-center justify-center gap-1.5"
-                          >
-                            <CheckCircle2 className="h-4 w-4" /> Mark Collected & Resolved
-                          </button>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
@@ -692,6 +755,85 @@ export function DriverDashboard() {
             <CheckCircle2 className="h-4 w-4" /> Record Dropoff & Complete Trip
           </button>
         </div>
+      </Modal>
+
+      {/* Waste Collection OTP Verification Modal */}
+      <Modal
+        open={!!otpModalReport}
+        onClose={() => {
+          setOtpModalReport(null);
+          setEnteredOtp('');
+          setOtpError(null);
+        }}
+        title="Verify Waste Collection with Citizen OTP"
+      >
+        {otpModalReport && (
+          <form onSubmit={handleVerifyReportOtp} className="space-y-4">
+            <div className="rounded-xl bg-amber-50 border border-amber-200 p-3.5 text-xs text-amber-800">
+              <p className="font-semibold text-amber-900 mb-1 flex items-center gap-1.5">
+                <ShieldCheck className="h-4 w-4 text-amber-600" />
+                Citizen Verification Required
+              </p>
+              Ask the citizen who reported this waste (
+              <span className="font-semibold text-amber-950">
+                {otpModalReport.reporter?.full_name || 'Citizen'}
+              </span>
+              ) for their 4-digit verification OTP shown on their Wastify dashboard.
+            </div>
+
+            <div className="rounded-xl bg-slate-50 border border-slate-200 p-3 text-xs space-y-1">
+              <p className="font-medium text-slate-500">Waste Details</p>
+              <p className="text-sm font-semibold text-slate-800">
+                {cleanFoodDescription(otpModalReport.description) || 'Waste collection request'}
+              </p>
+              <p className="text-slate-500">
+                📍 {otpModalReport.address || 'Reported Location'}
+              </p>
+            </div>
+
+            <div>
+              <label className="label">Enter 4-Digit Citizen OTP</label>
+              <input
+                type="text"
+                maxLength={4}
+                required
+                value={enteredOtp}
+                onChange={(e) => setEnteredOtp(e.target.value.replace(/\D/g, ''))}
+                className="input text-center text-2xl font-mono tracking-widest py-3 font-bold"
+                placeholder="••••"
+                autoFocus
+              />
+            </div>
+
+            {otpError && (
+              <p className="text-xs font-medium text-rose-600 bg-rose-50 border border-rose-200 rounded-lg p-2.5">
+                {otpError}
+              </p>
+            )}
+
+            <div className="flex gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setOtpModalReport(null);
+                  setEnteredOtp('');
+                  setOtpError(null);
+                }}
+                className="btn-secondary flex-1"
+                disabled={verifying}
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={verifying || enteredOtp.length !== 4}
+                className="btn-primary flex-1"
+              >
+                {verifying ? 'Verifying...' : 'Verify & Mark Done'}
+              </button>
+            </div>
+          </form>
+        )}
       </Modal>
     </DashboardLayout>
   );

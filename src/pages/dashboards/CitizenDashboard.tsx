@@ -516,9 +516,25 @@ export function CitizenDashboard() {
 function ReportCard({ report }: { report: WasteReport }) {
   const reportType = REPORT_TYPES.find(t => t.id === report.type);
   const [showFull, setShowFull] = useState(false);
+  const cleanDesc = cleanFoodDescription(report.description);
+  const otp = extractFoodOtp(report.description, report.id);
+
+  let statusBadgeLabel = report.status.replace('_', ' ');
+  let statusBadgeClass = STATUS_COLORS[report.status] || 'bg-slate-100 text-slate-700';
+  if (report.status === 'pending') {
+    statusBadgeLabel = 'Pending Driver Assignment';
+    statusBadgeClass = 'bg-amber-100 text-amber-800 border border-amber-300';
+  } else if (report.status === 'in_progress') {
+    statusBadgeLabel = 'Assigned to Driver (In Progress)';
+    statusBadgeClass = 'bg-blue-100 text-blue-800 border border-blue-300';
+  } else if (report.status === 'resolved') {
+    statusBadgeLabel = 'Resolved / Done';
+    statusBadgeClass = 'bg-emerald-100 text-emerald-800 border border-emerald-300';
+  }
+
   return (
     <div className="card-hover p-4 rounded-2xl border border-slate-200 bg-white">
-      <div className="flex items-start justify-between">
+      <div className="flex items-start justify-between gap-2">
         <div className="flex items-center gap-2">
           <span className="text-xl">{reportType?.icon}</span>
           <div>
@@ -526,11 +542,11 @@ function ReportCard({ report }: { report: WasteReport }) {
             <p className="text-xs text-slate-400">{formatTimeAgo(report.created_at)}</p>
           </div>
         </div>
-        <span className={`badge ${STATUS_COLORS[report.status]}`}>
-          {report.status.replace('_', ' ')}
+        <span className={`badge font-semibold ${statusBadgeClass}`}>
+          {statusBadgeLabel}
         </span>
       </div>
-      {report.description && <p className="mt-2 text-xs text-slate-600 bg-slate-50 p-2 rounded-lg italic">"{report.description}"</p>}
+      {cleanDesc && <p className="mt-2 text-xs text-slate-600 bg-slate-50 p-2 rounded-lg italic">"{cleanDesc}"</p>}
       
       {/* Uploaded Photo Display */}
       {report.photo_url && (
@@ -564,6 +580,36 @@ function ReportCard({ report }: { report: WasteReport }) {
         <div className="mt-2.5 flex items-center gap-1.5 text-xs text-slate-500 font-medium">
           <MapPin className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
           <span className="truncate">{report.address}</span>
+        </div>
+      )}
+
+      {/* Secret Collection Verification OTP for Citizen */}
+      {report.status !== 'resolved' && (
+        <div className="mt-3.5 rounded-xl border border-amber-300 bg-amber-50/90 p-3 shadow-xs">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-wider text-amber-900 flex items-center gap-1.5">
+                <KeyRound className="h-3.5 w-3.5 text-amber-700" />
+                Collection Verification OTP
+              </p>
+              <p className="text-[11px] text-amber-800 mt-0.5 leading-tight">
+                Share this 4-digit code with the garbage truck driver only after waste is collected.
+              </p>
+            </div>
+            <div className="flex flex-col items-center shrink-0">
+              <span className="font-mono text-lg font-black tracking-widest text-amber-950 bg-white px-3 py-0.5 rounded-lg border border-amber-300 shadow-xs">
+                {otp}
+              </span>
+              <span className="text-[9px] uppercase tracking-wider text-amber-700 font-bold mt-0.5">Secret Code</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {report.status === 'resolved' && (
+        <div className="mt-3 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 flex items-center gap-2 text-xs font-semibold text-emerald-800">
+          <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
+          <span>Waste successfully collected & verified via Citizen OTP</span>
         </div>
       )}
     </div>
@@ -786,10 +832,12 @@ function ReportWasteModal({ open, onClose, userId, onCreated }: { open: boolean;
     e.preventDefault();
     setLoading(true);
     setError(null);
+    const otp = generateOtp();
+    const fullDescription = `[OTP: ${otp}] ${description.trim()}`;
     const { error } = await supabase.from('waste_reports').insert({
       reporter_id: userId,
       type,
-      description,
+      description: fullDescription,
       address: address || 'Auto-detected Citizen Location',
       latitude,
       longitude,

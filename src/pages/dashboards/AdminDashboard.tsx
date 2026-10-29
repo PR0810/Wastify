@@ -13,7 +13,7 @@ import { cleanFoodDescription } from '@/lib/foodOtp';
 export function AdminDashboard() {
   const { profile } = useAuth();
   const [activeTab, setActiveTab] = useState<'overview' | 'reports' | 'food' | 'drivers' | 'vehicles' | 'rewards' | 'learning'>('overview');
-  const [reports, setReports] = useState<WasteReport[]>([]);
+  const [reports, setReports] = useState<(WasteReport & { driver?: Profile; reporter?: Profile })[]>([]);
   const [foodListings, setFoodListings] = useState<(SurplusFood & { citizen?: Profile; ngo?: Profile })[]>([]);
   const [drivers, setDrivers] = useState<Profile[]>([]);
   const [allProfiles, setAllProfiles] = useState<Profile[]>([]);
@@ -33,7 +33,7 @@ export function AdminDashboard() {
 
   const loadData = useCallback(async () => {
     const [reportsRes, foodRes, profilesRes, areasRes, assignRes, vehiclesRes, rewardsRes] = await Promise.all([
-      supabase.from('waste_reports').select('*').order('created_at', { ascending: false }),
+      supabase.from('waste_reports').select('*, driver:profiles!waste_reports_assigned_to_fkey(*), reporter:profiles!waste_reports_reporter_id_fkey(*)').order('created_at', { ascending: false }),
       supabase.from('surplus_food').select('*, citizen:profiles!surplus_food_citizen_id_fkey(*), ngo:profiles!surplus_food_accepted_by_fkey(*)').order('created_at', { ascending: false }),
       supabase.from('profiles').select('*'),
       supabase.from('areas').select('*'),
@@ -41,7 +41,7 @@ export function AdminDashboard() {
       supabase.from('vehicle_locations').select('*, driver:profiles!vehicle_locations_driver_id_fkey(*)').order('updated_at', { ascending: false }),
       supabase.from('rewards').select('*, user:profiles!rewards_user_id_fkey(*)').order('created_at', { ascending: false }),
     ]);
-    setReports((reportsRes.data as WasteReport[]) ?? []);
+    setReports((reportsRes.data as (WasteReport & { driver?: Profile; reporter?: Profile })[]) ?? []);
     setFoodListings((foodRes.data as (SurplusFood & { citizen?: Profile; ngo?: Profile })[]) ?? []);
     const profiles = (profilesRes.data as Profile[]) ?? [];
     setAllProfiles(profiles);
@@ -516,9 +516,23 @@ export function AdminDashboard() {
 }
 
 // ============ Admin Report Card ============
-function AdminReportCard({ report, onAssign, onUpdate }: { report: WasteReport; onAssign: (r: WasteReport) => void; onUpdate: (id: string, status: WasteReport['status']) => void }) {
+function AdminReportCard({ report, onAssign, onUpdate }: { report: WasteReport & { driver?: Profile; reporter?: Profile }; onAssign: (r: WasteReport) => void; onUpdate: (id: string, status: WasteReport['status']) => void }) {
   const reportType = REPORT_TYPES.find(t => t.id === report.type);
   const [showPhotoModal, setShowPhotoModal] = useState(false);
+  const cleanDesc = cleanFoodDescription(report.description);
+
+  let statusBadgeLabel = report.status.replace('_', ' ');
+  let statusBadgeClass = STATUS_COLORS[report.status] || 'bg-slate-100 text-slate-700';
+  if (report.status === 'pending') {
+    statusBadgeLabel = 'Pending Driver Assignment';
+    statusBadgeClass = 'bg-amber-100 text-amber-800 border border-amber-300';
+  } else if (report.status === 'in_progress') {
+    statusBadgeLabel = report.driver ? `Assigned to ${report.driver.full_name}` : 'Assigned to Driver (In Progress)';
+    statusBadgeClass = 'bg-blue-100 text-blue-800 border border-blue-300';
+  } else if (report.status === 'resolved') {
+    statusBadgeLabel = 'Done / Resolved';
+    statusBadgeClass = 'bg-emerald-100 text-emerald-800 border border-emerald-300';
+  }
 
   return (
     <div className="card-hover rounded-2xl border border-slate-200 bg-white p-4 shadow-xs">
@@ -530,9 +544,27 @@ function AdminReportCard({ report, onAssign, onUpdate }: { report: WasteReport; 
             <p className="text-xs text-slate-400">{formatTimeAgo(report.created_at)}</p>
           </div>
         </div>
-        <span className={`badge ${STATUS_COLORS[report.status]}`}>{report.status.replace('_', ' ')}</span>
+        <span className={`badge font-semibold ${statusBadgeClass}`}>{statusBadgeLabel}</span>
       </div>
-      {report.description && <p className="mt-2 text-xs text-slate-600 bg-slate-50 p-2 rounded-lg italic">"{report.description}"</p>}
+      {cleanDesc && <p className="mt-2 text-xs text-slate-600 bg-slate-50 p-2 rounded-lg italic">"{cleanDesc}"</p>}
+      <p className="mt-1 text-[11px] text-slate-500">
+        Reporter: <strong className="text-slate-800">{report.reporter?.full_name || 'Citizen'}</strong>
+      </p>
+
+      {/* Driver assignment & OTP verification info */}
+      {report.status === 'in_progress' && (
+        <div className="mt-2.5 rounded-xl border border-blue-200 bg-blue-50/80 p-2.5 text-xs text-blue-900 flex items-center justify-between font-medium">
+          <span>🚛 Driver: <strong className="text-blue-950">{report.driver?.full_name || 'Assigned Driver'}</strong></span>
+          <span className="text-[11px] text-blue-700">⏳ Waiting for Waste Pickup & Citizen OTP</span>
+        </div>
+      )}
+
+      {report.status === 'resolved' && (
+        <div className="mt-2.5 rounded-xl border border-emerald-200 bg-emerald-50/80 p-2.5 text-xs text-emerald-900 flex items-center gap-2 font-medium">
+          <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
+          <span>Waste collected & verified via Citizen OTP by <strong>{report.driver?.full_name || 'Assigned Driver'}</strong></span>
+        </div>
+      )}
 
       {/* Uploaded Citizen Photo Proof for Admin */}
       {report.photo_url ? (
@@ -631,21 +663,29 @@ function AdminReportCard({ report, onAssign, onUpdate }: { report: WasteReport; 
         )}
       </div>
 
-      <div className="mt-3 flex gap-2">
+      <div className="mt-3 flex flex-wrap gap-2 pt-2 border-t border-slate-100">
         {report.status === 'pending' && (
           <button onClick={() => onAssign(report)} className="btn-primary text-xs py-1.5 px-3">
             Assign to Driver
           </button>
         )}
         {report.status === 'in_progress' && (
-          <button onClick={() => onAssign(report)} className="btn-primary text-xs py-1.5 px-3">
-            Assign to Driver
-          </button>
+          <>
+            <button onClick={() => onAssign(report)} className="btn-secondary text-xs py-1.5 px-3">
+              Reassign Driver
+            </button>
+            <button
+              onClick={() => onUpdate(report.id, 'resolved')}
+              className="btn-secondary text-xs py-1.5 px-3 text-emerald-700 hover:bg-emerald-50 ml-auto"
+            >
+              Mark Resolved (Admin Override)
+            </button>
+          </>
         )}
-        {report.status === 'in_progress' && (
-          <button onClick={() => onUpdate(report.id, 'resolved')} className="btn-secondary text-xs py-1.5 px-3">
-            Mark Resolved
-          </button>
+        {report.status === 'resolved' && (
+          <span className="text-xs text-emerald-700 font-bold flex items-center gap-1.5 py-1">
+            <CheckCircle2 className="h-4 w-4 text-emerald-600" /> Done — Collection Verified via Citizen OTP
+          </span>
         )}
       </div>
     </div>
@@ -732,7 +772,7 @@ function AssignReportModal({ open, onClose, report, drivers, onAssign }: {
         {report && (
           <div className="rounded-xl bg-slate-50 p-3 text-sm">
             <p className="font-semibold text-slate-900">{REPORT_TYPES.find(t => t.id === report.type)?.label}</p>
-            {report.description && <p className="mt-1 text-slate-600">{report.description}</p>}
+            {report.description && <p className="mt-1 text-slate-600">{cleanFoodDescription(report.description)}</p>}
             {report.address && <p className="mt-1 text-xs text-slate-400">{report.address}</p>}
           </div>
         )}
