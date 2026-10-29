@@ -52,6 +52,21 @@ export function AdminDashboard() {
 
   useEffect(() => { loadData(); }, [loadData]);
 
+  // Realtime polling for live vehicle locations every 5 seconds
+  useEffect(() => {
+    const pollVehicles = async () => {
+      const { data } = await supabase
+        .from('vehicle_locations')
+        .select('*, driver:profiles!vehicle_locations_driver_id_fkey(*)')
+        .order('updated_at', { ascending: false });
+      if (data) {
+        setVehicles(data as (VehicleLocation & { driver: Profile })[]);
+      }
+    };
+    const interval = setInterval(pollVehicles, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
   useEffect(() => {
     function handleSwitchTab(e: Event) {
       const customEvent = e as CustomEvent<{ tab: string }>;

@@ -1,23 +1,26 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Trash2, Recycle, Utensils, Camera, MapPin, Trophy, BookOpen, Clock, CheckCircle2, AlertCircle, Plus, Award, Loader2, Navigation, X, Eye } from 'lucide-react';
+import { Trash2, Recycle, Utensils, Camera, MapPin, Trophy, BookOpen, Clock, CheckCircle2, AlertCircle, Plus, Award, Loader2, Navigation, X, Eye, Truck, Radio } from 'lucide-react';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { Modal } from '@/components/ui/Modal';
 import { StatCard, PageHeader, Section } from '@/components/ui/StatCard';
 import { Spinner, EmptyState } from '@/components/ui/Spinner';
 import { useAuth } from '@/context/AuthContext';
-import { supabase, type WasteReport, type RecyclableListing, type SurplusFood, type Certificate } from '@/lib/supabase';
+import { supabase, type WasteReport, type RecyclableListing, type SurplusFood, type Certificate, type VehicleLocation, type Profile } from '@/lib/supabase';
 import { WASTE_TYPES, REPORT_TYPES, STATUS_COLORS, formatTimeAgo } from '@/lib/constants';
+import { VehicleMap, type VehiclePos, MapPlaceholder } from '@/components/VehicleMap';
 
 export function CitizenDashboard() {
   const { profile } = useAuth();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'overview' | 'reports' | 'recyclable' | 'food'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'tracking' | 'reports' | 'recyclable' | 'food'>('overview');
 
   const [reports, setReports] = useState<WasteReport[]>([]);
   const [recyclables, setRecyclables] = useState<RecyclableListing[]>([]);
   const [foodListings, setFoodListings] = useState<SurplusFood[]>([]);
   const [certificates, setCertificates] = useState<Certificate[]>([]);
+  const [vehicles, setVehicles] = useState<(VehicleLocation & { driver?: Profile })[]>([]);
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [loading, setLoading] = useState(true);
 
   // Modal state
@@ -27,20 +30,50 @@ export function CitizenDashboard() {
 
   const loadData = useCallback(async () => {
     if (!profile) return;
-    const [reportsRes, recycRes, foodRes, certRes] = await Promise.all([
+    const [reportsRes, recycRes, foodRes, certRes, vehiclesRes] = await Promise.all([
       supabase.from('waste_reports').select('*').eq('reporter_id', profile.id).order('created_at', { ascending: false }),
       supabase.from('recyclable_listings').select('*').eq('citizen_id', profile.id).order('created_at', { ascending: false }),
       supabase.from('surplus_food').select('*').eq('citizen_id', profile.id).order('created_at', { ascending: false }),
       supabase.from('certificates').select('*').eq('user_id', profile.id).order('issued_at', { ascending: false }),
+      supabase.from('vehicle_locations').select('*, driver:profiles!vehicle_locations_driver_id_fkey(*)').order('updated_at', { ascending: false }),
     ]);
     setReports((reportsRes.data as WasteReport[]) ?? []);
     setRecyclables((recycRes.data as RecyclableListing[]) ?? []);
     setFoodListings((foodRes.data as SurplusFood[]) ?? []);
     setCertificates((certRes.data as Certificate[]) ?? []);
+    setVehicles((vehiclesRes.data as (VehicleLocation & { driver?: Profile })[]) ?? []);
     setLoading(false);
   }, [profile]);
 
   useEffect(() => { loadData(); }, [loadData]);
+
+  // Realtime polling for live vehicle locations every 5 seconds
+  useEffect(() => {
+    const pollVehicles = async () => {
+      const { data } = await supabase
+        .from('vehicle_locations')
+        .select('*, driver:profiles!vehicle_locations_driver_id_fkey(*)')
+        .order('updated_at', { ascending: false });
+      if (data) {
+        setVehicles(data as (VehicleLocation & { driver?: Profile })[]);
+      }
+    };
+    const interval = setInterval(pollVehicles, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Fetch current user GPS location for map centering and distance calculation
+  useEffect(() => {
+    if ('geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        },
+        () => {},
+        { enableHighAccuracy: true, timeout: 10000 }
+      );
+    }
+  }, []);
 
   // Listen to sidebar action events (e.g. Red Report Waste button)
   useEffect(() => {
@@ -64,6 +97,16 @@ export function CitizenDashboard() {
   const resolvedReports = reports.filter(r => r.status === 'resolved').length;
   const availableRecyc = recyclables.filter(r => r.status === 'available').length;
   const availableFood = foodListings.filter(f => f.status === 'available').length;
+
+  const vehiclePositions: VehiclePos[] = vehicles.map((v) => ({
+    driver_id: v.driver_id,
+    driver_name: v.driver?.full_name ?? 'Collection Driver',
+    latitude: v.latitude,
+    longitude: v.longitude,
+    speed: v.speed,
+    heading: v.heading,
+    updated_at: v.updated_at,
+  }));
 
   const navItems = [
     { label: 'Dashboard', path: '/app', icon: <Trash2 className="h-5 w-5 text-indigo-500" /> },
@@ -115,6 +158,13 @@ export function CitizenDashboard() {
             >
               <Plus className="h-4 w-4 text-emerald-600" />
               <span>Report Waste</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('tracking')}
+              className="inline-flex items-center gap-2 rounded-2xl bg-white/20 border border-white/20 px-5 py-2.5 text-xs font-bold text-white backdrop-blur-md transition-all hover:bg-white/30 active:scale-95 cursor-pointer"
+            >
+              <Truck className="h-4 w-4" />
+              <span>Track Driver</span>
             </button>
             <button
               onClick={() => setShowFoodModal(true)}
@@ -174,26 +224,42 @@ export function CitizenDashboard() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
         <StatCard icon={AlertCircle} label="Pending Reports" value={pendingReports} color="amber" />
         <StatCard icon={CheckCircle2} label="Resolved Reports" value={resolvedReports} color="green" />
         <StatCard icon={Recycle} label="Recyclables Listed" value={recyclables.length} color="teal" />
+        <StatCard icon={Truck} label="Active Trucks" value={vehicles.length} color="blue" />
         <StatCard icon={Trophy} label="Reward Points" value={profile.points} color="amber" />
       </div>
 
       {/* Quick Actions */}
-      <div className="mt-6 grid gap-3 sm:grid-cols-3">
+      <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <button onClick={() => setShowReportModal(true)} className="card-hover flex items-center gap-3 p-4 text-left">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
             <Trash2 className="h-5 w-5" />
           </div>
           <div>
             <p className="text-sm font-semibold text-slate-900">Report Waste</p>
-            <p className="text-xs text-slate-500">Report dumping or full bins</p>
+            <p className="text-xs text-slate-500">Auto GPS geo-tagged</p>
+          </div>
+        </button>
+        <button onClick={() => setActiveTab('tracking')} className="card-hover flex items-center gap-3 p-4 text-left border-blue-100 bg-blue-50/20">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+            <Truck className="h-5 w-5" />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-slate-900 flex items-center gap-1.5">
+              <span>Track Driver</span>
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
+              </span>
+            </p>
+            <p className="text-xs text-slate-500">Live garbage trucks</p>
           </div>
         </button>
         <button onClick={() => navigate('/app/learning')} className="card-hover flex items-center gap-3 p-4 text-left">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
             <BookOpen className="h-5 w-5" />
           </div>
           <div>
@@ -213,9 +279,10 @@ export function CitizenDashboard() {
       </div>
 
       {/* Tabs */}
-      <div className="mt-8 flex gap-1 border-b border-slate-200">
+      <div className="mt-8 flex gap-1 border-b border-slate-200 overflow-x-auto">
         {[
           { id: 'overview', label: 'Overview' },
+          { id: 'tracking', label: '🚚 Track Driver (लाइव लोकेशन)' },
           { id: 'reports', label: 'My Reports' },
           { id: 'recyclable', label: 'Recyclables' },
           { id: 'food', label: 'Surplus Food' },
@@ -223,7 +290,7 @@ export function CitizenDashboard() {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id as typeof activeTab)}
-            className={`border-b-2 px-4 py-2.5 text-sm font-medium transition-colors ${
+            className={`border-b-2 px-4 py-2.5 text-sm font-medium transition-colors whitespace-nowrap ${
               activeTab === tab.id
                 ? 'border-emerald-600 text-emerald-700'
                 : 'border-transparent text-slate-500 hover:text-slate-700'
@@ -240,6 +307,41 @@ export function CitizenDashboard() {
         <div className="mt-6">
           {activeTab === 'overview' && (
             <div className="space-y-6">
+              {/* Live Driver / Truck Location Tracking */}
+              <Section
+                title="Live Garbage Collection Trucks (कचरा गाड़ी लाइव लोकेशन)"
+                action={
+                  <button
+                    onClick={() => setActiveTab('tracking')}
+                    className="text-sm font-semibold text-emerald-600 hover:text-emerald-700 flex items-center gap-1"
+                  >
+                    <span>Full Screen Track</span>
+                    <span>→</span>
+                  </button>
+                }
+              >
+                {vehicles.length === 0 ? (
+                  <MapPlaceholder
+                    icon={<Navigation className="h-6 w-6" />}
+                    message="No collection vehicles currently broadcasting GPS. Trucks appear here live as soon as drivers begin rounds."
+                  />
+                ) : (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-xs text-slate-600 px-1">
+                      <span className="flex items-center gap-2">
+                        <span className="relative flex h-2 w-2">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                        </span>
+                        <strong className="text-slate-800">{vehicles.length}</strong> active vehicle{vehicles.length > 1 ? 's' : ''} nearby
+                      </span>
+                      <span className="text-slate-400">Updates live every 5s</span>
+                    </div>
+                    <VehicleMap vehicles={vehiclePositions} userPos={userLocation} height="320px" />
+                  </div>
+                )}
+              </Section>
+
               <Section title="Recent Reports" action={<button onClick={() => setActiveTab('reports')} className="text-sm text-emerald-600 hover:text-emerald-700">View all</button>}>
                 {reports.length === 0 ? (
                   <EmptyState icon={<Trash2 className="h-10 w-10" />} title="No reports yet" message="Report waste in your area to get started." />
@@ -276,6 +378,74 @@ export function CitizenDashboard() {
                     ))}
                   </div>
                 </Section>
+              )}
+            </div>
+          )}
+
+          {activeTab === 'tracking' && (
+            <div className="space-y-6">
+              <div className="rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-700 p-6 text-white shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="relative flex h-3 w-3">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-200 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-3 w-3 bg-white"></span>
+                    </span>
+                    <span className="text-xs uppercase tracking-wider font-bold text-emerald-100">Live Satellite GPS</span>
+                  </div>
+                  <h2 className="text-xl font-bold mt-1 text-white">Garbage Collection Vehicle Tracking</h2>
+                  <p className="text-xs text-emerald-100/90 mt-1 max-w-xl">
+                    Track real-time locations of municipal garbage collection trucks and drivers near your home.
+                  </p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="bg-white/15 backdrop-blur-md rounded-xl px-4 py-2.5 text-center">
+                    <span className="text-xl font-black">{vehicles.length}</span>
+                    <p className="text-[10px] text-emerald-100 uppercase tracking-wider font-semibold">Active Trucks</p>
+                  </div>
+                </div>
+              </div>
+
+              {vehicles.length === 0 ? (
+                <MapPlaceholder
+                  icon={<Navigation className="h-8 w-8" />}
+                  message="No garbage collection trucks currently broadcasting live GPS. Trucks will automatically appear on this map as soon as drivers begin their morning or evening rounds."
+                />
+              ) : (
+                <div className="space-y-4">
+                  <VehicleMap vehicles={vehiclePositions} userPos={userLocation} height="460px" />
+
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-800 mb-3 flex items-center gap-2">
+                      <Truck className="h-4 w-4 text-emerald-600" />
+                      Active Drivers on Duty ({vehicles.length})
+                    </h3>
+                    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                      {vehicles.map((v) => (
+                        <div key={v.id} className="card-hover rounded-xl border border-slate-200 bg-white p-4 shadow-xs">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 text-lg">
+                                🚛
+                              </div>
+                              <div>
+                                <p className="text-sm font-bold text-slate-900">{v.driver?.full_name ?? 'Municipal Driver'}</p>
+                                <p className="text-[11px] text-slate-400">Updated {formatTimeAgo(v.updated_at)}</p>
+                              </div>
+                            </div>
+                            <span className="badge bg-emerald-100 text-emerald-800 flex items-center gap-1 text-[11px]">
+                              <Radio className="h-3 w-3 animate-pulse text-emerald-600" /> Live
+                            </span>
+                          </div>
+                          <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+                            <span>GPS: {v.latitude.toFixed(4)}, {v.longitude.toFixed(4)}</span>
+                            <span>Speed: {v.speed > 0 ? `${(v.speed * 3.6).toFixed(1)} km/h` : 'Stopped'}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
               )}
             </div>
           )}
