@@ -320,7 +320,7 @@ export function LandingPage() {
             <div className="card-hover relative p-6 text-center">
               <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-emerald-600 px-3 py-0.5 text-xs font-bold text-white shadow-md">Step 1</div>
               <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600"><Trash2 className="h-7 w-7" /></div>
-              <h3 className="mt-4 text-lg font-bold text-slate-900">Segregate &amp; Scan</h3>
+              <h3 className="mt-4 text-lg font-bold text-slate-900">Segregate &amp; Sort</h3>
               <p className="mt-2 text-sm text-slate-500">Log segregates waste at home and adds the details on the app.</p>
             </div>
             {/* Step 2 */}

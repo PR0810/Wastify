@@ -8,7 +8,6 @@ import { supabase, type LearningModule, type QuizQuestion, type QuizAttempt, typ
 
 const NAV_ITEMS = [
   { label: 'Dashboard', path: '/app', icon: <BookOpen className="h-4.5 w-4.5" /> },
-  { label: 'AI Scanner', path: '/app/scan', icon: <Play className="h-4.5 w-4.5" /> },
   { label: 'Learning Hub', path: '/app/learning', icon: <GraduationCap className="h-4.5 w-4.5" /> },
 ];
 

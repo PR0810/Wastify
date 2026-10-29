@@ -8,8 +8,6 @@ import { CitizenDashboard } from '@/pages/dashboards/CitizenDashboard';
 import { DriverDashboard } from '@/pages/dashboards/DriverDashboard';
 import { AdminDashboard } from '@/pages/dashboards/AdminDashboard';
 import { NgoDashboard } from '@/pages/dashboards/NgoDashboard';
-
-import { AiScanner } from '@/pages/AiScanner';
 import { LearningHub } from '@/pages/LearningHub';
 import type { Profile } from '@/lib/supabase';
 
@@ -47,7 +45,7 @@ function AppRoutes() {
       <Route path="/signup" element={session ? <Navigate to="/app" replace /> : <SignUpPage />} />
       <Route path="/app" element={<ProtectedRoute>{getDashboard()}</ProtectedRoute>} />
       <Route path="/app/learning" element={<ProtectedRoute allowedRoles={['citizen']}><LearningHub /></ProtectedRoute>} />
-      <Route path="/app/scan" element={<ProtectedRoute><AiScanner /></ProtectedRoute>} />
+      <Route path="/app/scan" element={<Navigate to="/app" replace />} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

@@ -88,11 +88,6 @@ export function DashboardLayout({
           icon: <Gamepad2 className="h-5 w-5 text-purple-500" />,
         },
         {
-          label: 'AI Scanner',
-          path: '/app/scan',
-          icon: <ScanLine className="h-5 w-5 text-cyan-500" />,
-        },
-        {
           label: 'Report Waste',
           path: '#report',
           icon: <AlertTriangle className="h-5 w-5 text-white" />,
@@ -116,11 +111,6 @@ export function DashboardLayout({
           label: 'Dashboard',
           path: '/app',
           icon: <LayoutDashboard className="h-5 w-5 text-indigo-500" />,
-        },
-        {
-          label: 'AI Scanner',
-          path: '/app/scan',
-          icon: <ScanLine className="h-5 w-5 text-cyan-500" />,
         },
         {
           label: driverGpsOn ? 'GPS: Broadcasting' : 'GPS: Paused',
@@ -178,11 +168,6 @@ export function DashboardLayout({
           label: 'Dashboard',
           path: '/app',
           icon: <LayoutDashboard className="h-5 w-5 text-indigo-500" />,
-        },
-        {
-          label: 'AI Scanner',
-          path: '/app/scan',
-          icon: <ScanLine className="h-5 w-5 text-cyan-500" />,
         },
         {
           label: 'Surplus Food',

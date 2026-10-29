@@ -68,7 +68,6 @@ export function CitizenDashboard() {
   const navItems = [
     { label: 'Dashboard', path: '/app', icon: <Trash2 className="h-5 w-5 text-indigo-500" /> },
     { label: 'Learn', path: '/app/learning', icon: <BookOpen className="h-5 w-5 text-emerald-500" /> },
-    { label: 'AI Scanner', path: '/app/scan', icon: <ScanLine className="h-5 w-5 text-cyan-500" /> },
     {
       label: 'Report Waste',
       path: '#report',
@@ -105,7 +104,7 @@ export function CitizenDashboard() {
               Welcome, {profile.full_name || 'Citizen'}!
             </h1>
             <p className="mt-2 text-sm text-emerald-100/90 max-w-xl leading-relaxed">
-              Report roadside waste, scan items with AI to discover recycling methods, or donate clean surplus food to community shelters.
+              Report roadside waste, list recyclables, learn waste segregation, or donate clean surplus food to community shelters.
             </p>
           </div>
 
@@ -118,11 +117,11 @@ export function CitizenDashboard() {
               <span>Report Waste</span>
             </button>
             <button
-              onClick={() => navigate('/app/scan')}
+              onClick={() => setShowFoodModal(true)}
               className="inline-flex items-center gap-2 rounded-2xl bg-white/20 border border-white/20 px-5 py-2.5 text-xs font-bold text-white backdrop-blur-md transition-all hover:bg-white/30 active:scale-95 cursor-pointer"
             >
-              <ScanLine className="h-4 w-4" />
-              <span>AI Camera Scanner</span>
+              <Utensils className="h-4 w-4" />
+              <span>Donate Food</span>
             </button>
           </div>
         </div>
@@ -184,13 +183,13 @@ export function CitizenDashboard() {
 
       {/* Quick Actions */}
       <div className="mt-6 grid gap-3 sm:grid-cols-3">
-        <button onClick={() => navigate('/app/scan')} className="card-hover flex items-center gap-3 p-4 text-left">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-50 text-violet-600">
-            <ScanLine className="h-5 w-5" />
+        <button onClick={() => setShowReportModal(true)} className="card-hover flex items-center gap-3 p-4 text-left">
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
+            <Trash2 className="h-5 w-5" />
           </div>
           <div>
-            <p className="text-sm font-semibold text-slate-900">AI Waste Scanner</p>
-            <p className="text-xs text-slate-500">Scan & identify waste type</p>
+            <p className="text-sm font-semibold text-slate-900">Report Waste</p>
+            <p className="text-xs text-slate-500">Report dumping or full bins</p>
           </div>
         </button>
         <button onClick={() => navigate('/app/learning')} className="card-hover flex items-center gap-3 p-4 text-left">

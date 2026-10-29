@@ -66,7 +66,6 @@ export function NgoDashboard() {
 
   const navItems = [
     { label: 'Dashboard', path: '/app', icon: <Recycle className="h-4.5 w-4.5" /> },
-    { label: 'AI Scanner', path: '/app/scan', icon: <Activity className="h-4.5 w-4.5" /> },
   ];
 
   return (
