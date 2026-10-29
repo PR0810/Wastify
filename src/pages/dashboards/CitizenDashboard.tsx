@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Trash2, Recycle, Utensils, Camera, MapPin, Trophy, BookOpen, Clock, CheckCircle2, AlertCircle, Plus, Award, Loader2, Navigation, X, Eye, Truck, Radio, KeyRound, ShieldCheck } from 'lucide-react';
+import { Trash2, Recycle, Utensils, Camera, MapPin, Trophy, BookOpen, Clock, CheckCircle2, AlertCircle, Plus, Award, Loader2, Navigation, X, Eye, Truck, Radio, KeyRound, ShieldCheck, HeartHandshake } from 'lucide-react';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { Modal } from '@/components/ui/Modal';
 import { StatCard, PageHeader, Section } from '@/components/ui/StatCard';
@@ -278,6 +278,48 @@ export function CitizenDashboard() {
           </div>
         </button>
       </div>
+
+      {/* Active Verification OTPs Banner */}
+      {(reports.some(r => r.status !== 'resolved') || foodListings.some(f => f.status === 'available' || f.status === 'accepted')) && (
+        <div className="mt-6 rounded-2xl border-2 border-amber-300 bg-gradient-to-r from-amber-50 via-orange-50/50 to-amber-50 p-4 shadow-xs">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-start gap-3">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-amber-200/80 text-amber-900 shadow-xs">
+                <KeyRound className="h-6 w-6" />
+              </div>
+              <div>
+                <h4 className="text-sm font-bold text-amber-950 flex items-center gap-2">
+                  <span>Secret Collection Verification Codes Active</span>
+                  <span className="badge bg-amber-200 text-amber-900 border border-amber-400 text-[10px] font-bold">
+                    Action Required Upon Pickup
+                  </span>
+                </h4>
+                <p className="text-xs text-amber-800 mt-1 leading-relaxed">
+                  You have pending waste collection or surplus food requests. Your secret 4-digit verification OTP is displayed on each card below. Share it with the Wastify driver or NGO partner only after the collection is completed.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              {reports.some(r => r.status !== 'resolved') && (
+                <button
+                  onClick={() => setActiveTab('reports')}
+                  className="rounded-xl bg-amber-600 px-3.5 py-2 text-xs font-bold text-white shadow-xs hover:bg-amber-700 transition-colors cursor-pointer"
+                >
+                  View Waste OTPs
+                </button>
+              )}
+              {foodListings.some(f => f.status === 'available' || f.status === 'accepted') && (
+                <button
+                  onClick={() => setActiveTab('food')}
+                  className="rounded-xl bg-orange-600 px-3.5 py-2 text-xs font-bold text-white shadow-xs hover:bg-orange-700 transition-colors cursor-pointer"
+                >
+                  View Food OTPs
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Tabs */}
       <div className="mt-8 flex gap-1 border-b border-slate-200 overflow-x-auto">
@@ -585,22 +627,22 @@ function ReportCard({ report }: { report: WasteReport }) {
 
       {/* Secret Collection Verification OTP for Citizen */}
       {report.status !== 'resolved' && (
-        <div className="mt-3.5 rounded-xl border border-amber-300 bg-amber-50/90 p-3 shadow-xs">
+        <div className="mt-3.5 rounded-2xl border-2 border-amber-300 bg-gradient-to-br from-amber-50 to-orange-50/60 p-3.5 shadow-xs">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <p className="text-[11px] font-bold uppercase tracking-wider text-amber-900 flex items-center gap-1.5">
-                <KeyRound className="h-3.5 w-3.5 text-amber-700" />
+              <p className="text-xs font-bold uppercase tracking-wider text-amber-950 flex items-center gap-1.5">
+                <KeyRound className="h-4 w-4 text-amber-700" />
                 Collection Verification OTP
               </p>
-              <p className="text-[11px] text-amber-800 mt-0.5 leading-tight">
-                Share this 4-digit code with the garbage truck driver only after waste is collected.
+              <p className="text-[11px] text-amber-800 mt-1 leading-snug">
+                Give this 4-digit secret code to the Wastify truck driver <strong>only after</strong> they collect your reported waste.
               </p>
             </div>
             <div className="flex flex-col items-center shrink-0">
-              <span className="font-mono text-lg font-black tracking-widest text-amber-950 bg-white px-3 py-0.5 rounded-lg border border-amber-300 shadow-xs">
+              <span className="font-mono text-2xl font-black tracking-widest text-amber-950 bg-white px-3.5 py-1 rounded-xl border-2 border-amber-300 shadow-sm">
                 {otp}
               </span>
-              <span className="text-[9px] uppercase tracking-wider text-amber-700 font-bold mt-0.5">Secret Code</span>
+              <span className="text-[9px] uppercase tracking-wider text-amber-700 font-extrabold mt-0.5">Secret Code</span>
             </div>
           </div>
         </div>
@@ -740,6 +782,7 @@ function ReportWasteModal({ open, onClose, userId, onCreated }: { open: boolean;
   const [photoUrl, setPhotoUrl] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [submittedOtp, setSubmittedOtp] = useState<string | null>(null);
 
   const fetchLiveLocation = useCallback(() => {
     if (!navigator.geolocation) {
@@ -846,99 +889,153 @@ function ReportWasteModal({ open, onClose, userId, onCreated }: { open: boolean;
     });
     setLoading(false);
     if (error) { setError(error.message); return; }
-    setType('road_waste'); setDescription(''); setAddress(''); setPhotoUrl('');
-    onCreated(); onClose();
+    onCreated();
+    setSubmittedOtp(otp);
+  }
+
+  function handleCloseModal() {
+    setSubmittedOtp(null);
+    setType('road_waste');
+    setDescription('');
+    setAddress('');
+    setPhotoUrl('');
+    onClose();
   }
 
   return (
-    <Modal open={open} onClose={onClose} title="Report Waste">
-      <form onSubmit={handleSubmit} className="space-y-4">
-        {error && <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"><AlertCircle className="h-4 w-4" />{error}</div>}
-        <div>
-          <label className="label">Type of Waste</label>
-          <select value={type} onChange={(e) => setType(e.target.value as WasteReport['type'])} className="input">
-            {REPORT_TYPES.map(t => <option key={t.id} value={t.id}>{t.icon} {t.label}</option>)}
-          </select>
-        </div>
-        <div>
-          <label className="label">Description</label>
-          <textarea value={description} onChange={(e) => setDescription(e.target.value)} className="input min-h-[80px] resize-none" placeholder="Describe the waste situation..." />
-        </div>
-        {/* 100% Automated Live GPS Geo-Tag (No manual entry) */}
-        <div className="rounded-2xl border-2 border-emerald-500/40 bg-gradient-to-br from-emerald-50/90 to-teal-50/50 p-4 shadow-xs">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-bold text-emerald-950 flex items-center gap-2">
-              <span className="relative flex h-2.5 w-2.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-600"></span>
-              </span>
-              🛰️ Automatic GPS Geo-Tag
-            </span>
-            <button
-              type="button"
-              onClick={fetchLiveLocation}
-              disabled={detectingLocation}
-              className="text-xs font-semibold text-emerald-700 hover:text-emerald-900 flex items-center gap-1 cursor-pointer"
-            >
-              {detectingLocation ? <Loader2 className="h-3 w-3 animate-spin" /> : <Navigation className="h-3 w-3" />}
-              <span>{detectingLocation ? 'Locating...' : 'Re-sync GPS'}</span>
-            </button>
+    <Modal
+      open={open}
+      onClose={handleCloseModal}
+      title={submittedOtp ? 'Report Submitted — Secret Verification OTP' : 'Report Waste'}
+    >
+      {submittedOtp ? (
+        <div className="py-2 text-center space-y-4">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700 shadow-xs">
+            <CheckCircle2 className="h-8 w-8" />
+          </div>
+          <div>
+            <h3 className="text-lg font-bold text-slate-900">Waste Report Sent to Admin!</h3>
+            <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
+              Your roadside waste report has been sent to the municipal admin with auto-detected GPS location and photo.
+            </p>
           </div>
 
-          {detectingLocation ? (
-            <div className="py-2 flex items-center gap-2 text-xs font-medium text-emerald-800">
-              <Loader2 className="h-4 w-4 animate-spin text-emerald-600 shrink-0" />
-              <span>Fetching live GPS satellite coordinates for geo-tagging...</span>
+          <div className="rounded-2xl border-2 border-amber-300 bg-amber-50/90 p-4 max-w-xs mx-auto shadow-xs">
+            <p className="text-xs font-bold uppercase tracking-wider text-amber-900 flex items-center justify-center gap-1.5 mb-1.5">
+              <KeyRound className="h-4 w-4 text-amber-700" />
+              Your Secret Collection OTP
+            </p>
+            <div className="my-2 inline-block rounded-xl bg-white px-6 py-2 border-2 border-amber-300 shadow-xs">
+              <span className="font-mono text-3xl font-black tracking-widest text-amber-950">
+                {submittedOtp}
+              </span>
             </div>
-          ) : (
-            <div>
-              <p className="text-xs font-bold text-slate-900 leading-snug">
-                📍 {address || 'Live Satellite GPS Location'}
-              </p>
-              {latitude && longitude ? (
-                <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px] font-mono text-emerald-900 bg-white/90 rounded-lg px-2.5 py-1 border border-emerald-200">
-                  <span>GPS Lat: {latitude.toFixed(6)}°</span>
-                  <span>•</span>
-                  <span>Lng: {longitude.toFixed(6)}°</span>
-                  <span className="ml-auto text-emerald-700 font-sans font-bold flex items-center gap-1">
-                    <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" /> Geo-Tagged Complaint
-                  </span>
-                </div>
-              ) : (
-                <p className="mt-1 text-[11px] text-amber-700">Please enable device GPS for precise geo-tagging.</p>
-              )}
-            </div>
-          )}
+            <p className="text-[11px] text-amber-800 leading-relaxed font-medium">
+              Keep this secret 4-digit code. Share it with the Wastify garbage truck driver <strong>only when they arrive and collect the waste</strong>.
+            </p>
+          </div>
+
+          <div className="rounded-xl bg-slate-50 border border-slate-200 p-3 text-xs text-slate-600">
+            💡 This OTP is permanently saved and visible anytime on your dashboard under <strong>"My Reports"</strong>.
+          </div>
+
+          <button
+            type="button"
+            onClick={handleCloseModal}
+            className="btn-primary w-full py-3 text-sm font-bold shadow-xs cursor-pointer"
+          >
+            Got it! View Report on Dashboard
+          </button>
         </div>
-        <div>
-          <label className="label">Waste Photo</label>
-          {photoUrl ? (
-            <div className="relative rounded-2xl overflow-hidden border-2 border-emerald-500/40 max-h-48 w-full bg-slate-900">
-              <img src={photoUrl} alt="Waste preview" className="h-44 w-full object-cover" />
+      ) : (
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {error && <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"><AlertCircle className="h-4 w-4" />{error}</div>}
+          <div>
+            <label className="label">Type of Waste</label>
+            <select value={type} onChange={(e) => setType(e.target.value as WasteReport['type'])} className="input">
+              {REPORT_TYPES.map(t => <option key={t.id} value={t.id}>{t.icon} {t.label}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="label">Description</label>
+            <textarea value={description} onChange={(e) => setDescription(e.target.value)} className="input min-h-[80px] resize-none" placeholder="Describe the waste situation..." />
+          </div>
+          {/* 100% Automated Live GPS Geo-Tag (No manual entry) */}
+          <div className="rounded-2xl border-2 border-emerald-500/40 bg-gradient-to-br from-emerald-50/90 to-teal-50/50 p-4 shadow-xs">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-bold text-emerald-950 flex items-center gap-2">
+                <span className="relative flex h-2.5 w-2.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-600"></span>
+                </span>
+                🛰️ Automatic GPS Geo-Tag
+              </span>
               <button
                 type="button"
-                onClick={() => setPhotoUrl('')}
-                className="absolute top-2 right-2 rounded-full bg-slate-900/80 p-1.5 text-white hover:bg-red-600 transition-colors cursor-pointer"
-                title="Remove photo"
+                onClick={fetchLiveLocation}
+                disabled={detectingLocation}
+                className="text-xs font-semibold text-emerald-700 hover:text-emerald-900 flex items-center gap-1 cursor-pointer"
               >
-                <X className="h-4 w-4" />
+                {detectingLocation ? <Loader2 className="h-3 w-3 animate-spin" /> : <Navigation className="h-3 w-3" />}
+                <span>{detectingLocation ? 'Locating...' : 'Re-sync GPS'}</span>
               </button>
-              <div className="absolute bottom-2 left-2 rounded-md bg-emerald-600/90 px-2 py-0.5 text-[10px] font-bold text-white backdrop-blur-xs flex items-center gap-1">
-                <CheckCircle2 className="h-3 w-3" /> Photo Attached (Visible to Admin)
+            </div>
+
+            {detectingLocation ? (
+              <div className="py-2 flex items-center gap-2 text-xs font-medium text-emerald-800">
+                <Loader2 className="h-4 w-4 animate-spin text-emerald-600 shrink-0" />
+                <span>Fetching live GPS satellite coordinates for geo-tagging...</span>
               </div>
-            </div>
-          ) : (
-            <div className="flex items-center gap-3">
-              <label className="btn-secondary cursor-pointer py-2 px-4 text-xs font-bold border-2 border-dashed border-slate-300 hover:border-emerald-500 flex items-center gap-2">
-                <Camera className="h-4 w-4 text-emerald-600" /> Upload Waste Photo
-                <input type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && handleUpload(e.target.files[0])} />
-              </label>
-              <span className="text-xs text-slate-400">Photo will be sent directly to Admin</span>
-            </div>
-          )}
-        </div>
-        <button type="submit" disabled={loading} className="btn-primary w-full">{loading ? 'Submitting...' : 'Submit Report to Admin'}</button>
-      </form>
+            ) : (
+              <div>
+                <p className="text-xs font-bold text-slate-900 leading-snug">
+                  📍 {address || 'Live Satellite GPS Location'}
+                </p>
+                {latitude && longitude ? (
+                  <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px] font-mono text-emerald-900 bg-white/90 rounded-lg px-2.5 py-1 border border-emerald-200">
+                    <span>GPS Lat: {latitude.toFixed(6)}°</span>
+                    <span>•</span>
+                    <span>Lng: {longitude.toFixed(6)}°</span>
+                    <span className="ml-auto text-emerald-700 font-sans font-bold flex items-center gap-1">
+                      <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" /> Geo-Tagged Complaint
+                    </span>
+                  </div>
+                ) : (
+                  <p className="mt-1 text-[11px] text-amber-700">Please enable device GPS for precise geo-tagging.</p>
+                )}
+              </div>
+            )}
+          </div>
+          <div>
+            <label className="label">Waste Photo</label>
+            {photoUrl ? (
+              <div className="relative rounded-2xl overflow-hidden border-2 border-emerald-500/40 max-h-48 w-full bg-slate-900">
+                <img src={photoUrl} alt="Waste preview" className="h-44 w-full object-cover" />
+                <button
+                  type="button"
+                  onClick={() => setPhotoUrl('')}
+                  className="absolute top-2 right-2 rounded-full bg-slate-900/80 p-1.5 text-white hover:bg-red-600 transition-colors cursor-pointer"
+                  title="Remove photo"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+                <div className="absolute bottom-2 left-2 rounded-md bg-emerald-600/90 px-2 py-0.5 text-[10px] font-bold text-white backdrop-blur-xs flex items-center gap-1">
+                  <CheckCircle2 className="h-3 w-3" /> Photo Attached (Visible to Admin)
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center gap-3">
+                <label className="btn-secondary cursor-pointer py-2 px-4 text-xs font-bold border-2 border-dashed border-slate-300 hover:border-emerald-500 flex items-center gap-2">
+                  <Camera className="h-4 w-4 text-emerald-600" /> Upload Waste Photo
+                  <input type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && handleUpload(e.target.files[0])} />
+                </label>
+                <span className="text-xs text-slate-400">Photo will be sent directly to Admin</span>
+              </div>
+            )}
+          </div>
+          <button type="submit" disabled={loading} className="btn-primary w-full">{loading ? 'Submitting...' : 'Submit Report to Admin'}</button>
+        </form>
+      )}
     </Modal>
   );
 }
@@ -1090,6 +1187,7 @@ function SurplusFoodModal({ open, onClose, userId, onCreated }: { open: boolean;
   const [isFresh, setIsFresh] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [submittedOtp, setSubmittedOtp] = useState<string | null>(null);
 
   const fetchLiveLocation = useCallback(() => {
     if (!navigator.geolocation) {
@@ -1158,85 +1256,141 @@ function SurplusFoodModal({ open, onClose, userId, onCreated }: { open: boolean;
     });
     setLoading(false);
     if (error) { setError(error.message); return; }
-    setFoodType(''); setQuantity(''); setPrepTime(''); setDescription(''); setAddress(''); setIsFresh(true);
-    onCreated(); onClose();
+    onCreated();
+    setSubmittedOtp(otp);
+  }
+
+  function handleCloseModal() {
+    setSubmittedOtp(null);
+    setFoodType('');
+    setQuantity('');
+    setPrepTime('');
+    setDescription('');
+    setAddress('');
+    setIsFresh(true);
+    onClose();
   }
 
   return (
-    <Modal open={open} onClose={onClose} title="Donate Surplus Food">
-      <form onSubmit={handleSubmit} className="space-y-4">
-        {error && <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"><AlertCircle className="h-4 w-4" />{error}</div>}
-        <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-          Only fresh, safe food is accepted. Expired or unsafe food will be rejected.
-        </div>
-        <div>
-          <label className="label">Food Type</label>
-          <input value={foodType} onChange={(e) => setFoodType(e.target.value)} required className="input" placeholder="e.g., Cooked rice, dal, vegetables..." />
-        </div>
-        <div>
-          <label className="label">Quantity</label>
-          <input value={quantity} onChange={(e) => setQuantity(e.target.value)} className="input" placeholder="e.g., 5 kg, 20 servings..." />
-        </div>
-        <div>
-          <label className="label">Preparation Time</label>
-          <input type="datetime-local" value={prepTime} onChange={(e) => setPrepTime(e.target.value)} className="input" />
-        </div>
-        <div>
-          <label className="label">Description</label>
-          <textarea value={description} onChange={(e) => setDescription(e.target.value)} className="input min-h-[60px] resize-none" placeholder="Describe the food..." />
-        </div>
-        {/* 100% Automated Live GPS Geo-Tag (No manual entry) */}
-        <div className="rounded-2xl border-2 border-emerald-500/40 bg-gradient-to-br from-emerald-50/90 to-teal-50/50 p-4 shadow-xs">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-bold text-emerald-950 flex items-center gap-2">
-              <span className="relative flex h-2.5 w-2.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-600"></span>
-              </span>
-              🛰️ Automatic Pickup GPS Location
-            </span>
-            <button
-              type="button"
-              onClick={fetchLiveLocation}
-              disabled={detectingLocation}
-              className="text-xs font-semibold text-emerald-700 hover:text-emerald-900 flex items-center gap-1 cursor-pointer"
-            >
-              {detectingLocation ? <Loader2 className="h-3 w-3 animate-spin" /> : <Navigation className="h-3 w-3" />}
-              <span>{detectingLocation ? 'Locating...' : 'Re-sync GPS'}</span>
-            </button>
+    <Modal
+      open={open}
+      onClose={handleCloseModal}
+      title={submittedOtp ? 'Donation Listed — Secret Verification OTP' : 'Donate Surplus Food'}
+    >
+      {submittedOtp ? (
+        <div className="py-2 text-center space-y-4">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-orange-100 text-orange-700 shadow-xs">
+            <HeartHandshake className="h-8 w-8" />
+          </div>
+          <div>
+            <h3 className="text-lg font-bold text-slate-900">Food Donation Listed!</h3>
+            <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
+              Your donation has been sent to the municipal admin to assign a verified NGO partner for collection.
+            </p>
           </div>
 
-          {detectingLocation ? (
-            <div className="py-2 flex items-center gap-2 text-xs font-medium text-emerald-800">
-              <Loader2 className="h-4 w-4 animate-spin text-emerald-600 shrink-0" />
-              <span>Fetching live GPS satellite coordinates for food donation pickup...</span>
+          <div className="rounded-2xl border-2 border-amber-300 bg-amber-50/90 p-4 max-w-xs mx-auto shadow-xs">
+            <p className="text-xs font-bold uppercase tracking-wider text-amber-900 flex items-center justify-center gap-1.5 mb-1.5">
+              <KeyRound className="h-4 w-4 text-amber-700" />
+              Your Secret Food Pickup OTP
+            </p>
+            <div className="my-2 inline-block rounded-xl bg-white px-6 py-2 border-2 border-amber-300 shadow-xs">
+              <span className="font-mono text-3xl font-black tracking-widest text-amber-950">
+                {submittedOtp}
+              </span>
             </div>
-          ) : (
-            <div>
-              <p className="text-xs font-bold text-slate-900 leading-snug">
-                📍 {address || 'Live Satellite GPS Pickup Point'}
-              </p>
-              {latitude && longitude ? (
-                <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px] font-mono text-emerald-900 bg-white/90 rounded-lg px-2.5 py-1 border border-emerald-200">
-                  <span>GPS Lat: {latitude.toFixed(6)}°</span>
-                  <span>•</span>
-                  <span>Lng: {longitude.toFixed(6)}°</span>
-                  <span className="ml-auto text-emerald-700 font-sans font-bold flex items-center gap-1">
-                    <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" /> Geo-Tagged Pickup
-                  </span>
-                </div>
-              ) : (
-                <p className="mt-1 text-[11px] text-amber-700">Please enable device GPS for pickup point geo-tagging.</p>
-              )}
-            </div>
-          )}
+            <p className="text-[11px] text-amber-800 leading-relaxed font-medium">
+              Keep this 4-digit code safe. Share it with the NGO collector <strong>only after you have handed over the food</strong>.
+            </p>
+          </div>
+
+          <div className="rounded-xl bg-slate-50 border border-slate-200 p-3 text-xs text-slate-600">
+            💡 This OTP is permanently saved and visible anytime on your dashboard under <strong>"Surplus Food"</strong>.
+          </div>
+
+          <button
+            type="button"
+            onClick={handleCloseModal}
+            className="btn-primary w-full py-3 text-sm font-bold shadow-xs cursor-pointer"
+          >
+            Got it! View Donation on Dashboard
+          </button>
         </div>
-        <label className="flex items-center gap-2 text-sm text-slate-700">
-          <input type="checkbox" checked={isFresh} onChange={(e) => setIsFresh(e.target.checked)} className="h-4 w-4 rounded border-slate-300 text-emerald-600" />
-          I confirm this food is fresh and safe for consumption
-        </label>
-        <button type="submit" disabled={loading} className="btn-primary w-full">{loading ? 'Submitting...' : 'List for Donation (Notify Admin)'}</button>
-      </form>
+      ) : (
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {error && <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"><AlertCircle className="h-4 w-4" />{error}</div>}
+          <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+            Only fresh, safe food is accepted. Expired or unsafe food will be rejected.
+          </div>
+          <div>
+            <label className="label">Food Type</label>
+            <input value={foodType} onChange={(e) => setFoodType(e.target.value)} required className="input" placeholder="e.g., Cooked rice, dal, vegetables..." />
+          </div>
+          <div>
+            <label className="label">Quantity</label>
+            <input value={quantity} onChange={(e) => setQuantity(e.target.value)} className="input" placeholder="e.g., 5 kg, 20 servings..." />
+          </div>
+          <div>
+            <label className="label">Preparation Time</label>
+            <input type="datetime-local" value={prepTime} onChange={(e) => setPrepTime(e.target.value)} className="input" />
+          </div>
+          <div>
+            <label className="label">Description</label>
+            <textarea value={description} onChange={(e) => setDescription(e.target.value)} className="input min-h-[60px] resize-none" placeholder="Describe the food..." />
+          </div>
+          {/* 100% Automated Live GPS Geo-Tag (No manual entry) */}
+          <div className="rounded-2xl border-2 border-emerald-500/40 bg-gradient-to-br from-emerald-50/90 to-teal-50/50 p-4 shadow-xs">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-bold text-emerald-950 flex items-center gap-2">
+                <span className="relative flex h-2.5 w-2.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-600"></span>
+                </span>
+                🛰️ Automatic Pickup GPS Location
+              </span>
+              <button
+                type="button"
+                onClick={fetchLiveLocation}
+                disabled={detectingLocation}
+                className="text-xs font-semibold text-emerald-700 hover:text-emerald-900 flex items-center gap-1 cursor-pointer"
+              >
+                {detectingLocation ? <Loader2 className="h-3 w-3 animate-spin" /> : <Navigation className="h-3 w-3" />}
+                <span>{detectingLocation ? 'Locating...' : 'Re-sync GPS'}</span>
+              </button>
+            </div>
+
+            {detectingLocation ? (
+              <div className="py-2 flex items-center gap-2 text-xs font-medium text-emerald-800">
+                <Loader2 className="h-4 w-4 animate-spin text-emerald-600 shrink-0" />
+                <span>Fetching live GPS satellite coordinates for food donation pickup...</span>
+              </div>
+            ) : (
+              <div>
+                <p className="text-xs font-bold text-slate-900 leading-snug">
+                  📍 {address || 'Live Satellite GPS Pickup Point'}
+                </p>
+                {latitude && longitude ? (
+                  <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px] font-mono text-emerald-900 bg-white/90 rounded-lg px-2.5 py-1 border border-emerald-200">
+                    <span>GPS Lat: {latitude.toFixed(6)}°</span>
+                    <span>•</span>
+                    <span>Lng: {longitude.toFixed(6)}°</span>
+                    <span className="ml-auto text-emerald-700 font-sans font-bold flex items-center gap-1">
+                      <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" /> Geo-Tagged Pickup
+                    </span>
+                  </div>
+                ) : (
+                  <p className="mt-1 text-[11px] text-amber-700">Please enable device GPS for pickup point geo-tagging.</p>
+                )}
+              </div>
+            )}
+          </div>
+          <label className="flex items-center gap-2 text-sm text-slate-700">
+            <input type="checkbox" checked={isFresh} onChange={(e) => setIsFresh(e.target.checked)} className="h-4 w-4 rounded border-slate-300 text-emerald-600" />
+            I confirm this food is fresh and safe for consumption
+          </label>
+          <button type="submit" disabled={loading} className="btn-primary w-full">{loading ? 'Submitting...' : 'List for Donation (Notify Admin)'}</button>
+        </form>
+      )}
     </Modal>
   );
 }
