@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Trash2, Recycle, Utensils, Camera, MapPin, Trophy, BookOpen, Clock, CheckCircle2, AlertCircle, Plus, Award, Loader2, Navigation } from 'lucide-react';
+import { Trash2, Recycle, Utensils, Camera, MapPin, Trophy, BookOpen, Clock, CheckCircle2, AlertCircle, Plus, Award, Loader2, Navigation, X, Eye } from 'lucide-react';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { Modal } from '@/components/ui/Modal';
 import { StatCard, PageHeader, Section } from '@/components/ui/StatCard';
@@ -344,13 +344,14 @@ export function CitizenDashboard() {
 // ============ Report Card ============
 function ReportCard({ report }: { report: WasteReport }) {
   const reportType = REPORT_TYPES.find(t => t.id === report.type);
+  const [showFull, setShowFull] = useState(false);
   return (
-    <div className="card-hover p-4">
+    <div className="card-hover p-4 rounded-2xl border border-slate-200 bg-white">
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-2">
-          <span className="text-lg">{reportType?.icon}</span>
+          <span className="text-xl">{reportType?.icon}</span>
           <div>
-            <p className="text-sm font-semibold text-slate-900">{reportType?.label ?? 'Report'}</p>
+            <p className="text-sm font-bold text-slate-900">{reportType?.label ?? 'Report'}</p>
             <p className="text-xs text-slate-400">{formatTimeAgo(report.created_at)}</p>
           </div>
         </div>
@@ -358,10 +359,40 @@ function ReportCard({ report }: { report: WasteReport }) {
           {report.status.replace('_', ' ')}
         </span>
       </div>
-      {report.description && <p className="mt-2 text-sm text-slate-600">{report.description}</p>}
+      {report.description && <p className="mt-2 text-xs text-slate-600 bg-slate-50 p-2 rounded-lg italic">"{report.description}"</p>}
+      
+      {/* Uploaded Photo Display */}
+      {report.photo_url && (
+        <div className="mt-2.5">
+          <div
+            onClick={() => setShowFull(true)}
+            className="relative h-32 w-full overflow-hidden rounded-xl border border-slate-200 bg-slate-900 cursor-pointer group"
+          >
+            <img src={report.photo_url} alt="Uploaded complaint proof" className="h-full w-full object-cover transition-transform group-hover:scale-105" />
+            <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+              <span className="bg-black/70 text-white text-xs px-2.5 py-1 rounded-lg font-bold flex items-center gap-1">
+                <Eye className="h-3.5 w-3.5" /> View Photo
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showFull && report.photo_url && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4" onClick={() => setShowFull(false)}>
+          <div className="relative max-w-lg w-full bg-white rounded-2xl p-3" onClick={(e) => e.stopPropagation()}>
+            <button onClick={() => setShowFull(false)} className="absolute top-2 right-2 rounded-full p-1 bg-slate-100 text-slate-600 hover:bg-slate-200">
+              <X className="h-4 w-4" />
+            </button>
+            <img src={report.photo_url} alt="Enlarged proof" className="w-full max-h-[70vh] object-contain rounded-xl mt-4" />
+          </div>
+        </div>
+      )}
+
       {report.address && (
-        <div className="mt-2 flex items-center gap-1 text-xs text-slate-400">
-          <MapPin className="h-3 w-3" /> {report.address}
+        <div className="mt-2.5 flex items-center gap-1.5 text-xs text-slate-500 font-medium">
+          <MapPin className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
+          <span className="truncate">{report.address}</span>
         </div>
       )}
     </div>
@@ -488,18 +519,44 @@ function ReportWasteModal({ open, onClose, userId, onCreated }: { open: boolean;
     }
   }, [open, fetchLiveLocation]);
 
-  async function handleUpload(file: File) {
+  function handleUpload(file: File) {
     setLoading(true);
-    const ext = file.name.split('.').pop();
-    const path = `reports/${userId}/${Date.now()}.${ext}`;
-    const { error: upErr } = await supabase.storage.from('waste-photos').upload(path, file);
-    if (upErr) {
-      setPhotoUrl('');
-    } else {
-      const { data } = supabase.storage.from('waste-photos').getPublicUrl(path);
-      setPhotoUrl(data.publicUrl);
-    }
-    setLoading(false);
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const MAX_WIDTH = 800;
+        const MAX_HEIGHT = 800;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height *= MAX_WIDTH / width;
+            width = MAX_WIDTH;
+          }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width *= MAX_HEIGHT / height;
+            height = MAX_HEIGHT;
+          }
+        }
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.72);
+          setPhotoUrl(dataUrl);
+        } else {
+          setPhotoUrl(e.target?.result as string || '');
+        }
+        setLoading(false);
+      };
+      img.src = e.target?.result as string;
+    };
+    reader.readAsDataURL(file);
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -583,14 +640,31 @@ function ReportWasteModal({ open, onClose, userId, onCreated }: { open: boolean;
           )}
         </div>
         <div>
-          <label className="label">Photo (optional)</label>
-          <div className="flex items-center gap-3">
-            <label className="btn-secondary cursor-pointer">
-              <Camera className="h-4 w-4" /> Upload Photo
-              <input type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && handleUpload(e.target.files[0])} />
-            </label>
-            {photoUrl && <CheckCircle2 className="h-5 w-5 text-green-600" />}
-          </div>
+          <label className="label">Waste Photo (कचरे की फोटो)</label>
+          {photoUrl ? (
+            <div className="relative rounded-2xl overflow-hidden border-2 border-emerald-500/40 max-h-48 w-full bg-slate-900">
+              <img src={photoUrl} alt="Waste preview" className="h-44 w-full object-cover" />
+              <button
+                type="button"
+                onClick={() => setPhotoUrl('')}
+                className="absolute top-2 right-2 rounded-full bg-slate-900/80 p-1.5 text-white hover:bg-red-600 transition-colors cursor-pointer"
+                title="Remove photo"
+              >
+                <X className="h-4 w-4" />
+              </button>
+              <div className="absolute bottom-2 left-2 rounded-md bg-emerald-600/90 px-2 py-0.5 text-[10px] font-bold text-white backdrop-blur-xs flex items-center gap-1">
+                <CheckCircle2 className="h-3 w-3" /> Photo Attached (Admin ko dikhegi)
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center gap-3">
+              <label className="btn-secondary cursor-pointer py-2 px-4 text-xs font-bold border-2 border-dashed border-slate-300 hover:border-emerald-500 flex items-center gap-2">
+                <Camera className="h-4 w-4 text-emerald-600" /> Upload Waste Photo
+                <input type="file" accept="image/*" className="hidden" onChange={(e) => e.target.files?.[0] && handleUpload(e.target.files[0])} />
+              </label>
+              <span className="text-xs text-slate-400">Photo will be sent directly to Admin</span>
+            </div>
+          )}
         </div>
         <button type="submit" disabled={loading} className="btn-primary w-full">{loading ? 'Submitting...' : 'Submit Report (Admin को भेजें)'}</button>
       </form>

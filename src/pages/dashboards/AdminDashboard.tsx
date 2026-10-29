@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Shield, MapPin, Trash2, Truck, Trophy, AlertCircle, CheckCircle2, Clock, Navigation, Award, Plus, Utensils, Bell } from 'lucide-react';
+import { Shield, MapPin, Trash2, Truck, Trophy, AlertCircle, CheckCircle2, Clock, Navigation, Award, Plus, Utensils, Bell, Camera, Eye, X } from 'lucide-react';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { Modal } from '@/components/ui/Modal';
 import { StatCard, PageHeader, Section } from '@/components/ui/StatCard';
@@ -433,6 +433,8 @@ export function AdminDashboard() {
 // ============ Admin Report Card ============
 function AdminReportCard({ report, onAssign, onUpdate }: { report: WasteReport; onAssign: (r: WasteReport) => void; onUpdate: (id: string, status: WasteReport['status']) => void }) {
   const reportType = REPORT_TYPES.find(t => t.id === report.type);
+  const [showPhotoModal, setShowPhotoModal] = useState(false);
+
   return (
     <div className="card-hover rounded-2xl border border-slate-200 bg-white p-4 shadow-xs">
       <div className="flex items-start justify-between">
@@ -446,6 +448,74 @@ function AdminReportCard({ report, onAssign, onUpdate }: { report: WasteReport; 
         <span className={`badge ${STATUS_COLORS[report.status]}`}>{report.status.replace('_', ' ')}</span>
       </div>
       {report.description && <p className="mt-2 text-xs text-slate-600 bg-slate-50 p-2 rounded-lg italic">"{report.description}"</p>}
+
+      {/* Uploaded Citizen Photo Proof for Admin */}
+      {report.photo_url ? (
+        <div className="mt-3">
+          <div
+            onClick={() => setShowPhotoModal(true)}
+            className="group relative h-44 w-full overflow-hidden rounded-xl border-2 border-slate-200 bg-slate-900 cursor-pointer shadow-xs"
+          >
+            <img
+              src={report.photo_url}
+              alt="Citizen uploaded proof"
+              className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent flex items-end justify-between p-3">
+              <span className="inline-flex items-center gap-1.5 rounded-lg bg-black/70 px-2.5 py-1 text-[11px] font-bold text-white backdrop-blur-xs">
+                <Camera className="h-3.5 w-3.5 text-emerald-400" />
+                Citizen Photo Attached
+              </span>
+              <span className="inline-flex items-center gap-1 rounded-lg bg-emerald-600 px-2.5 py-1 text-[11px] font-bold text-white shadow-xs group-hover:bg-emerald-500">
+                <Eye className="h-3.5 w-3.5" />
+                Click to Enlarge
+              </span>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="mt-2.5 flex items-center gap-2 rounded-xl bg-slate-50 border border-slate-200/60 p-2 text-xs text-slate-400">
+          <Camera className="h-4 w-4 text-slate-300" />
+          <span>No photo was attached by citizen</span>
+        </div>
+      )}
+
+      {/* Enlarged Photo Modal for Admin */}
+      {showPhotoModal && report.photo_url && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4 animate-fade-in"
+          onClick={() => setShowPhotoModal(false)}
+        >
+          <div
+            className="relative max-w-2xl w-full bg-white rounded-3xl p-4 shadow-2xl animate-scale-in"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                <Camera className="h-5 w-5 text-emerald-600" />
+                <h3 className="font-bold text-slate-900 text-sm">Citizen Uploaded Photo Proof</h3>
+              </div>
+              <button
+                onClick={() => setShowPhotoModal(false)}
+                className="rounded-full p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 cursor-pointer"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="mt-3 overflow-hidden rounded-2xl bg-black max-h-[70vh] flex items-center justify-center">
+              <img
+                src={report.photo_url}
+                alt="Waste proof enlarged"
+                className="max-h-[70vh] w-auto object-contain"
+              />
+            </div>
+            <div className="mt-3 flex items-center justify-between text-xs text-slate-500">
+              <span>📍 {report.address}</span>
+              <span className="font-semibold text-emerald-700">Report #{report.id.slice(0, 8)}</span>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Live Geo-Tag Badge Card */}
       <div className="mt-3 rounded-xl bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 p-2.5 text-xs">
@@ -478,6 +548,11 @@ function AdminReportCard({ report, onAssign, onUpdate }: { report: WasteReport; 
 
       <div className="mt-3 flex gap-2">
         {report.status === 'pending' && (
+          <button onClick={() => onAssign(report)} className="btn-primary text-xs py-1.5 px-3">
+            Assign to Driver
+          </button>
+        )}
+        {report.status === 'in_progress' && (
           <button onClick={() => onAssign(report)} className="btn-primary text-xs py-1.5 px-3">
             Assign to Driver
           </button>
