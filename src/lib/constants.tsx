@@ -40,8 +40,8 @@ export const WASTE_TYPES = [
   { id: 'metal', label: 'Metal (Dry Waste)', icon: '🥫', color: 'bg-slate-100 text-slate-700 border-slate-200' },
   { id: 'glass', label: 'Glass (Dry Waste)', icon: '🍾', color: 'bg-teal-100 text-teal-700 border-teal-200' },
   { id: 'e_waste', label: 'E-Waste / Electronic', icon: '🔌', color: 'bg-rose-100 text-rose-700 border-rose-200' },
-  { id: 'organic', label: 'Wet Waste / Organic (गीला)', icon: '🥬', color: 'bg-emerald-100 text-emerald-700 border-emerald-200' },
-  { id: 'mixed', label: 'Mixed Waste (मिश्रित कचरा)', icon: '🗑️', color: 'bg-amber-100 text-amber-800 border-amber-300' },
+  { id: 'organic', label: 'Wet Waste / Organic', icon: '🥬', color: 'bg-emerald-100 text-emerald-700 border-emerald-200' },
+  { id: 'mixed', label: 'Mixed Waste', icon: '🗑️', color: 'bg-amber-100 text-amber-800 border-amber-300' },
   { id: 'other', label: 'Other', icon: '♻️', color: 'bg-teal-100 text-teal-700 border-teal-200' },
 ] as const;
 

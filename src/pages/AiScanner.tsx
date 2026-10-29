@@ -24,14 +24,14 @@ export type ScanResult = {
   category: string;
   binType: 'dry' | 'wet' | 'e_waste' | 'mixed';
   binName: string;
-  binHindi: string;
+  binHindi?: string;
   binColorClass: string;
   binBadgeClass: string;
   binIcon: string;
   confidence: number;
   detectedItem: string;
   disposalMethod: string;
-  hindiGuidance: string;
+  hindiGuidance?: string;
   recyclable: boolean;
   topPredictions: { label: string; prob: number }[];
 };
@@ -232,14 +232,14 @@ export function AiScanner() {
         category: 'organic',
         binType: 'wet',
         binName: 'WET WASTE (GREEN BIN)',
-        binHindi: 'गीला कचरा — हरा डिब्बा',
+        binHindi: 'Organic Food Waste — Green Bin',
         binColorClass: 'border-emerald-500 bg-emerald-50 text-emerald-800',
         binBadgeClass: 'bg-emerald-600 text-white',
         binIcon: '🟢',
         confidence: computedConfidence,
         detectedItem: `Organic / Food Waste (${topPredText})`,
         disposalMethod: 'Place in the GREEN bin. Ideal for home composting or biogas production.',
-        hindiGuidance: 'इसे हरे (Green) गीले कचरे वाले डिब्बे में डालें। इसे जैविक खाद (compost) बनाने के लिए इस्तेमाल करें।',
+        hindiGuidance: 'Place in the green bin for wet/organic waste. Can be used for organic composting.',
         recyclable: false,
         topPredictions: predList,
       };
@@ -250,14 +250,14 @@ export function AiScanner() {
         category: 'paper',
         binType: 'dry',
         binName: 'DRY WASTE - PAPER (BLUE BIN)',
-        binHindi: 'सूखा कचरा - कागज — नीला डिब्बा',
+        binHindi: 'Dry Waste - Paper — Blue Bin',
         binColorClass: 'border-sky-500 bg-sky-50 text-sky-800',
         binBadgeClass: 'bg-sky-600 text-white',
         binIcon: '🔵',
         confidence: computedConfidence,
         detectedItem: `Paper / Cardboard (${topPredText})`,
         disposalMethod: 'Keep dry and place in the BLUE recyclable bin. Can be recycled or sold on Wastify Marketplace.',
-        hindiGuidance: 'इसे सूखा रखें और नीले (Blue) डिब्बे में डालें। इसे आसानी से रीसायकल किया जा सकता है या कबाड़ी/Marketplace पर बेचें।',
+        hindiGuidance: 'Keep clean and dry, then place in the blue recyclable bin.',
         recyclable: true,
         topPredictions: predList,
       };
@@ -268,14 +268,14 @@ export function AiScanner() {
         category: 'e_waste',
         binType: 'e_waste',
         binName: 'E-WASTE / HAZARDOUS (RED / SPECIAL BIN)',
-        binHindi: 'ई-कचरा / इलेक्ट्रॉनिक — लाल या विशेष डिब्बा',
+        binHindi: 'E-Waste / Hazardous — Red / Special Bin',
         binColorClass: 'border-rose-500 bg-rose-50 text-rose-800',
         binBadgeClass: 'bg-rose-600 text-white',
         binIcon: '🔴',
         confidence: computedConfidence,
         detectedItem: `Electronic Waste (${topPredText})`,
         disposalMethod: 'DANGER: Never throw electronics or batteries in normal dustbins. Take to an authorized e-waste collection point.',
-        hindiGuidance: 'खतरा: इलेक्ट्रॉनिक या बैटरी को कभी भी सामान्य कचरे में न फेंकें। इसे प्रमाणित ई-कचरा केंद्र पर जमा करें।',
+        hindiGuidance: 'Danger: Never dispose of electronics or batteries in general trash. Hand over to authorized centers.',
         recyclable: true,
         topPredictions: predList,
       };
@@ -286,14 +286,14 @@ export function AiScanner() {
         category: 'plastic',
         binType: 'dry',
         binName: 'DRY WASTE - PLASTIC (BLUE BIN)',
-        binHindi: 'सूखा कचरा - प्लास्टिक — नीला डिब्बा',
+        binHindi: 'Dry Waste - Plastic — Blue Bin',
         binColorClass: 'border-blue-500 bg-blue-50 text-blue-800',
         binBadgeClass: 'bg-blue-600 text-white',
         binIcon: '🔵',
         confidence: computedConfidence,
         detectedItem: `Plastic Material (${topPredText})`,
         disposalMethod: 'Rinse cleanly, flatten, and place in the BLUE recyclable bin.',
-        hindiGuidance: 'प्लास्टिक को धोकर सूखा लें और नीले डिब्बे में डालें। इसे रीसायकल किया जाएगा।',
+        hindiGuidance: 'Clean and flatten plastic items, then place into the blue dry waste bin for recycling.',
         recyclable: true,
         topPredictions: predList,
       };
@@ -304,14 +304,14 @@ export function AiScanner() {
         category: 'metal',
         binType: 'dry',
         binName: 'DRY WASTE - METAL (BLUE BIN)',
-        binHindi: 'सूखा कचरा - धातु — नीला डिब्बा',
+        binHindi: 'Dry Waste - Metal — Blue Bin',
         binColorClass: 'border-slate-500 bg-slate-50 text-slate-800',
         binBadgeClass: 'bg-slate-700 text-white',
         binIcon: '🔵',
         confidence: computedConfidence,
         detectedItem: `Metal Waste (${topPredText})`,
         disposalMethod: 'Place in the BLUE recyclable bin. Metal is infinitely recyclable.',
-        hindiGuidance: 'साफ करके नीले सूखे कचरे के डिब्बे में डालें। धातु हमेशा रीसायकल हो सकती है।',
+        hindiGuidance: 'Rinse clean and place in the blue recyclable bin. Metals can be infinitely recycled.',
         recyclable: true,
         topPredictions: predList,
       };
@@ -322,14 +322,14 @@ export function AiScanner() {
         category: 'glass',
         binType: 'dry',
         binName: 'DRY WASTE - GLASS (BLUE BIN)',
-        binHindi: 'सूखा कचरा - कांच — नीला डिब्बा',
+        binHindi: 'Dry Waste - Glass — Blue Bin',
         binColorClass: 'border-teal-500 bg-teal-50 text-teal-800',
         binBadgeClass: 'bg-teal-600 text-white',
         binIcon: '🔵',
         confidence: computedConfidence,
         detectedItem: `Glass Material (${topPredText})`,
         disposalMethod: 'Wrap safely if broken, and place in the BLUE bin for glass recycling.',
-        hindiGuidance: 'टूटे कांच को कागज में लपेटें और नीले डिब्बे में सावधानी से डालें।',
+        hindiGuidance: 'Wrap safely if broken, and place in the blue bin for glass recycling.',
         recyclable: true,
         topPredictions: predList,
       };
@@ -340,14 +340,14 @@ export function AiScanner() {
       category: 'mixed',
       binType: 'mixed',
       binName: 'MIXED WASTE (SEGREGATION NEEDED)',
-      binHindi: 'मिश्रित कचरा — फेंकने से पहले अलग करें',
+      binHindi: 'Mixed Waste — Separate Before Disposal',
       binColorClass: 'border-amber-500 bg-amber-50 text-amber-800',
       binBadgeClass: 'bg-amber-600 text-white',
       binIcon: '🟡',
       confidence: computedConfidence,
       detectedItem: `Mixed Garbage (${topPredText})`,
       disposalMethod: 'Mixed waste detected! Please separate food/wet items into GREEN bin and dry recyclables into BLUE bin before pickup.',
-      hindiGuidance: 'सावधानी: इसमें गीला और सूखा दोनों कचरा मिला हुआ है! कृपया गीला कचरा हरे और सूखा कचरा नीले डिब्बे में अलग करें।',
+      hindiGuidance: 'Caution: Contains mixed wet and dry waste. Please segregate wet waste into green bin and dry waste into blue bin.',
       recyclable: false,
       topPredictions: predList,
     };
@@ -385,7 +385,7 @@ export function AiScanner() {
   return (
     <DashboardLayout>
       <PageHeader
-        title="AI Waste Scanner (स्मार्ट कचरा स्कैनर)"
+        title="AI Waste Scanner"
         subtitle="Upload or take a photo of waste to automatically identify Wet, Dry (Paper, Plastic, Metal), E-Waste, or Mixed waste."
       />
 
@@ -403,7 +403,7 @@ export function AiScanner() {
 
             <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
               <label className="btn-primary cursor-pointer px-6 py-3 text-sm font-semibold shadow-md">
-                <Upload className="h-4 w-4" /> Upload Image (फोटो अपलोड करें)
+                <Upload className="h-4 w-4" /> Upload Image
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -413,7 +413,7 @@ export function AiScanner() {
                 />
               </label>
               <label className="btn-secondary cursor-pointer px-6 py-3 text-sm font-semibold">
-                <Camera className="h-4 w-4" /> Take Photo (कैमरा खोलें)
+                <Camera className="h-4 w-4" /> Take Photo
                 <input
                   type="file"
                   accept="image/*"
@@ -515,18 +515,15 @@ export function AiScanner() {
                   </div>
                 </div>
 
-                {/* Disposal Guidance Box (English + Hindi) */}
+                {/* Disposal Guidance Box */}
                 <div className="mt-4 rounded-xl border border-blue-200 bg-blue-50/70 p-4 text-blue-900">
                   <div className="flex items-start gap-3">
                     <div className="rounded-lg bg-blue-600 p-2 text-white shrink-0">
                       <Lightbulb className="h-4 w-4" />
                     </div>
                     <div className="space-y-1 text-sm">
-                      <p className="font-bold text-blue-950">How to Dispose (कचरा कैसे डालें):</p>
+                      <p className="font-bold text-blue-950">How to Dispose:</p>
                       <p className="text-blue-900 leading-relaxed font-medium">{result.disposalMethod}</p>
-                      <p className="text-blue-800 leading-relaxed text-xs pt-1 border-t border-blue-200/60 font-normal">
-                        🇮🇳 <strong>सलाह:</strong> {result.hindiGuidance}
-                      </p>
                     </div>
                   </div>
                 </div>
@@ -550,7 +547,7 @@ export function AiScanner() {
                 {/* Actions */}
                 <div className="mt-6 flex gap-3">
                   <button onClick={reset} className="btn-primary flex-1 py-3 justify-center">
-                    <RotateCcw className="h-4 w-4" /> Scan Another Item (नया स्कैन करें)
+                    <RotateCcw className="h-4 w-4" /> Scan Another Item
                   </button>
                 </div>
               </div>
@@ -558,7 +555,7 @@ export function AiScanner() {
 
             {!result && !scanning && (
               <button onClick={reset} className="btn-secondary mt-4 w-full justify-center">
-                <RotateCcw className="h-4 w-4" /> Try Again (दोबारा प्रयास करें)
+                <RotateCcw className="h-4 w-4" /> Try Again
               </button>
             )}
           </div>

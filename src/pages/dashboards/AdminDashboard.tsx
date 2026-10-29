@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Shield, MapPin, Trash2, Truck, Trophy, AlertCircle, CheckCircle2, Clock, Navigation, Award, Plus, Utensils, Bell, Camera, Eye, X } from 'lucide-react';
+import { Shield, MapPin, Trash2, Truck, Trophy, AlertCircle, CheckCircle2, Clock, Navigation, Award, Plus, Utensils, Bell, Camera, Eye, X, HeartHandshake, KeyRound } from 'lucide-react';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { Modal } from '@/components/ui/Modal';
 import { StatCard, PageHeader, Section } from '@/components/ui/StatCard';
@@ -8,12 +8,13 @@ import { useAuth } from '@/context/AuthContext';
 import { supabase, type WasteReport, type Profile, type Area, type DriverAssignment, type VehicleLocation, type Reward, type SurplusFood } from '@/lib/supabase';
 import { REPORT_TYPES, STATUS_COLORS, formatTimeAgo } from '@/lib/constants';
 import { VehicleMap, type VehiclePos, MapPlaceholder } from '@/components/VehicleMap';
+import { cleanFoodDescription } from '@/lib/foodOtp';
 
 export function AdminDashboard() {
   const { profile } = useAuth();
   const [activeTab, setActiveTab] = useState<'overview' | 'reports' | 'food' | 'drivers' | 'vehicles' | 'rewards' | 'learning'>('overview');
   const [reports, setReports] = useState<WasteReport[]>([]);
-  const [foodListings, setFoodListings] = useState<(SurplusFood & { citizen?: Profile })[]>([]);
+  const [foodListings, setFoodListings] = useState<(SurplusFood & { citizen?: Profile; ngo?: Profile })[]>([]);
   const [drivers, setDrivers] = useState<Profile[]>([]);
   const [allProfiles, setAllProfiles] = useState<Profile[]>([]);
   const [areas, setAreas] = useState<Area[]>([]);
@@ -26,12 +27,14 @@ export function AdminDashboard() {
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [showAreaModal, setShowAreaModal] = useState(false);
   const [showRewardModal, setShowRewardModal] = useState(false);
+  const [showAssignFoodModal, setShowAssignFoodModal] = useState(false);
   const [assignReport, setAssignReport] = useState<WasteReport | null>(null);
+  const [assignFood, setAssignFood] = useState<(SurplusFood & { citizen?: Profile; ngo?: Profile }) | null>(null);
 
   const loadData = useCallback(async () => {
     const [reportsRes, foodRes, profilesRes, areasRes, assignRes, vehiclesRes, rewardsRes] = await Promise.all([
       supabase.from('waste_reports').select('*').order('created_at', { ascending: false }),
-      supabase.from('surplus_food').select('*, citizen:profiles!surplus_food_citizen_id_fkey(*)').order('created_at', { ascending: false }),
+      supabase.from('surplus_food').select('*, citizen:profiles!surplus_food_citizen_id_fkey(*), ngo:profiles!surplus_food_accepted_by_fkey(*)').order('created_at', { ascending: false }),
       supabase.from('profiles').select('*'),
       supabase.from('areas').select('*'),
       supabase.from('driver_assignments').select('*, driver:profiles!driver_assignments_driver_id_fkey(*), area:areas(*)').order('created_at', { ascending: false }),
@@ -39,7 +42,7 @@ export function AdminDashboard() {
       supabase.from('rewards').select('*, user:profiles!rewards_user_id_fkey(*)').order('created_at', { ascending: false }),
     ]);
     setReports((reportsRes.data as WasteReport[]) ?? []);
-    setFoodListings((foodRes.data as (SurplusFood & { citizen?: Profile })[]) ?? []);
+    setFoodListings((foodRes.data as (SurplusFood & { citizen?: Profile; ngo?: Profile })[]) ?? []);
     const profiles = (profilesRes.data as Profile[]) ?? [];
     setAllProfiles(profiles);
     setDrivers(profiles.filter(p => p.role === 'driver'));
@@ -108,6 +111,22 @@ export function AdminDashboard() {
     updated_at: v.updated_at,
   }));
 
+  const ngos = allProfiles.filter(p => p.role === 'ngo');
+
+  async function assignFoodToNgo(foodId: string, ngoId: string) {
+    const { error } = await supabase
+      .from('surplus_food')
+      .update({ accepted_by: ngoId, status: 'accepted' })
+      .eq('id', foodId);
+    if (error) {
+      alert('Error assigning food to NGO: ' + error.message);
+      return;
+    }
+    setShowAssignFoodModal(false);
+    setAssignFood(null);
+    loadData();
+  }
+
   async function updateFoodStatus(id: string, status: SurplusFood['status']) {
     await supabase.from('surplus_food').update({ status }).eq('id', id);
     loadData();
@@ -133,7 +152,7 @@ export function AdminDashboard() {
               <Bell className="h-5 w-5 animate-bounce" />
             </div>
             <div>
-              <h4 className="text-sm font-bold text-slate-900">🔔 Admin Operations Center (नया अलर्ट)</h4>
+              <h4 className="text-sm font-bold text-slate-900">🔔 Admin Operations Center (New Operations Alerts)</h4>
               <p className="text-xs text-slate-600">
                 You have received <strong>{pendingReports} new Waste Reports</strong> and <strong>{availableFood} Food Donations</strong> from citizens with live GPS coordinates.
               </p>
@@ -229,70 +248,114 @@ export function AdminDashboard() {
                 <EmptyState icon={<Utensils className="h-10 w-10" />} title="No food donations" message="No citizen has donated food yet." />
               ) : (
                 <div className="grid gap-4 sm:grid-cols-2">
-                  {foodListings.map((food) => (
-                    <div key={food.id} className="card-hover rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="flex items-center gap-3">
-                          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-50 text-amber-600 text-xl font-bold">
-                            🍱
-                          </div>
-                          <div>
-                            <h4 className="font-bold text-slate-900 text-base">{food.food_type}</h4>
-                            <p className="text-xs text-slate-500 font-medium">Quantity: {food.quantity || 'N/A'}</p>
-                          </div>
-                        </div>
-                        <span className={`badge ${STATUS_COLORS[food.status] || 'bg-slate-100 text-slate-700'}`}>
-                          {food.status}
-                        </span>
-                      </div>
+                  {foodListings.map((food) => {
+                    const cleanDesc = cleanFoodDescription(food.description);
+                    let badgeLabel = food.status;
+                    let badgeStyle = 'bg-slate-100 text-slate-700 border-slate-200';
+                    if (food.status === 'available') {
+                      badgeLabel = 'Pending NGO Assignment';
+                      badgeStyle = 'bg-amber-100 text-amber-800 border-amber-300';
+                    } else if (food.status === 'accepted') {
+                      badgeLabel = food.ngo ? `Assigned to ${food.ngo.full_name}` : 'Assigned to NGO (Pending Pickup)';
+                      badgeStyle = 'bg-blue-100 text-blue-800 border-blue-300';
+                    } else if (food.status === 'collected') {
+                      badgeLabel = 'Collected / Done';
+                      badgeStyle = 'bg-emerald-100 text-emerald-800 border-emerald-300';
+                    } else if (food.status === 'rejected') {
+                      badgeLabel = 'Rejected';
+                      badgeStyle = 'bg-red-100 text-red-800 border-red-300';
+                    }
 
-                      <div className="mt-4 space-y-2 text-xs text-slate-600">
-                        {food.description && <p className="italic bg-slate-50 p-2 rounded-lg text-slate-700">"{food.description}"</p>}
-                        <div className="flex items-center gap-2 text-emerald-800 font-medium">
-                          <MapPin className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
-                          <span className="truncate">{food.address}</span>
-                        </div>
-                        {food.latitude && food.longitude && (
-                          <p className="text-[11px] text-slate-400 pl-5">GPS: {food.latitude.toFixed(5)}, {food.longitude.toFixed(5)}</p>
-                        )}
-                        <p className="text-slate-500 pt-1 border-t border-slate-100">
-                          Donor: <strong className="text-slate-800">{food.citizen?.full_name || 'Citizen'}</strong> • {formatTimeAgo(food.created_at)}
-                        </p>
-                      </div>
-
-                      <div className="mt-4 flex gap-2 pt-3 border-t border-slate-100">
-                        {food.status === 'available' && (
-                          <>
-                            <button
-                              onClick={() => updateFoodStatus(food.id, 'accepted')}
-                              className="btn-primary text-xs py-1.5 px-3 flex-1 justify-center"
-                            >
-                              Approve Donation
-                            </button>
-                            <button
-                              onClick={() => updateFoodStatus(food.id, 'rejected')}
-                              className="btn-secondary text-xs py-1.5 px-3 text-red-600 hover:bg-red-50 justify-center"
-                            >
-                              Reject
-                            </button>
-                          </>
-                        )}
-                        {food.status === 'accepted' && (
-                          <button
-                            onClick={() => updateFoodStatus(food.id, 'collected')}
-                            className="btn-secondary text-xs py-1.5 px-3 w-full text-emerald-700 hover:bg-emerald-50 justify-center"
-                          >
-                            Mark as Collected by Shelter
-                          </button>
-                        )}
-                        {food.status === 'collected' && (
-                          <span className="text-xs text-emerald-600 font-bold flex items-center gap-1">
-                            <CheckCircle2 className="h-3.5 w-3.5" /> Successfully Distributed
+                    return (
+                      <div key={food.id} className="card-hover rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex items-center gap-3">
+                            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-50 text-amber-600 text-xl font-bold">
+                              🍱
+                            </div>
+                            <div>
+                              <h4 className="font-bold text-slate-900 text-base">{food.food_type}</h4>
+                              <p className="text-xs text-slate-500 font-medium">Quantity: {food.quantity || 'N/A'}</p>
+                            </div>
+                          </div>
+                          <span className={`badge border font-semibold ${badgeStyle}`}>
+                            {badgeLabel}
                           </span>
-                        )}
+                        </div>
+
+                        <div className="mt-4 space-y-2 text-xs text-slate-600">
+                          {cleanDesc && <p className="italic bg-slate-50 p-2.5 rounded-lg text-slate-700">"{cleanDesc}"</p>}
+                          <div className="flex items-center gap-2 text-emerald-800 font-medium">
+                            <MapPin className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
+                            <span className="truncate">{food.address}</span>
+                          </div>
+                          {food.latitude && food.longitude && (
+                            <p className="text-[11px] text-slate-400 pl-5">GPS: {food.latitude.toFixed(5)}, {food.longitude.toFixed(5)}</p>
+                          )}
+                          <p className="text-slate-500 pt-1 border-t border-slate-100">
+                            Donor: <strong className="text-slate-800">{food.citizen?.full_name || 'Citizen'}</strong> • {formatTimeAgo(food.created_at)}
+                          </p>
+
+                          {/* Assigned NGO / OTP Info */}
+                          {food.status === 'accepted' && (
+                            <div className="rounded-xl border border-blue-200 bg-blue-50/80 p-2.5 text-xs text-blue-900 font-medium flex items-center justify-between">
+                              <span>🏢 Assigned NGO: <strong className="text-blue-950">{food.ngo?.full_name || 'Partner NGO'}</strong></span>
+                              <span className="text-[11px] text-blue-700">⏳ Pending Citizen OTP Verification</span>
+                            </div>
+                          )}
+
+                          {food.status === 'collected' && (
+                            <div className="rounded-xl border border-emerald-200 bg-emerald-50/80 p-2.5 text-xs text-emerald-900 font-medium flex items-center gap-2">
+                              <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
+                              <span>Pickup verified with Citizen OTP & collected by <strong>{food.ngo?.full_name || 'NGO Partner'}</strong></span>
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="mt-4 flex flex-wrap gap-2 pt-3 border-t border-slate-100">
+                          {food.status === 'available' && (
+                            <>
+                              <button
+                                onClick={() => { setAssignFood(food); setShowAssignFoodModal(true); }}
+                                className="btn-primary text-xs py-2 px-3 flex-1 justify-center flex items-center gap-1.5"
+                              >
+                                <HeartHandshake className="h-4 w-4" />
+                                <span>Assign to NGO</span>
+                              </button>
+                              <button
+                                onClick={() => updateFoodStatus(food.id, 'rejected')}
+                                className="btn-secondary text-xs py-2 px-3 text-red-600 hover:bg-red-50 justify-center"
+                              >
+                                Reject
+                              </button>
+                            </>
+                          )}
+                          {food.status === 'accepted' && (
+                            <>
+                              <button
+                                onClick={() => { setAssignFood(food); setShowAssignFoodModal(true); }}
+                                className="btn-secondary text-xs py-1.5 px-3 flex items-center gap-1.5 justify-center"
+                              >
+                                <HeartHandshake className="h-3.5 w-3.5 text-blue-600" />
+                                <span>Reassign NGO</span>
+                              </button>
+                              <button
+                                onClick={() => updateFoodStatus(food.id, 'collected')}
+                                className="btn-secondary text-xs py-1.5 px-3 text-emerald-700 hover:bg-emerald-50 justify-center ml-auto"
+                              >
+                                Mark Collected (Admin Override)
+                              </button>
+                            </>
+                          )}
+                          {food.status === 'collected' && (
+                            <span className="text-xs text-emerald-700 font-bold flex items-center gap-1.5 py-1">
+                              <CheckCircle2 className="h-4 w-4 text-emerald-600" /> Done — Food Handed Over to NGO with Citizen OTP Verification
+                            </span>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -441,6 +504,13 @@ export function AdminDashboard() {
       />
       <AreaModal open={showAreaModal} onClose={() => setShowAreaModal(false)} onCreated={loadData} />
       <RewardModal open={showRewardModal} onClose={() => setShowRewardModal(false)} profiles={allProfiles} adminId={profile.id} onCreated={loadData} />
+      <AssignFoodModal
+        open={showAssignFoodModal}
+        onClose={() => { setShowAssignFoodModal(false); setAssignFood(null); }}
+        food={assignFood}
+        ngos={ngos}
+        onAssign={assignFoodToNgo}
+      />
     </DashboardLayout>
   );
 }
@@ -686,6 +756,103 @@ function AssignReportModal({ open, onClose, report, drivers, onAssign }: {
             </button>
           </>
         )}
+      </div>
+    </Modal>
+  );
+}
+
+// ============ Assign Food to NGO Modal ============
+function AssignFoodModal({
+  open,
+  onClose,
+  food,
+  ngos,
+  onAssign,
+}: {
+  open: boolean;
+  onClose: () => void;
+  food: (SurplusFood & { citizen?: Profile; ngo?: Profile }) | null;
+  ngos: Profile[];
+  onAssign: (foodId: string, ngoId: string) => Promise<void>;
+}) {
+  const [selectedNgo, setSelectedNgo] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (food?.accepted_by) {
+      setSelectedNgo(food.accepted_by);
+    } else if (ngos.length > 0) {
+      setSelectedNgo(ngos[0].id);
+    }
+  }, [food, ngos]);
+
+  async function handleConfirm() {
+    if (!food || !selectedNgo) return;
+    setSubmitting(true);
+    await onAssign(food.id, selectedNgo);
+    setSubmitting(false);
+  }
+
+  const cleanDesc = cleanFoodDescription(food?.description);
+
+  return (
+    <Modal open={open} onClose={onClose} title="Assign Food Donation to NGO">
+      <div className="space-y-4">
+        {food && (
+          <div className="rounded-xl border border-slate-200 bg-slate-50 p-3.5 text-xs text-slate-700 space-y-1.5">
+            <div className="flex items-center justify-between">
+              <span className="font-bold text-slate-900 text-sm">{food.food_type}</span>
+              <span className="badge bg-amber-100 text-amber-800 font-semibold">{food.quantity || 'N/A'}</span>
+            </div>
+            {cleanDesc && <p className="italic text-slate-600">"{cleanDesc}"</p>}
+            <p>Donor: <strong className="text-slate-900">{food.citizen?.full_name || 'Citizen'}</strong></p>
+            <p className="text-emerald-800 font-medium">📍 {food.address}</p>
+          </div>
+        )}
+
+        <div>
+          <label className="label">Select Registered NGO for Collection</label>
+          {ngos.length === 0 ? (
+            <p className="text-xs text-amber-700 font-medium bg-amber-50 p-2.5 rounded-lg border border-amber-200">
+              No registered NGO accounts found in the database. Please register an NGO profile first.
+            </p>
+          ) : (
+            <select
+              value={selectedNgo}
+              onChange={(e) => setSelectedNgo(e.target.value)}
+              className="input font-medium"
+            >
+              {ngos.map((n) => (
+                <option key={n.id} value={n.id}>
+                  🏢 {n.full_name || 'NGO Partner'} ({n.phone || n.address || 'Verified NGO'})
+                </option>
+              ))}
+            </select>
+          )}
+        </div>
+
+        <p className="text-[11px] text-slate-500 leading-relaxed">
+          The assigned NGO will be notified to collect the food. Upon collection, the NGO must enter the secret 4-digit OTP provided by the citizen to mark it complete.
+        </p>
+
+        <div className="flex gap-2 pt-2">
+          <button
+            type="button"
+            onClick={onClose}
+            className="btn-secondary flex-1 justify-center text-xs"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            disabled={!selectedNgo || submitting || ngos.length === 0}
+            onClick={handleConfirm}
+            className="btn-primary flex-1 justify-center text-xs flex items-center gap-1.5"
+          >
+            <HeartHandshake className="h-4 w-4" />
+            <span>{submitting ? 'Assigning...' : 'Confirm Assignment'}</span>
+          </button>
+        </div>
       </div>
     </Modal>
   );

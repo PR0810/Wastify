@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Trash2, Recycle, Utensils, Camera, MapPin, Trophy, BookOpen, Clock, CheckCircle2, AlertCircle, Plus, Award, Loader2, Navigation, X, Eye, Truck, Radio } from 'lucide-react';
+import { Trash2, Recycle, Utensils, Camera, MapPin, Trophy, BookOpen, Clock, CheckCircle2, AlertCircle, Plus, Award, Loader2, Navigation, X, Eye, Truck, Radio, KeyRound, ShieldCheck } from 'lucide-react';
 import { DashboardLayout } from '@/components/DashboardLayout';
 import { Modal } from '@/components/ui/Modal';
 import { StatCard, PageHeader, Section } from '@/components/ui/StatCard';
@@ -9,6 +9,7 @@ import { useAuth } from '@/context/AuthContext';
 import { supabase, type WasteReport, type RecyclableListing, type SurplusFood, type Certificate, type VehicleLocation, type Profile } from '@/lib/supabase';
 import { WASTE_TYPES, REPORT_TYPES, STATUS_COLORS, formatTimeAgo } from '@/lib/constants';
 import { VehicleMap, type VehiclePos, MapPlaceholder } from '@/components/VehicleMap';
+import { generateOtp, extractFoodOtp, cleanFoodDescription } from '@/lib/foodOtp';
 
 export function CitizenDashboard() {
   const { profile } = useAuth();
@@ -17,7 +18,7 @@ export function CitizenDashboard() {
 
   const [reports, setReports] = useState<WasteReport[]>([]);
   const [recyclables, setRecyclables] = useState<RecyclableListing[]>([]);
-  const [foodListings, setFoodListings] = useState<SurplusFood[]>([]);
+  const [foodListings, setFoodListings] = useState<(SurplusFood & { ngo?: Profile })[]>([]);
   const [certificates, setCertificates] = useState<Certificate[]>([]);
   const [vehicles, setVehicles] = useState<(VehicleLocation & { driver?: Profile })[]>([]);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
@@ -33,13 +34,13 @@ export function CitizenDashboard() {
     const [reportsRes, recycRes, foodRes, certRes, vehiclesRes] = await Promise.all([
       supabase.from('waste_reports').select('*').eq('reporter_id', profile.id).order('created_at', { ascending: false }),
       supabase.from('recyclable_listings').select('*').eq('citizen_id', profile.id).order('created_at', { ascending: false }),
-      supabase.from('surplus_food').select('*').eq('citizen_id', profile.id).order('created_at', { ascending: false }),
+      supabase.from('surplus_food').select('*, ngo:profiles!surplus_food_accepted_by_fkey(*)').eq('citizen_id', profile.id).order('created_at', { ascending: false }),
       supabase.from('certificates').select('*').eq('user_id', profile.id).order('issued_at', { ascending: false }),
       supabase.from('vehicle_locations').select('*, driver:profiles!vehicle_locations_driver_id_fkey(*)').order('updated_at', { ascending: false }),
     ]);
     setReports((reportsRes.data as WasteReport[]) ?? []);
     setRecyclables((recycRes.data as RecyclableListing[]) ?? []);
-    setFoodListings((foodRes.data as SurplusFood[]) ?? []);
+    setFoodListings((foodRes.data as (SurplusFood & { ngo?: Profile })[]) ?? []);
     setCertificates((certRes.data as Certificate[]) ?? []);
     setVehicles((vehiclesRes.data as (VehicleLocation & { driver?: Profile })[]) ?? []);
     setLoading(false);
@@ -141,7 +142,7 @@ export function CitizenDashboard() {
           
           <div className="relative z-10">
             <div className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold text-emerald-100 backdrop-blur-md mb-3">
-              <span>🌱 Swachh Bharat Citizen Dashboard</span>
+              <span>🌱 Wastify Citizen Dashboard</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
               Welcome, {profile.full_name || 'Citizen'}!
@@ -282,7 +283,7 @@ export function CitizenDashboard() {
       <div className="mt-8 flex gap-1 border-b border-slate-200 overflow-x-auto">
         {[
           { id: 'overview', label: 'Overview' },
-          { id: 'tracking', label: '🚚 Track Driver (लाइव लोकेशन)' },
+          { id: 'tracking', label: '🚚 Track Driver (Live Tracking)' },
           { id: 'reports', label: 'My Reports' },
           { id: 'recyclable', label: 'Recyclables' },
           { id: 'food', label: 'Surplus Food' },
@@ -309,7 +310,7 @@ export function CitizenDashboard() {
             <div className="space-y-6">
               {/* Live Driver / Truck Location Tracking */}
               <Section
-                title="Live Garbage Collection Trucks (कचरा गाड़ी लाइव लोकेशन)"
+                title="Live Garbage Collection Trucks (Real-Time Tracking)"
                 action={
                   <button
                     onClick={() => setActiveTab('tracking')}
@@ -598,31 +599,83 @@ function RecyclableCard({ item }: { item: RecyclableListing }) {
 }
 
 // ============ Food Card ============
-function FoodCard({ food }: { food: SurplusFood }) {
+function FoodCard({ food }: { food: SurplusFood & { ngo?: Profile } }) {
+  const displayDesc = cleanFoodDescription(food.description);
+  const otp = extractFoodOtp(food.description, food.id);
+
+  let statusLabel = 'Available';
+  let badgeColor = 'bg-amber-100 text-amber-800 border-amber-300';
+  if (food.status === 'available') {
+    statusLabel = 'Pending NGO Assignment';
+    badgeColor = 'bg-amber-100 text-amber-800 border-amber-200';
+  } else if (food.status === 'accepted') {
+    statusLabel = food.ngo ? `Assigned to ${food.ngo.full_name}` : 'Assigned to NGO (Pending Pickup)';
+    badgeColor = 'bg-blue-100 text-blue-800 border-blue-200';
+  } else if (food.status === 'collected') {
+    statusLabel = 'Collected / Completed';
+    badgeColor = 'bg-emerald-100 text-emerald-800 border-emerald-200';
+  } else if (food.status === 'rejected') {
+    statusLabel = 'Rejected';
+    badgeColor = 'bg-red-100 text-red-800 border-red-200';
+  }
+
   return (
-    <div className="card-hover p-4">
-      <div className="flex items-start justify-between">
+    <div className="card-hover p-4 rounded-2xl border border-slate-200 bg-white shadow-xs">
+      <div className="flex items-start justify-between gap-2">
         <div className="flex items-center gap-2">
-          <Utensils className="h-4 w-4 text-orange-500" />
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-orange-50 text-orange-600">
+            <Utensils className="h-4.5 w-4.5" />
+          </div>
           <div>
-            <p className="text-sm font-semibold text-slate-900">{food.food_type}</p>
+            <p className="text-sm font-bold text-slate-900">{food.food_type}</p>
             <p className="text-xs text-slate-400">{formatTimeAgo(food.created_at)}</p>
           </div>
         </div>
-        <span className={`badge ${STATUS_COLORS[food.status]}`}>
-          {food.status}
+        <span className={`badge border font-semibold ${badgeColor}`}>
+          {statusLabel}
         </span>
       </div>
-      {food.quantity && <p className="mt-2 text-sm text-slate-600">Quantity: {food.quantity}</p>}
-      {food.description && <p className="mt-1 text-sm text-slate-500">{food.description}</p>}
+
+      {food.quantity && <p className="mt-2 text-sm text-slate-600 font-medium">Quantity: {food.quantity}</p>}
+      {displayDesc && <p className="mt-1 text-sm text-slate-500 italic">"{displayDesc}"</p>}
       {food.preparation_time && (
         <div className="mt-2 flex items-center gap-1 text-xs text-slate-400">
           <Clock className="h-3 w-3" /> Prepared: {new Date(food.preparation_time).toLocaleString()}
         </div>
       )}
       {food.address && (
-        <div className="mt-2 flex items-center gap-1 text-xs text-slate-400">
-          <MapPin className="h-3 w-3" /> {food.address}
+        <div className="mt-2 flex items-center gap-1 text-xs text-slate-500">
+          <MapPin className="h-3 w-3 text-emerald-600 shrink-0" /> {food.address}
+        </div>
+      )}
+
+      {/* Secret Verification OTP for Citizen */}
+      {food.status !== 'collected' && food.status !== 'rejected' && (
+        <div className="mt-3.5 rounded-xl border border-amber-300 bg-amber-50/90 p-3 shadow-xs">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-wider text-amber-900 flex items-center gap-1.5">
+                <KeyRound className="h-3.5 w-3.5 text-amber-700" />
+                Pickup Verification OTP
+              </p>
+              <p className="text-[11px] text-amber-800 mt-0.5 leading-tight">
+                Share this OTP with the NGO collector upon food handover
+              </p>
+            </div>
+            <div className="flex flex-col items-center shrink-0">
+              <span className="font-mono text-lg font-black tracking-widest text-amber-950 bg-white px-3 py-0.5 rounded-lg border border-amber-300 shadow-xs">
+                {otp}
+              </span>
+              <span className="text-[9px] uppercase tracking-wider text-amber-700 font-bold mt-0.5">Secret Code</span>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {food.status === 'collected' && (
+        <div className="mt-3 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 flex items-center gap-2 text-xs font-semibold text-emerald-800">
+          <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
+          <span>Food successfully collected & verified via Citizen OTP</span>
         </div>
       )}
     </div>
@@ -750,7 +803,7 @@ function ReportWasteModal({ open, onClose, userId, onCreated }: { open: boolean;
   }
 
   return (
-    <Modal open={open} onClose={onClose} title="Report Waste (कचरे की रिपोर्ट करें)">
+    <Modal open={open} onClose={onClose} title="Report Waste">
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"><AlertCircle className="h-4 w-4" />{error}</div>}
         <div>
@@ -771,7 +824,7 @@ function ReportWasteModal({ open, onClose, userId, onCreated }: { open: boolean;
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-600"></span>
               </span>
-              🛰️ Automatic Geo-Tag (स्वचालित जियो-टैग)
+              🛰️ Automatic GPS Geo-Tag
             </span>
             <button
               type="button"
@@ -810,7 +863,7 @@ function ReportWasteModal({ open, onClose, userId, onCreated }: { open: boolean;
           )}
         </div>
         <div>
-          <label className="label">Waste Photo (कचरे की फोटो)</label>
+          <label className="label">Waste Photo</label>
           {photoUrl ? (
             <div className="relative rounded-2xl overflow-hidden border-2 border-emerald-500/40 max-h-48 w-full bg-slate-900">
               <img src={photoUrl} alt="Waste preview" className="h-44 w-full object-cover" />
@@ -823,7 +876,7 @@ function ReportWasteModal({ open, onClose, userId, onCreated }: { open: boolean;
                 <X className="h-4 w-4" />
               </button>
               <div className="absolute bottom-2 left-2 rounded-md bg-emerald-600/90 px-2 py-0.5 text-[10px] font-bold text-white backdrop-blur-xs flex items-center gap-1">
-                <CheckCircle2 className="h-3 w-3" /> Photo Attached (Admin ko dikhegi)
+                <CheckCircle2 className="h-3 w-3" /> Photo Attached (Visible to Admin)
               </div>
             </div>
           ) : (
@@ -836,7 +889,7 @@ function ReportWasteModal({ open, onClose, userId, onCreated }: { open: boolean;
             </div>
           )}
         </div>
-        <button type="submit" disabled={loading} className="btn-primary w-full">{loading ? 'Submitting...' : 'Submit Report (Admin को भेजें)'}</button>
+        <button type="submit" disabled={loading} className="btn-primary w-full">{loading ? 'Submitting...' : 'Submit Report to Admin'}</button>
       </form>
     </Modal>
   );
@@ -943,7 +996,7 @@ function RecyclableModal({ open, onClose, userId, onCreated }: { open: boolean; 
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-600"></span>
               </span>
-              🛰️ Automatic Pickup Geo-Tag (स्वचालित पिकअप लोकेशन)
+              🛰️ Automatic Pickup GPS Location
             </span>
             <button
               type="button"
@@ -1041,12 +1094,14 @@ function SurplusFoodModal({ open, onClose, userId, onCreated }: { open: boolean;
     e.preventDefault();
     setLoading(true);
     setError(null);
+    const otp = generateOtp();
+    const fullDescription = `[OTP: ${otp}] ${description.trim()}`;
     const { error } = await supabase.from('surplus_food').insert({
       citizen_id: userId,
       food_type: foodType,
       quantity,
       preparation_time: prepTime ? new Date(prepTime).toISOString() : null,
-      description,
+      description: fullDescription,
       address: address || 'Auto-detected Citizen Location',
       latitude,
       longitude,
@@ -1060,7 +1115,7 @@ function SurplusFoodModal({ open, onClose, userId, onCreated }: { open: boolean;
   }
 
   return (
-    <Modal open={open} onClose={onClose} title="Donate Surplus Food (भोजन दान करें)">
+    <Modal open={open} onClose={onClose} title="Donate Surplus Food">
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"><AlertCircle className="h-4 w-4" />{error}</div>}
         <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
@@ -1090,7 +1145,7 @@ function SurplusFoodModal({ open, onClose, userId, onCreated }: { open: boolean;
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-600"></span>
               </span>
-              🛰️ Automatic Pickup Geo-Tag (स्वचालित पिकअप लोकेशन)
+              🛰️ Automatic Pickup GPS Location
             </span>
             <button
               type="button"
@@ -1132,7 +1187,7 @@ function SurplusFoodModal({ open, onClose, userId, onCreated }: { open: boolean;
           <input type="checkbox" checked={isFresh} onChange={(e) => setIsFresh(e.target.checked)} className="h-4 w-4 rounded border-slate-300 text-emerald-600" />
           I confirm this food is fresh and safe for consumption
         </label>
-        <button type="submit" disabled={loading} className="btn-primary w-full">{loading ? 'Submitting...' : 'List for Donation (Admin को सूचित करें)'}</button>
+        <button type="submit" disabled={loading} className="btn-primary w-full">{loading ? 'Submitting...' : 'List for Donation (Notify Admin)'}</button>
       </form>
     </Modal>
   );
