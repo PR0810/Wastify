@@ -93,6 +93,18 @@ export function AdminDashboard() {
     loadData();
   }
 
+  async function deleteReport(reportId: string) {
+    if (!window.confirm('Are you sure you want to permanently delete this resolved waste report? This action cannot be undone.')) return;
+    await supabase.from('waste_reports').delete().eq('id', reportId);
+    loadData();
+  }
+
+  async function deleteFood(foodId: string) {
+    if (!window.confirm('Are you sure you want to permanently delete this completed food donation record? This action cannot be undone.')) return;
+    await supabase.from('surplus_food').delete().eq('id', foodId);
+    loadData();
+  }
+
   if (!profile) return <Spinner label="Loading..." />;
 
   const pendingReports = reports.filter(r => r.status === 'pending').length;
@@ -215,7 +227,7 @@ export function AdminDashboard() {
                   <EmptyState icon={<Trash2 className="h-10 w-10" />} title="No reports" />
                 ) : (
                   <div className="grid gap-3 sm:grid-cols-2">
-                    {reports.slice(0, 6).map((report) => <AdminReportCard key={report.id} report={report} onAssign={(r) => { setAssignReport(r); setShowAssignModal(true); }} onUpdate={updateReportStatus} />)}
+                    {reports.slice(0, 6).map((report) => <AdminReportCard key={report.id} report={report} onAssign={(r) => { setAssignReport(r); setShowAssignModal(true); }} onUpdate={updateReportStatus} onDelete={deleteReport} />)}
                   </div>
                 )}
               </Section>
@@ -236,7 +248,7 @@ export function AdminDashboard() {
                 <EmptyState icon={<Trash2 className="h-10 w-10" />} title="No waste reports" />
               ) : (
                 <div className="grid gap-3 sm:grid-cols-2">
-                  {reports.map((report) => <AdminReportCard key={report.id} report={report} onAssign={(r) => { setAssignReport(r); setShowAssignModal(true); }} onUpdate={updateReportStatus} />)}
+                  {reports.map((report) => <AdminReportCard key={report.id} report={report} onAssign={(r) => { setAssignReport(r); setShowAssignModal(true); }} onUpdate={updateReportStatus} onDelete={deleteReport} />)}
                 </div>
               )}
             </div>
@@ -348,9 +360,18 @@ export function AdminDashboard() {
                             </>
                           )}
                           {food.status === 'collected' && (
-                            <span className="text-xs text-emerald-700 font-bold flex items-center gap-1.5 py-1">
-                              <CheckCircle2 className="h-4 w-4 text-emerald-600" /> Done — Food Handed Over to NGO with Citizen OTP Verification
-                            </span>
+                            <div className="flex items-center justify-between w-full">
+                              <span className="text-xs text-emerald-700 font-bold flex items-center gap-1.5 py-1">
+                                <CheckCircle2 className="h-4 w-4 text-emerald-600" /> Done — Food Handed Over to NGO with Citizen OTP Verification
+                              </span>
+                              <button
+                                onClick={() => deleteFood(food.id)}
+                                className="rounded-xl bg-red-50 border border-red-200 px-3 py-1.5 text-xs font-bold text-red-600 hover:bg-red-100 hover:border-red-300 transition-colors flex items-center gap-1.5 cursor-pointer shrink-0"
+                                title="Delete this completed food donation record"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" /> Delete
+                              </button>
+                            </div>
                           )}
                         </div>
                       </div>
@@ -516,7 +537,7 @@ export function AdminDashboard() {
 }
 
 // ============ Admin Report Card ============
-function AdminReportCard({ report, onAssign, onUpdate }: { report: WasteReport & { driver?: Profile; reporter?: Profile }; onAssign: (r: WasteReport) => void; onUpdate: (id: string, status: WasteReport['status']) => void }) {
+function AdminReportCard({ report, onAssign, onUpdate, onDelete }: { report: WasteReport & { driver?: Profile; reporter?: Profile }; onAssign: (r: WasteReport) => void; onUpdate: (id: string, status: WasteReport['status']) => void; onDelete: (id: string) => void }) {
   const reportType = REPORT_TYPES.find(t => t.id === report.type);
   const [showPhotoModal, setShowPhotoModal] = useState(false);
   const cleanDesc = cleanFoodDescription(report.description);
@@ -683,9 +704,18 @@ function AdminReportCard({ report, onAssign, onUpdate }: { report: WasteReport &
           </>
         )}
         {report.status === 'resolved' && (
-          <span className="text-xs text-emerald-700 font-bold flex items-center gap-1.5 py-1">
-            <CheckCircle2 className="h-4 w-4 text-emerald-600" /> Done — Collection Verified via Citizen OTP
-          </span>
+          <div className="flex items-center justify-between w-full">
+            <span className="text-xs text-emerald-700 font-bold flex items-center gap-1.5 py-1">
+              <CheckCircle2 className="h-4 w-4 text-emerald-600" /> Done — Collection Verified via Citizen OTP
+            </span>
+            <button
+              onClick={() => onDelete(report.id)}
+              className="rounded-xl bg-red-50 border border-red-200 px-3 py-1.5 text-xs font-bold text-red-600 hover:bg-red-100 hover:border-red-300 transition-colors flex items-center gap-1.5 cursor-pointer"
+              title="Delete this resolved report"
+            >
+              <Trash2 className="h-3.5 w-3.5" /> Delete
+            </button>
+          </div>
         )}
       </div>
     </div>
