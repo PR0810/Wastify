@@ -95,7 +95,7 @@ export function AdminDashboard() {
 
   async function deleteReport(reportId: string) {
     if (!window.confirm('Are you sure you want to permanently delete this resolved waste report? This action cannot be undone.')) return;
-    const { error } = await supabase.from('waste_reports').delete().eq('id', reportId);
+    const { error } = await supabase.rpc('delete_waste_report', { report_id: reportId });
     if (error) {
       alert('Failed to delete report: ' + error.message);
       console.error('Delete report error:', error);
@@ -106,7 +106,7 @@ export function AdminDashboard() {
 
   async function deleteFood(foodId: string) {
     if (!window.confirm('Are you sure you want to permanently delete this completed food donation record? This action cannot be undone.')) return;
-    const { error } = await supabase.from('surplus_food').delete().eq('id', foodId);
+    const { error } = await supabase.rpc('delete_surplus_food', { food_id: foodId });
     if (error) {
       alert('Failed to delete food record: ' + error.message);
       console.error('Delete food error:', error);
