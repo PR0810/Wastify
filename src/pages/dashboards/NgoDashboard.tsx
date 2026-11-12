@@ -83,7 +83,7 @@ export function NgoDashboard() {
       supabase.from('surplus_food').select('*, citizen:profiles!surplus_food_citizen_id_fkey(*)').order('created_at', { ascending: false }),
     ]);
     setRecyclables((recycRes.data as (RecyclableListing & { citizen: Profile })[]) ?? []);
-    setFoodListings((foodRes.data as (SurplusFood & { citizen: Profile })[]) ?? []);
+    setFoodListings(((foodRes.data as (SurplusFood & { citizen: Profile })[]) ?? []).filter(f => f.description !== '[ADMIN_DELETED]'));
     setLoading(false);
   }, []);
 

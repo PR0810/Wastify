@@ -96,7 +96,7 @@ export function DriverDashboard() {
         .maybeSingle(),
     ]);
     setAssignments((assignRes.data as (DriverAssignment & { area: Area })[]) ?? []);
-    setAssignedReports((reportsRes.data as (WasteReport & { reporter?: Profile })[]) ?? []);
+    setAssignedReports(((reportsRes.data as (WasteReport & { reporter?: Profile })[]) ?? []).filter(r => r.description !== '[ADMIN_DELETED]'));
     setActiveTrip((tripRes.data as CollectionTrip) ?? null);
     setCompletedTrips((completedRes.data as CollectionTrip[]) ?? []);
     setVehicleLoc((locRes.data as VehicleLocation) ?? null);

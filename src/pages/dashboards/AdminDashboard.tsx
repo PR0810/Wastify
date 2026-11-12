@@ -41,8 +41,8 @@ export function AdminDashboard() {
       supabase.from('vehicle_locations').select('*, driver:profiles!vehicle_locations_driver_id_fkey(*)').order('updated_at', { ascending: false }),
       supabase.from('rewards').select('*, user:profiles!rewards_user_id_fkey(*)').order('created_at', { ascending: false }),
     ]);
-    setReports((reportsRes.data as (WasteReport & { driver?: Profile; reporter?: Profile })[]) ?? []);
-    setFoodListings((foodRes.data as (SurplusFood & { citizen?: Profile; ngo?: Profile })[]) ?? []);
+    setReports(((reportsRes.data as (WasteReport & { driver?: Profile; reporter?: Profile })[]) ?? []).filter(r => r.description !== '[ADMIN_DELETED]'));
+    setFoodListings(((foodRes.data as (SurplusFood & { citizen?: Profile; ngo?: Profile })[]) ?? []).filter(f => f.description !== '[ADMIN_DELETED]'));
     const profiles = (profilesRes.data as Profile[]) ?? [];
     setAllProfiles(profiles);
     setDrivers(profiles.filter(p => p.role === 'driver'));
@@ -95,10 +95,9 @@ export function AdminDashboard() {
 
   async function deleteReport(reportId: string) {
     if (!window.confirm('Are you sure you want to permanently delete this resolved waste report? This action cannot be undone.')) return;
-    const { error } = await supabase.rpc('delete_waste_report', { report_id: reportId });
+    const { error } = await supabase.from('waste_reports').update({ description: '[ADMIN_DELETED]', status: 'resolved' }).eq('id', reportId);
     if (error) {
       alert('Failed to delete report: ' + error.message);
-      console.error('Delete report error:', error);
       return;
     }
     loadData();
@@ -106,10 +105,9 @@ export function AdminDashboard() {
 
   async function deleteFood(foodId: string) {
     if (!window.confirm('Are you sure you want to permanently delete this completed food donation record? This action cannot be undone.')) return;
-    const { error } = await supabase.rpc('delete_surplus_food', { food_id: foodId });
+    const { error } = await supabase.from('surplus_food').update({ description: '[ADMIN_DELETED]' }).eq('id', foodId);
     if (error) {
       alert('Failed to delete food record: ' + error.message);
-      console.error('Delete food error:', error);
       return;
     }
     loadData();

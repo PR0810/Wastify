@@ -46,9 +46,9 @@ export function CitizenDashboard() {
       supabase.from('certificates').select('*').eq('user_id', profile.id).order('issued_at', { ascending: false }),
       supabase.from('vehicle_locations').select('*, driver:profiles!vehicle_locations_driver_id_fkey(*)').order('updated_at', { ascending: false }),
     ]);
-    setReports((reportsRes.data as WasteReport[]) ?? []);
+    setReports(((reportsRes.data as WasteReport[]) ?? []).filter(r => r.description !== '[ADMIN_DELETED]'));
     setRecyclables((recycRes.data as RecyclableListing[]) ?? []);
-    setFoodListings((foodRes.data as (SurplusFood & { ngo?: Profile })[]) ?? []);
+    setFoodListings(((foodRes.data as (SurplusFood & { ngo?: Profile })[]) ?? []).filter(f => f.description !== '[ADMIN_DELETED]'));
     setCertificates((certRes.data as Certificate[]) ?? []);
     setVehicles((vehiclesRes.data as (VehicleLocation & { driver?: Profile })[]) ?? []);
     setLoading(false);
