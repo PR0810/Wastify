@@ -95,13 +95,23 @@ export function AdminDashboard() {
 
   async function deleteReport(reportId: string) {
     if (!window.confirm('Are you sure you want to permanently delete this resolved waste report? This action cannot be undone.')) return;
-    await supabase.from('waste_reports').delete().eq('id', reportId);
+    const { error } = await supabase.from('waste_reports').delete().eq('id', reportId);
+    if (error) {
+      alert('Failed to delete report: ' + error.message);
+      console.error('Delete report error:', error);
+      return;
+    }
     loadData();
   }
 
   async function deleteFood(foodId: string) {
     if (!window.confirm('Are you sure you want to permanently delete this completed food donation record? This action cannot be undone.')) return;
-    await supabase.from('surplus_food').delete().eq('id', foodId);
+    const { error } = await supabase.from('surplus_food').delete().eq('id', foodId);
+    if (error) {
+      alert('Failed to delete food record: ' + error.message);
+      console.error('Delete food error:', error);
+      return;
+    }
     loadData();
   }
 
